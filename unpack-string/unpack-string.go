@@ -1,6 +1,6 @@
 /*
  * HomeWork-2: Unpack String
- * Created on 05.09.19 22:04
+ * Created on 07.09.19 12:04
  * Copyright (c) 2019 - Eugene Klimov
  */
 
@@ -13,27 +13,47 @@ import (
 	"unicode"
 )
 
-// RunLengthDecode returns RLE decoded.
-func RunLengthDecode(input string) string {
-	result := strings.Builder{}
+// UnpackString returns string unpacked.
+func UnpackString(input string) string {
+
+	result := ""
 	digits := ""
+	char := ""
+	esc := false
 
-	for _, r := range input {
-		if unicode.IsDigit(r) {
+	for i, r := range input {
+
+		if r == 0x5c && !esc { // 0x5c = `\`
+			esc = true
+			continue
+		}
+
+		if unicode.IsDigit(r) && !esc {
 			digits += string(r)
-			continue
+			if i != len(input)-1 { // last char is number
+				continue
+			}
 		}
 
-		digit, err := strconv.Atoi(digits)
-		if err != nil {
-			result.WriteRune(r)
-			continue
+		digit, _ := strconv.Atoi(digits) // no need to check error - IsDigit "checks" it
+
+		if digit == 0 && len(digits) > 0 { //delete char if zero repeated
+			result = result[:len(result)-1]
+			char = ""
 		}
 
-		result.WriteString(strings.Repeat(string(r), digit))
+		if digit > 0 { // flush series
+			result += strings.Repeat(char, digit-1) // one char already appended
+			digits = ""
+			char = ""
+		}
 
-		digits = ""
+		if unicode.IsLetter(r) || unicode.IsSpace(r) || esc {
+			char = string(r)
+			result += char
+			esc = false
+		}
 	}
 
-	return result.String()
+	return result
 }
