@@ -8,7 +8,6 @@
 package unpackstring
 
 import (
-	"strconv"
 	"strings"
 	"unicode"
 )
@@ -16,10 +15,11 @@ import (
 // UnpackString returns string unpacked.
 func UnpackString(input string) string {
 
-	result := ""
 	digits := ""
 	char := ""
 	esc := false
+
+	result := strings.Builder{}
 
 	for i, r := range input {
 
@@ -35,25 +35,29 @@ func UnpackString(input string) string {
 			}
 		}
 
-		digit, _ := strconv.Atoi(digits) // no need to check error - IsDigit "checks" it
+		digit := 0
+		for _, r := range digits { // fast convert string to int
+			digit = digit*10 + int(r-'0')
+		}
 
-		if digit == 0 && len(digits) > 0 { //delete char if zero repeated
-			result = result[:len(result)-1]
-			char = ""
+		if digit == 0 && len(digits) > 0 { //delete last char if zero repeated
+			s := strings.TrimRight(result.String(), char)
+			result.Reset()
+			result.WriteString(s)
 		}
 
 		if digit > 0 { // flush series
-			result += strings.Repeat(char, digit-1) // one char already appended
+			result.WriteString(strings.Repeat(char, digit-1)) // one char already appended
 			digits = ""
 			char = ""
 		}
 
 		if unicode.IsLetter(r) || unicode.IsSpace(r) || esc {
 			char = string(r)
-			result += char
+			result.WriteRune(r)
 			esc = false
 		}
 	}
 
-	return result
+	return result.String()
 }
