@@ -4,7 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package frequency_analysis
+package frequency
 
 import (
 	"reflect"
@@ -118,7 +118,7 @@ At night the boy thinks about his father and his mother and he thinks about scho
 func TestWordCount(t *testing.T) {
 	for _, tt := range testCases {
 		expected := tt.output
-		actual := WordCount(tt.input, MaxWords)
+		actual := CountFrequency(tt.input, MaxWords)
 		if !reflect.DeepEqual(actual, expected) {
 			t.Errorf("%s\n\tExpected: %v\n\tGot: %v", tt.description, expected, actual)
 			continue
@@ -130,7 +130,7 @@ func TestWordCount(t *testing.T) {
 func BenchmarkWordCount(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tt := range testCases {
-			WordCount(tt.input, MaxWords)
+			CountFrequency(tt.input, MaxWords)
 		}
 	}
 }

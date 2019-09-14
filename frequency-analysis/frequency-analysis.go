@@ -4,8 +4,8 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-// Package frequency_analysis implements counting most popular words.
-package frequency_analysis
+// Package frequency implements counting most popular words.
+package frequency
 
 import (
 	"regexp"
@@ -26,7 +26,7 @@ type pairs struct {
 var reg = regexp.MustCompile("[a-z0-9а-яё]+('[a-z0-9а-яё])*")
 
 // WordCount returns the frequencies of words in a string for most popular 'num' words.
-func WordCount(s string, num int) Frequency {
+func CountFrequency(s string, num int) Frequency {
 
 	result := Frequency{}
 	s = strings.ToLower(s)
@@ -45,9 +45,12 @@ func WordCount(s string, num int) Frequency {
 	}
 
 	// sort map if result > num
-	sortSlice := make([]pairs, 0, len(result))
+	sortSlice := make([]pairs, len(result))
+	i := 0
 	for k, v := range result {
-		sortSlice = append(sortSlice, pairs{k, v})
+		//sortSlice = append(sortSlice, pairs{k, v}) // worse benchmark
+		sortSlice[i] = pairs{k, v}
+		i++
 	}
 
 	// sort by count then by word
