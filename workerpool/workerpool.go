@@ -3,11 +3,13 @@
  * Created on 26.09.19 22:11
  * Copyright (c) 2019 - Eugene Klimov
  */
+
 // Package workerpool implements N-workers with stopping after X-errors.
 //package workerpool
 package main
 
 import (
+	"errors"
 	"fmt"
 	"golang.org/x/sync/errgroup"
 	"log"
@@ -16,6 +18,7 @@ import (
 	"time"
 )
 
+// Constants.
 const (
 	JOBTIMEOUT = 8   // in seconds
 	JOBSNUM    = 100 // number of all jobs
@@ -23,6 +26,7 @@ const (
 	MAXERRORS  = 15  // max errors from all jobs
 )
 
+// Job is type for jobs
 type Job func() error
 
 // WorkerPool is the main worker pool manager.
@@ -56,7 +60,7 @@ func WorkerPool(jobs []Job, maxJobs int, maxErrors int) error {
 				case <-abortChan:
 					fmt.Printf("\tWorker '%d' aborted\n", i)
 					//return err // what scenario for error?
-					return nil
+					return errors.New("workers aborted")
 				default:
 					break
 				}
@@ -68,7 +72,6 @@ func WorkerPool(jobs []Job, maxJobs int, maxErrors int) error {
 				fmt.Printf("\tWorker '%d' finished\n", i)
 			}
 			fmt.Printf("\tWorker '%d' exited\n", i)
-			//return err // what scenario for error?
 			return nil
 		})
 	}
@@ -112,7 +115,7 @@ func main() {
 
 	// start
 	if err := WorkerPool(jobs, MAXJOBS, MAXERRORS); err != nil {
-		log.Fatalln("One or more jobs returned with errors!")
+		log.Fatalln(err)
 	}
 	fmt.Println("All jobs returned successfully!")
 }
