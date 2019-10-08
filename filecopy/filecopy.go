@@ -28,6 +28,7 @@ func init() {
 		flag.PrintDefaults()
 	}
 
+	// set flags
 	flag.StringVar(&fromFile, "from", "", "file name to read from")
 	flag.StringVar(&toFile, "to", "", "file name to write to")
 	flag.Int64Var(&offset, "offset", 0, "offset in input file, bytes")
@@ -37,6 +38,7 @@ func init() {
 func main() {
 	flag.Parse()
 
+	// no blank path
 	if fromFile == "" || toFile == "" {
 		flag.Usage()
 		os.Exit(2)
@@ -70,6 +72,7 @@ func CopyFileSeekLimit(w io.Writer, dst, src string, offset, limit int64) (int64
 		return 0, fmt.Errorf("can't set seeker position: %s", err)
 	}
 
+	// set limit = file size if it = 0
 	if limit == 0 {
 		stat, err := from.Stat()
 		if err != nil {
@@ -78,11 +81,13 @@ func CopyFileSeekLimit(w io.Writer, dst, src string, offset, limit int64) (int64
 		limit = stat.Size()
 	}
 
+	// set buffer 100 chunks for simple percentage
 	bufSize := limit / 100
 	if bufSize == 0 {
 		bufSize = 1
 	}
 
+	// set start position
 	lr := io.LimitReader(from, limit)
 	buf := make([]byte, bufSize)
 	var count int64
@@ -99,6 +104,7 @@ func CopyFileSeekLimit(w io.Writer, dst, src string, offset, limit int64) (int64
 			return 0, fmt.Errorf("can't write to file: %s", err)
 		}
 		count += int64(n)
+		// uncomment for small file for visible progress
 		//time.Sleep(time.Millisecond * 100)
 		percent := count * 100 / limit
 		if _, err := fmt.Fprintf(w, "Copied: %d%%\r", percent); err != nil {

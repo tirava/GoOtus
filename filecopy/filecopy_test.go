@@ -80,6 +80,8 @@ var testCases = []struct {
 func TestCopyFileSeekLimit(t *testing.T) {
 	for _, test := range testCases {
 		actualBytes, err := CopyFileSeekLimit(test.writer, test.toFile, test.fromFile, test.offset, test.limit)
+
+		// check if returned errors but must not be
 		if err != nil {
 			if !test.expError {
 				t.Errorf("FAIL %s - CopyFileSeekLimit() returns error = '%s', expected = 'no error'.",
@@ -89,12 +91,15 @@ func TestCopyFileSeekLimit(t *testing.T) {
 			}
 			continue
 		}
+
+		// check if no returned errors but must be
 		if test.expError {
 			t.Errorf("FAIL %s - CopyFileSeekLimit() returns = 'no error', expected error = '%s'.",
 				test.description, err)
 			continue
 		}
 
+		// check test file exists
 		from, err := os.Open(test.fromFile)
 		if err != nil {
 			t.Fatalf("can't open test file: %s", err)
@@ -104,6 +109,7 @@ func TestCopyFileSeekLimit(t *testing.T) {
 			t.Fatalf("can't get file stat: %s", err)
 		}
 
+		// check if length is equal for expected and output
 		var expectedBytes int64
 		if test.limit == 0 {
 			expectedBytes = stat.Size()
@@ -120,6 +126,7 @@ func TestCopyFileSeekLimit(t *testing.T) {
 			continue
 		}
 
+		// check output test string and example is equal
 		if test.checkStr != "" {
 			to, err := os.Open(test.toFile)
 			if err != nil {
