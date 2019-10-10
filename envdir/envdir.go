@@ -6,8 +6,26 @@
 
 package main
 
+import (
+	"fmt"
+	"log"
+	"os/exec"
+)
+
 // EnvDirExec runs program with env from given directory
 func EnvDirExec(pathProgram, pathEnvDir string) error {
+
+	cmd := exec.Command(pathProgram)
+
+	// get env from files in dir
+	cmd.Env = []string{"QQQ=qqq", "VVV=vvv"}
+
+	out, err := cmd.Output()
+	if err != nil {
+		log.Fatalln(err)
+	} else {
+		fmt.Printf("Get output:\n%s", out)
+	}
 
 	return nil
 }

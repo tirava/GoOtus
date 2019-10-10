@@ -34,8 +34,13 @@ func init() {
 func main() {
 	flag.Parse()
 
-	// no blank path
-	if execFile == "" || envDir == "" {
+	// run as env client if no params
+	if execFile == "" && envDir == "" {
+		for _, v := range os.Environ() {
+			fmt.Println(v)
+		}
+		os.Exit(0)
+	} else if execFile == "" || envDir == "" { // no blank path if params exist
 		flag.Usage()
 		os.Exit(2)
 	}
@@ -44,5 +49,6 @@ func main() {
 	if err != nil {
 		log.Fatalln("error execution:", err)
 	}
-	//fmt.Printf("\nCopied %d bytes from offset %d\n", n, offset)
 }
+
+// ./envdir -exec /full/path/to/envdir -env /full/path/to/dir
