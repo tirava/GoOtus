@@ -14,21 +14,25 @@ import (
 	"path/filepath"
 )
 
-var execFile, envDir string
+var (
+	execFile, envDir string
+	inheritEnv       bool
+)
 
 func init() {
 
 	// set the custom Usage function
 	fileName := filepath.Base(os.Args[0])
 	flag.Usage = func() {
-		fmt.Printf("usage: %s -exec <filename> -env <envdir>\n", fileName)
-		fmt.Printf("example: %s -exec /path/to/file -env /path/to/dir\n", fileName)
+		fmt.Printf("usage: %s -env <envdir> -exec <filename> -inherit\n", fileName)
+		fmt.Printf("example: %s -env /path/to/dir -exec /path/to/file\n", fileName)
 		flag.PrintDefaults()
 	}
 
 	// set flags
 	flag.StringVar(&execFile, "exec", "", "file name to execution")
 	flag.StringVar(&envDir, "env", "", "directory where env vars are")
+	flag.BoolVar(&inheritEnv, "inherit", false, "inherit system env variables")
 }
 
 func main() {
@@ -47,8 +51,10 @@ func main() {
 
 	err := EnvDirExec(execFile, envDir)
 	if err != nil {
-		log.Fatalln("error execution:", err)
+		log.Fatalln(err)
 	}
+	//fmt.Println(os.Args)
 }
 
-// ./envdir -exec /full/path/to/envdir -env /full/path/to/dir
+// ./envdir -env /full/path/to/dir -exec /full/path/to/envdir
+// ./envdir -env /full/path/to/dir -exec env -inherit
