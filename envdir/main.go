@@ -49,12 +49,16 @@ func main() {
 		os.Exit(2)
 	}
 
-	err := EnvDirExec(execFile, envDir)
+	err := EnvDirExec(os.Stdout, envDir, execFile, inheritEnv)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	//fmt.Println(os.Args)
 }
 
-// ./envdir -env /full/path/to/dir -exec /full/path/to/envdir
-// ./envdir -env /full/path/to/dir -exec env -inherit
+// How to test:
+// go build .
+// go test -v
+
+// How to use:
+// ./envdir -env /full/path/to/dir -exec /full/path/to/envdir [-inherit]
+// ./envdir -env /full/path/to/dir -exec env [-inherit]

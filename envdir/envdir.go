@@ -9,35 +9,30 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 )
 
 // EnvDirExec runs program with env from given directory
-func EnvDirExec(pathProgram, pathEnvDir string) error {
+func EnvDirExec(out io.Writer, pathEnvDir, pathProgram string, inheritSysEnv bool) error {
 
 	cmd := exec.Command(pathProgram)
+	cmd.Stdout = out
 
 	// replace system env with files env
 	ef, err := getEnvFromFiles(pathEnvDir)
 	if err != nil {
 		return err
 	}
-	cmd.Env = replaceSystemEnvOnFilesEnv(os.Environ(), ef)
 
-	// run and print env
-	out, err := cmd.Output()
-	if err != nil {
-		return err
-	} else {
-		fmt.Printf("%s", out)
-	}
+	cmd.Env = replaceSystemEnvOnFilesEnv(os.Environ(), ef, inheritSysEnv)
 
-	return nil
+	return cmd.Run()
 }
 
 func getEnvFromFiles(envDir string) ([]string, error) {
@@ -53,11 +48,11 @@ func getEnvFromFiles(envDir string) ([]string, error) {
 		if file.IsDir() {
 			continue
 		}
-		env, err := getLineFromFile(path.Join(envDir, file.Name()))
+		env, err := getLineFromFile(filepath.Join(envDir, file.Name()))
 		if err != nil {
 			return nil, err
 		}
-		envs = append(envs, file.Name()+"="+env)
+		envs = append(envs, fmt.Sprintf("%s=%s", file.Name(), env))
 	}
 
 	return envs, nil
@@ -75,8 +70,10 @@ func getLineFromFile(fileName string) (string, error) {
 	return scanner.Text(), nil
 }
 
-func replaceSystemEnvOnFilesEnv(sysEnv, filesEnv []string) []string {
-	if !inheritEnv {
+func replaceSystemEnvOnFilesEnv(sysEnv, filesEnv []string, inheritSysEnv bool) []string {
+
+	// return only dir envs
+	if !inheritSysEnv {
 		return filesEnv
 	}
 
@@ -95,13 +92,13 @@ func replaceSystemEnvOnFilesEnv(sysEnv, filesEnv []string) []string {
 		hash[env[0]] = env[1]
 	}
 
-	// hash -> slice
+	// hash intercept -> slice
 	for key, val := range hash {
 		env := fmt.Sprintf("%s=%s", key, val)
 		inter = append(inter, env)
 	}
 
-	sort.Strings(inter)
+	sort.Strings(inter) // for best view
 
 	return inter
 }
