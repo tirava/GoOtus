@@ -9,9 +9,9 @@ package main
 import (
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -19,6 +19,29 @@ import (
 
 // short name of the test program to run with params
 const EXECNAME = "envdir"
+
+var testCasesErrors = []struct {
+	envDir      string
+	envVars     []string
+	fileAttr    os.FileMode
+	inherit     bool
+	description string
+}{
+	{
+		"fakeDir",
+		[]string{},
+		0,
+		false,
+		"read fake directory",
+	},
+	{
+		"realDir",
+		[]string{"222=333"},
+		0200,
+		false,
+		"real directory but fail read envs (*nix OS only)",
+	},
+}
 
 var testCases = []struct {
 	envDir       string
@@ -55,6 +78,42 @@ var testCases = []struct {
 		true,
 		"inherit system env",
 	},
+	{
+		"emptyDir",
+		[]string{"EEE"},
+		[]string{},
+		false,
+		"empty dir instead env file",
+	},
+}
+
+func TestEnvDirExecErrors(t *testing.T) {
+
+	execFile := getExecFile()
+
+	for _, test := range testCasesErrors {
+
+		// skip *nix specific tests
+		if test.fileAttr != 0 && runtime.GOOS == "windows" {
+			t.Logf("SKIPPED TestEnvDirExecErrors - %s", test.description)
+			continue
+		}
+
+		cleanEnvDir(test.envDir)
+		generateEnvDir(test.envDir, test.envVars, test.fileAttr)
+
+		out := new(strings.Builder)
+		err := EnvDirExec(out, test.envDir, execFile, test.inherit)
+		if err == nil {
+			t.Errorf("FAIL '%s' - TestEnvDirExecErrors() returns 'no error', expected error.",
+				test.description)
+			continue
+		}
+		t.Logf("PASS TestEnvDirExecErrors - %s", test.description)
+
+		// make clean if not need results
+		cleanEnvDir(test.envDir)
+	}
 }
 
 func TestEnvDirExec(t *testing.T) {
@@ -79,10 +138,11 @@ func TestEnvDirExec(t *testing.T) {
 			test.expectedVars = append(test.expectedVars, os.Environ()...)
 			sort.Strings(test.expectedVars)
 		} else {
-			// uncomment for windows 7 with no inherit flag
-			//if runtime.GOOS == "windows" {
-			// result = result[:len(result)-1] // delete nested SYSTEMROOT
-			//}
+			if runtime.GOOS == "windows" && len(result) > 0 {
+				if strings.HasPrefix(result[len(result)-1], "SYSTEMROOT=") {
+					result = result[:len(result)-1] // delete nested SYSTEMROOT in Windows 7
+				}
+			}
 		}
 		if !reflect.DeepEqual(result, test.expectedVars) {
 			t.Errorf("FAIL '%s' - TestEnvDirExec() - result:\n%s\nexpected:\n%s\n",
@@ -105,14 +165,24 @@ func getExecFile() string {
 	return filepath.Join(dir, EXECNAME)
 }
 
-func generateEnvDir(envDir string, envVars []string) {
+func generateEnvDir(envDir string, envVars []string, fileAttr ...os.FileMode) {
+	if envDir == "fakeDir" {
+		return
+	}
 	err := os.Mkdir(envDir, 0777)
 	if err != nil {
 		log.Fatalln("Can't create test directory!", err)
 	}
 	for _, ev := range envVars {
 		fileName := strings.SplitN(ev, "=", 2)
-		file, err := os.Create(path.Join(envDir, fileName[0]))
+		if len(fileName) == 1 { // nested directory
+			err := os.MkdirAll(filepath.Join(envDir, fileName[0]), 0777)
+			if err != nil {
+				log.Fatalln("Can't create empty directory!", err)
+			}
+			continue
+		}
+		file, err := os.Create(filepath.Join(envDir, fileName[0]))
 		if err != nil {
 			log.Fatalln("Can't create test file!", err)
 		}
@@ -123,6 +193,12 @@ func generateEnvDir(envDir string, envVars []string) {
 		err = file.Close()
 		if err != nil {
 			log.Fatalln("Can't close test file!", err)
+		}
+		if len(fileAttr) > 0 {
+			err := os.Chmod(filepath.Join(envDir, fileName[0]), fileAttr[0])
+			if err != nil {
+				log.Fatalln("Can't set file mode!", err)
+			}
 		}
 	}
 }
