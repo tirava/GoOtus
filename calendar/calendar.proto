@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package main;
+
+import "google/protobuf/timestamp.proto";
+
+message Event {
+    uint32 id = 1;
+    google.protobuf.Timestamp created_at = 2;
+    google.protobuf.Timestamp updated_at = 3;
+    google.protobuf.Timestamp deleted_at = 4;
+    google.protobuf.Timestamp occurs_at = 5;
+    string subject = 6;
+    string body = 7;
+    message alertBefore {
+        enum BeforeType {
+            DAYS = 0;
+            HOURS = 1;
+            MINUTES = 2;
+        }
+        BeforeType type = 1;
+        uint32 before = 2;
+    }
+    uint32 duration = 8;
+    string location = 9;
+    User user = 10;
+}
+
+message User {
+    uint32 id = 1;
+    string name = 2;
+    repeated string email = 3;
+    repeated string mobile = 4;
+    google.protobuf.Timestamp birthday = 5;
+}
