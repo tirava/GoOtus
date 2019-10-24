@@ -11,38 +11,50 @@ import (
 	"sync"
 )
 
-// interface for any storage
-
 var globID uint32
 
-type dbEvents struct {
+type db interface {
+	newDB() interface{}
+	addEvent(event *Event) error
+	editEvent(event *Event) error
+	delEvent(id uint32) error
+}
+
+func newDB(d db) interface{} {
+	return d.newDB()
+}
+
+type dbMapEvents struct {
 	sync.RWMutex
 	events map[uint32]*Event
 }
 
-func newDBEvents() *dbEvents {
-	return &dbEvents{
+func (db *dbMapEvents) newDB() interface{} {
+	return &dbMapEvents{
 		events: make(map[uint32]*Event),
 	}
 }
 
-func (db *dbEvents) addEvent(event *Event) {
+func (db *dbMapEvents) addEvent(event *Event) error {
 	db.Lock()
 	defer db.Unlock()
 	db.events[event.Id] = event
+	return nil
 }
 
-func (db *dbEvents) delEvent(event *Event) {
+func (db *dbMapEvents) delEvent(id uint32) error {
 	db.Lock()
 	defer db.Unlock()
-	db.events[event.Id].DeletedAt = ptypes.TimestampNow()
+	db.events[id].DeletedAt = ptypes.TimestampNow()
+	return nil
 }
 
-func (db *dbEvents) editEvent(event *Event) {
+func (db *dbMapEvents) editEvent(event *Event) error {
 	db.Lock()
 	defer db.Unlock()
 	event.UpdatedAt = ptypes.TimestampNow()
 	db.events[event.Id] = event
+	return nil
 }
 
 func newEvent() *Event {

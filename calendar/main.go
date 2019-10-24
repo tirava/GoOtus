@@ -16,7 +16,8 @@ import (
 
 func main() {
 
-	events := newDBEvents()
+	events := newDB(&dbMapEvents{}).(*dbMapEvents)
+
 	event1 := newEvent()
 
 	out, err := proto.Marshal(event1)
@@ -30,22 +31,22 @@ func main() {
 	}
 
 	event1.Location = "qqqqqqqqqqqqqqqqqqqqqq"
-	events.addEvent(event1)
+	_ = events.addEvent(event1)
 
 	event2 := newEvent()
 	event2.Subject = "222222222222222222222"
 	event2.Body = "3333333333333333333"
-	events.addEvent(event2)
+	_ = events.addEvent(event2)
 
-	fmt.Println(events.events[1])
-	fmt.Println(events.events[2])
+	fmt.Println(events.events)
+	fmt.Println("--------------------------")
 
-	events.delEvent(event1)
-	fmt.Println(events.events[1])
-	fmt.Println(events.events[2])
+	_ = events.delEvent(event1.Id)
+	fmt.Println(events.events)
+	fmt.Println("--------------------------")
 
 	event2.User.Email = []string{"zzzzzzzzzzzzzzzz", "xxxxxxxxxxxxxxxxx"}
-	events.editEvent(event2)
-	fmt.Println(events.events[1])
-	fmt.Println(events.events[2])
+	_ = events.editEvent(event2)
+	fmt.Println(events.events)
+	fmt.Println("--------------------------")
 }
