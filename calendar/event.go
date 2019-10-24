@@ -1,61 +1,14 @@
 /*
  * HomeWork-8: Calendar protobuf preparation
- * Created on 23.10.2019 19:36
+ * Created on 24.10.2019 19:11
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package main
+package calendar
 
-import (
-	"github.com/golang/protobuf/ptypes"
-	"sync"
-)
+import "github.com/golang/protobuf/ptypes"
 
 var globID uint32
-
-type db interface {
-	newDB() interface{}
-	addEvent(event *Event) error
-	editEvent(event *Event) error
-	delEvent(id uint32) error
-}
-
-func newDB(d db) interface{} {
-	return d.newDB()
-}
-
-type dbMapEvents struct {
-	sync.RWMutex
-	events map[uint32]*Event
-}
-
-func (db *dbMapEvents) newDB() interface{} {
-	return &dbMapEvents{
-		events: make(map[uint32]*Event),
-	}
-}
-
-func (db *dbMapEvents) addEvent(event *Event) error {
-	db.Lock()
-	defer db.Unlock()
-	db.events[event.Id] = event
-	return nil
-}
-
-func (db *dbMapEvents) delEvent(id uint32) error {
-	db.Lock()
-	defer db.Unlock()
-	db.events[id].DeletedAt = ptypes.TimestampNow()
-	return nil
-}
-
-func (db *dbMapEvents) editEvent(event *Event) error {
-	db.Lock()
-	defer db.Unlock()
-	event.UpdatedAt = ptypes.TimestampNow()
-	db.events[event.Id] = event
-	return nil
-}
 
 func newEvent() *Event {
 	globID++

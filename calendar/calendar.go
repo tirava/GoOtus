@@ -1,44 +1,50 @@
 /*
  * HomeWork-8: Calendar protobuf preparation
- * Created on 23.10.2019 19:36
+ * Created on 22.10.2019 22:44
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package main
+//go:generate protoc --go_out=. calendar.proto
 
-import (
-	"github.com/golang/protobuf/ptypes"
-)
+// Package calendar implements simple event calendar via protobuf.
+package calendar
 
-// interface for any storage
-// mutex for edit
-
-//type dbEvents struct {
-//	sync.Mutex
-//	Events
+//func main() {
+//
+//	events := newDB(&dbMapEvents{}).(*dbMapEvents)
+//
+//	event1 := newEvent()
+//
+//	out, err := proto.Marshal(event1)
+//	if err != nil {
+//		log.Fatalln("Failed to encode event:", err)
+//	}
+//
+//	event1 = &Event{}
+//	if err := proto.Unmarshal(out, event1); err != nil {
+//		log.Fatalln("Failed to parse event:", err)
+//	}
+//
+//	event1.Location = "qqqqqqqqqqqqqqqqqqqqqq"
+//	_ = events.addEvent(event1)
+//
+//	event2 := newEvent()
+//	event2.Subject = "222222222222222222222"
+//	event2.Body = "3333333333333333333"
+//	_ = events.addEvent(event2)
+//
+//	fmt.Println(events.getAllEvents())
+//	fmt.Println("--------------------------")
+//
+//	_ = events.delEvent(event1.Id)
+//	fmt.Println(events.getAllEvents())
+//	fmt.Println("--------------------------")
+//
+//	event2.User.Email = []string{"zzzzzzzzzzzzzzzz", "xxxxxxxxxxxxxxxxx"}
+//	_ = events.editEvent(event2)
+//	fmt.Println(events.getAllEvents())
+//	fmt.Println("--------------------------")
+//
+//	fmt.Println(events.getEvent(2))
+//	fmt.Println("--------------------------")
 //}
-
-func (m *Events) addEvent(event *Event) {
-	m.Events = append(m.Events, event)
-}
-
-func newEvent() *Event {
-	return &Event{
-		Id:        1,
-		CreatedAt: ptypes.TimestampNow(),
-		UpdatedAt: ptypes.TimestampNow(),
-		DeletedAt: nil,
-		OccursAt:  nil,
-		Subject:   "111",
-		Body:      "222",
-		Duration:  333,
-		Location:  "Moscow",
-		User: &User{
-			Id:       1,
-			Name:     "qqq",
-			Email:    []string{"www"},
-			Mobile:   []string{"+777"},
-			Birthday: ptypes.TimestampNow(),
-		},
-	}
-}
