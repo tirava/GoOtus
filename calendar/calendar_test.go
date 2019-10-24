@@ -62,6 +62,18 @@ func TestAddEvent(t *testing.T) {
 	}
 }
 
+func TestGetEvent(t *testing.T) {
+	events, _ := createNewDB()
+	e1 := *newEvent()
+	_ = events.addEvent(e1)
+	e2 := *newEvent()
+	_ = events.addEvent(e2)
+	e3, _ := events.getEvent(e1.Id)
+	if !reflect.DeepEqual(e1, e3) {
+		t.Errorf("Event1 not equal Event3 after get from DB:\n%#v\n%#v", e1, e3)
+	}
+}
+
 func TestEditEvent(t *testing.T) {
 	events, _ := createNewDB()
 	e1 := *newEvent()
@@ -97,19 +109,24 @@ func TestDelEvent(t *testing.T) {
 	}
 }
 
-func TestGetEvent(t *testing.T) {
-
-}
-
 func TestGetAllEvents(t *testing.T) {
-
+	events, _ := createNewDB()
+	e1 := *newEvent()
+	_ = events.addEvent(e1)
+	e2 := *newEvent()
+	_ = events.addEvent(e2)
+	e3 := events.getAllEvents()
+	l := len(e3)
+	if l != 2 {
+		t.Errorf("After getting all events length slice != 2, actual length = %d", l)
+		return
+	}
 }
 
 func createNewDB() (*dbMapEvents, error) {
 	events := newDB(&dbMapEvents{})
-	if db, ok := events.(*dbMapEvents); !ok {
+	if _, ok := events.(*dbMapEvents); !ok {
 		return nil, fmt.Errorf("error while cast interface{} to *dbMapEvents:\n%#v", events)
-	} else {
-		return db, nil
 	}
+	return events.(*dbMapEvents), nil
 }
