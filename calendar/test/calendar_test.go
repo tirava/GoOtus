@@ -4,10 +4,10 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package calendar
+package test
 
 import (
-	"fmt"
+	"github.com/evakom/calendar/pkg/calendar"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"reflect"
@@ -16,27 +16,21 @@ import (
 )
 
 func TestNewEvent(t *testing.T) {
-	e1 := newEvent().GetId()
-	e2 := newEvent().GetId()
+	e1 := calendar.NewEvent().GetId()
+	e2 := calendar.NewEvent().GetId()
 	if e2 == e1 {
 		t.Errorf("'id1 = %v' same as 'id2 = %v'", e1, e2)
 	}
 }
 
-func TestNewDB(t *testing.T) {
-	if _, err := createNewDB(); err != nil {
-		t.Fatalf("Can't create new DB, error: %v", err)
-	}
-}
-
 func TestProto(t *testing.T) {
-	e1 := &Event{}
+	e1 := &calendar.Event{}
 	e1.Subject = "testik"
 	out, err := proto.Marshal(e1)
 	if err != nil {
 		t.Fatalf("Failed to encode event: %v, error: %v", e1, err)
 	}
-	e2 := &Event{}
+	e2 := &calendar.Event{}
 	err = proto.Unmarshal(out, e2)
 	if err != nil {
 		t.Fatalf("Failed to parse event: %v, error: %v", out, err)
@@ -48,43 +42,43 @@ func TestProto(t *testing.T) {
 }
 
 func TestAddEvent(t *testing.T) {
-	events, _ := createNewDB()
-	e := *newEvent()
+	events := createNewDB()
+	e := *calendar.NewEvent()
 	e.Subject = "222222222222222222222"
 	e.Body = "3333333333333333333"
-	_ = events.addEvent(e)
-	e = *newEvent()
+	_ = events.AddEvent(e)
+	e = *calendar.NewEvent()
 	e.Duration = 555
-	_ = events.addEvent(e)
-	l := len(events.events)
+	_ = events.AddEvent(e)
+	l := len(events.Events)
 	if l != 2 {
 		t.Errorf("After adding 2 events to MapDB length != 2, actual length = %d", l)
 	}
 }
 
 func TestGetEvent(t *testing.T) {
-	events, _ := createNewDB()
-	e1 := *newEvent()
-	_ = events.addEvent(e1)
-	e2 := *newEvent()
-	_ = events.addEvent(e2)
-	e3, _ := events.getEvent(e1.Id)
+	events := createNewDB()
+	e1 := *calendar.NewEvent()
+	_ = events.AddEvent(e1)
+	e2 := *calendar.NewEvent()
+	_ = events.AddEvent(e2)
+	e3, _ := events.GetEvent(e1.Id)
 	if !reflect.DeepEqual(e1, e3) {
 		t.Errorf("Event1 not equal Event3 after get from DB:\n%#v\n%#v", e1, e3)
 	}
 }
 
 func TestEditEvent(t *testing.T) {
-	events, _ := createNewDB()
-	e1 := *newEvent()
-	_ = events.addEvent(e1)
+	events := createNewDB()
+	e1 := *calendar.NewEvent()
+	_ = events.AddEvent(e1)
 
-	e2, _ := events.getEvent(e1.Id)
+	e2, _ := events.GetEvent(e1.Id)
 	e2.Subject = "11111111111111111"
 	e2.Body = "22222222222222222"
-	_ = events.editEvent(e2)
+	_ = events.EditEvent(e2)
 
-	e3, _ := events.getEvent(e1.Id)
+	e3, _ := events.GetEvent(e1.Id)
 	if e3.Subject != e2.Subject || e3.Body != e2.Body {
 		t.Errorf("Event1 not properly updated in the DB:\nExpected: %+v\nActual: %+v", e2, e3)
 	}
@@ -97,25 +91,25 @@ func TestEditEvent(t *testing.T) {
 }
 
 func TestDelEvent(t *testing.T) {
-	events, _ := createNewDB()
-	e := *newEvent()
-	_ = events.addEvent(e)
-	if err := events.delEvent(e.Id); err != nil {
+	events := createNewDB()
+	e := *calendar.NewEvent()
+	_ = events.AddEvent(e)
+	if err := events.DelEvent(e.Id); err != nil {
 		t.Errorf("Error while delete event with ID = %d, error: %v", e.Id, err)
 	}
-	_, err := events.getEvent(e.Id)
+	_, err := events.GetEvent(e.Id)
 	if err == nil {
 		t.Errorf("Error expected but was not returned: %v", err)
 	}
 }
 
 func TestGetAllEvents(t *testing.T) {
-	events, _ := createNewDB()
-	e1 := *newEvent()
-	_ = events.addEvent(e1)
-	e2 := *newEvent()
-	_ = events.addEvent(e2)
-	e3 := events.getAllEvents()
+	events := createNewDB()
+	e1 := *calendar.NewEvent()
+	_ = events.AddEvent(e1)
+	e2 := *calendar.NewEvent()
+	_ = events.AddEvent(e2)
+	e3 := events.GetAllEvents()
 	l := len(e3)
 	if l != 2 {
 		t.Errorf("After getting all events length slice != 2, actual length = %d", l)
@@ -123,10 +117,6 @@ func TestGetAllEvents(t *testing.T) {
 	}
 }
 
-func createNewDB() (*dbMapEvents, error) {
-	events := newDB(&dbMapEvents{})
-	if _, ok := events.(*dbMapEvents); !ok {
-		return nil, fmt.Errorf("error while cast interface{} to *dbMapEvents:\n%#v", events)
-	}
-	return events.(*dbMapEvents), nil
+func createNewDB() *calendar.DBMapEvents {
+	return calendar.NewMapDB()
 }

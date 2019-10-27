@@ -10,7 +10,8 @@ import "github.com/golang/protobuf/ptypes"
 
 var globID uint32
 
-func newEvent() *Event {
+// NewEvent returns new example event.
+func NewEvent() *Event {
 	globID++
 	return &Event{
 		Id:        globID,
