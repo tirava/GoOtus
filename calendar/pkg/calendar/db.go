@@ -6,6 +6,12 @@
 
 package calendar
 
+// Constants
+const (
+	MapDBType = "map"
+	//PostgresDBType = "postgres"
+)
+
 // DB is thw main interface for any DBs
 type DB interface {
 	AddEvent(event Event) error
@@ -15,7 +21,19 @@ type DB interface {
 	GetAllEvents() []Event
 }
 
-// NewMapDB returns new map db.
-func NewMapDB() *DBMapEvents {
-	return newMapDB()
+// DBTypes struct helps for getting new db by type
+type DBTypes struct {
+	MapDB *DBMapEvents
+	//PostgresDB *DBPostgresEvents
+}
+
+// NewDB returns DB by db type
+func NewDB(dbType string) *DBTypes {
+	switch dbType {
+	case MapDBType:
+		return &DBTypes{MapDB: newMapDB()}
+		//case PostgresDBType:
+		//return &DBType{postgresDB:newPostgresDB()}
+	}
+	return nil
 }

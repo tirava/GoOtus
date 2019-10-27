@@ -7,51 +7,38 @@
 package main
 
 import (
-	"fmt"
 	"github.com/evakom/calendar/pkg/calendar"
-	"github.com/golang/protobuf/proto"
 	"log"
+	"os"
+)
+
+// Constants
+const (
+	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
+	FileCalendarConfigPath = "./configs/calendar.yml"
 )
 
 func main() {
 
-	// ----------------- test code - will be deleted
-	events := calendar.NewMapDB()
+	confPath := os.Getenv(EnvCalendarConfigPath)
 
-	event1 := calendar.NewEvent()
-
-	out, err := proto.Marshal(event1)
-	if err != nil {
-		log.Fatalln("Failed to encode event:", err)
+	if confPath == "" {
+		confPath = FileCalendarConfigPath
 	}
 
-	event1 = &calendar.Event{}
-	if err := proto.Unmarshal(out, event1); err != nil {
-		log.Fatalln("Failed to parse event:", err)
+	conf := calendar.NewConfig(confPath)
+	if err := conf.ReadParameters(); err != nil {
+		log.Fatalln(err)
 	}
 
-	event1.Location = "qqqqqqqqqqqqqqqqqqqqqq"
-	_ = events.AddEvent(*event1)
+	db := calendar.NewDB(conf.DBType)
+	if db == nil {
+		log.Fatalf("unsupported DB type: %s", conf.DBType)
+	}
 
-	event2 := calendar.NewEvent()
-	event2.Subject = "222222222222222222222"
-	event2.Body = "3333333333333333333"
-	_ = events.AddEvent(*event2)
-
-	fmt.Printf("%+v\n", events.GetAllEvents())
-	fmt.Println("Added event ^^^ --------------------------")
-
-	_ = events.DelEvent(event1.Id)
-	fmt.Printf("%+v\n", events.GetAllEvents())
-	fmt.Println("Deleted event ^^^ --------------------------")
-
-	event2.User.Email = []string{"zzzzzzzzzzzzzzzz", "xxxxxxxxxxxxxxxxx"}
-	_ = events.EditEvent(*event2)
-	fmt.Printf("%+v\n", events.GetAllEvents())
-	fmt.Println("Edit event ^^^ --------------------------")
-
-	e2, _ := events.GetEvent(2)
-	fmt.Printf("%+v\n", e2)
-	fmt.Println("Get one event ^^^ --------------------------")
-	// ----------------- test code - will be deleted
+	if db.MapDB != nil {
+		calendar.PrintTestData(db.MapDB)
+	} //else if db.PostgresDB != nil {
+	//calendar.PrintTestData(db.PostgresDB)
+	//}
 }

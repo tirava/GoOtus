@@ -118,5 +118,9 @@ func TestGetAllEvents(t *testing.T) {
 }
 
 func createNewDB() *calendar.DBMapEvents {
-	return calendar.NewMapDB()
+	return calendar.NewDB(calendar.MapDBType).MapDB
 }
+
+//func createNewDB() *calendar.DBPostgresEvents {
+//	return calendar.NewDB(calendar.PostgresDBType).PostgresDB
+//}

@@ -42,7 +42,6 @@ func (db *DBMapEvents) DelEvent(id uint32) error {
 	e := db.Events[id]
 	e.DeletedAt = ptypes.TimestampNow()
 	db.Events[id] = e
-	//db.Events[id].DeletedAt = ptypes.TimestampNow()
 	return nil
 }
 
