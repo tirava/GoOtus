@@ -4,7 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package calendar
+package models
 
 import (
 	"fmt"

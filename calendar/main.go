@@ -7,7 +7,9 @@
 package main
 
 import (
-	"github.com/evakom/calendar/pkg/calendar"
+	"github.com/evakom/calendar/internal/domain/interfaces"
+	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/pkg/calendar"
 	"log"
 	"os"
 )
@@ -15,7 +17,7 @@ import (
 // Constants
 const (
 	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
-	FileCalendarConfigPath = "./configs/calendar.yml"
+	FileCalendarConfigPath = "./internal/configs/calendar.yml"
 )
 
 func main() {
@@ -26,19 +28,15 @@ func main() {
 		confPath = FileCalendarConfigPath
 	}
 
-	conf := calendar.NewConfig(confPath)
+	conf := models.NewConfig(confPath)
 	if err := conf.ReadParameters(); err != nil {
 		log.Fatalln(err)
 	}
 
-	db := calendar.NewDB(conf.DBType)
+	db := interfaces.NewDB(conf.DBType)
 	if db == nil {
-		log.Fatalf("unsupported DB type: %s", conf.DBType)
+		log.Fatalf("unsupported DB type: %s\n", conf.DBType)
 	}
 
-	if db.MapDB != nil {
-		calendar.PrintTestData(db.MapDB)
-	} //else if db.PostgresDB != nil {
-	//calendar.PrintTestData(db.PostgresDB)
-	//}
+	calendar.PrintTestData(db)
 }
