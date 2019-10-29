@@ -19,3 +19,15 @@ type User struct {
 	Mobile   []string
 	Birthday time.Time
 }
+
+// NewUser returns new user struct.
+// TODO get events for specific user
+//func NewUser() User {
+//	return User{
+//		ID:       uuid.NewV4(),
+//		Name:     "qqq",
+//		Email:    []string{"www"},
+//		Mobile:   []string{"+777"},
+//		Birthday: time.Now(),
+//	}
+//}

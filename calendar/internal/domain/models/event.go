@@ -23,7 +23,6 @@ type Event struct {
 	Body      string
 	Duration  time.Duration
 	Location  string
-	User      User
 }
 
 // NewEvent returns new example event.
@@ -36,12 +35,5 @@ func NewEvent() Event {
 		Body:      "222",
 		Duration:  time.Minute,
 		Location:  "Moscow",
-		User: User{
-			ID:       uuid.NewV4(),
-			Name:     "qqq",
-			Email:    []string{"www"},
-			Mobile:   []string{"+777"},
-			Birthday: time.Now(),
-		},
 	}
 }

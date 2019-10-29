@@ -4,6 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
+// Package configs implements configs helpers.
 package configs
 
 import (
@@ -14,9 +15,9 @@ import (
 
 // Config is the main config struct.
 type Config struct {
-	confPath string
-	DBType   string `yaml:"dbtype"`
-	LogLevel string `yaml:"loglevel"`
+	confPath string `yaml:"-"`
+	DBType   string `yaml:"db_type"`
+	LogLevel string `yaml:"log_level"`
 }
 
 // NewConfig creates new config struct.
@@ -33,6 +34,12 @@ func (c *Config) ReadParameters() error {
 	err = yaml.Unmarshal(yamlFile, c)
 	if err != nil {
 		return fmt.Errorf("error unmarshal config file: %w", err)
+	}
+	if c.DBType == "" {
+		c.DBType = "map"
+	}
+	if c.LogLevel == "" {
+		c.LogLevel = "info"
 	}
 	return nil
 }
