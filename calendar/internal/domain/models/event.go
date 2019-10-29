@@ -8,38 +8,36 @@
 package models
 
 import (
+	uuid "github.com/satori/go.uuid"
 	"time"
 )
 
-var globID int
-
 // Event is the base event struct.
 type Event struct {
-	ID        int
+	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt time.Time
 	OccursAt  time.Time
 	Subject   string
 	Body      string
-	Duration  int
+	Duration  time.Duration
 	Location  string
 	User      User
 }
 
 // NewEvent returns new example event.
 func NewEvent() Event {
-	globID++
 	return Event{
-		ID:        globID,
+		ID:        uuid.NewV4(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Subject:   "111",
 		Body:      "222",
-		Duration:  333,
+		Duration:  time.Minute,
 		Location:  "Moscow",
 		User: User{
-			ID:       1,
+			ID:       uuid.NewV4(),
 			Name:     "qqq",
 			Email:    []string{"www"},
 			Mobile:   []string{"+777"},

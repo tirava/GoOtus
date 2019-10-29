@@ -1,0 +1,5 @@
+# dbtype - map | postgres
+dbtype: map
+
+# loglevel - debug | error
+loglevel: debug

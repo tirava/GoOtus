@@ -7,9 +7,9 @@
 package main
 
 import (
+	"github.com/evakom/calendar/internal/configs"
+	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/interfaces"
-	"github.com/evakom/calendar/internal/domain/models"
-	"github.com/evakom/calendar/internal/pkg/calendar"
 	"log"
 	"os"
 )
@@ -17,7 +17,7 @@ import (
 // Constants
 const (
 	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
-	FileCalendarConfigPath = "./internal/configs/calendar.yml"
+	FileCalendarConfigPath = "./internal/configs/config.yml"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 		confPath = FileCalendarConfigPath
 	}
 
-	conf := models.NewConfig(confPath)
+	conf := configs.NewConfig(confPath)
 	if err := conf.ReadParameters(); err != nil {
 		log.Fatalln(err)
 	}

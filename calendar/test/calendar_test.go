@@ -7,6 +7,7 @@
 package test
 
 import (
+	"github.com/evakom/calendar/internal/configs"
 	"github.com/evakom/calendar/internal/domain/interfaces"
 	"github.com/evakom/calendar/internal/domain/models"
 	"log"
@@ -17,7 +18,7 @@ import (
 
 const (
 	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
-	FileCalendarConfigPath = "../internal/configs/calendar.yml"
+	FileCalendarConfigPath = "../internal/configs/config.yml"
 )
 
 func TestNewEvent(t *testing.T) {
@@ -128,7 +129,7 @@ func createNewDB() interfaces.DB {
 	if confPath == "" {
 		confPath = FileCalendarConfigPath
 	}
-	conf := models.NewConfig(confPath)
+	conf := configs.NewConfig(confPath)
 	if err := conf.ReadParameters(); err != nil {
 		log.Fatalln(err)
 	}

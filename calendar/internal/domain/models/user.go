@@ -7,12 +7,13 @@
 package models
 
 import (
+	"github.com/satori/go.uuid"
 	"time"
 )
 
 // User is the base user's struct.
 type User struct {
-	ID       int
+	ID       uuid.UUID
 	Name     string
 	Email    []string
 	Mobile   []string

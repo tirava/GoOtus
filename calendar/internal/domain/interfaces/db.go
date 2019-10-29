@@ -7,7 +7,11 @@
 // Package interfaces implements interfaces.
 package interfaces
 
-import "github.com/evakom/calendar/internal/domain/models"
+import (
+	"github.com/evakom/calendar/internal/dbs"
+	"github.com/evakom/calendar/internal/domain/models"
+	uuid "github.com/satori/go.uuid"
+)
 
 // Constants
 const (
@@ -19,8 +23,8 @@ const (
 type DB interface {
 	AddEvent(event models.Event) error
 	EditEvent(event models.Event) error
-	DelEvent(id int) error
-	GetOneEvent(id int) (models.Event, error)
+	DelEvent(id uuid.UUID) error
+	GetOneEvent(id uuid.UUID) (models.Event, error)
 	GetAllEvents() []models.Event
 }
 
@@ -28,7 +32,7 @@ type DB interface {
 func NewDB(dbType string) DB {
 	switch dbType {
 	case MapDBType:
-		return models.NewMapDB()
+		return dbs.NewMapDB()
 		//case PostgresDBType:
 		//return models.NewPostgresDB()
 	}

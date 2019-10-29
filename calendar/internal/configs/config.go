@@ -4,7 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package models
+package configs
 
 import (
 	"fmt"
