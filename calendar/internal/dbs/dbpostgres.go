@@ -19,7 +19,8 @@ const dsn = ""
 
 // DBPostgresEvents is the base struct for using map db.
 type DBPostgresEvents struct {
-	db *sqlx.DB
+	db     *sqlx.DB
+	logger models.Logger
 }
 
 // NewPostgresDB returns new postgres db struct.
@@ -32,35 +33,49 @@ func NewPostgresDB() (*DBPostgresEvents, error) {
 	if err != nil {
 		return &DBPostgresEvents{}, fmt.Errorf("error ping db: %w", err)
 	}
-	return &DBPostgresEvents{db: db}, nil
+	dbp := &DBPostgresEvents{
+		db:     db,
+		logger: models.GetLogger(),
+	}
+	dbp.logger.Info("Connected to postgres DB")
+	return dbp, nil
 }
 
 // AddEvent adds event to postgres db.
 func (db *DBPostgresEvents) AddEvent(event models.Event) error {
 	// TODO
+	db.logger.Info(fmt.Sprintf("Event added: %s", event.ID.String()))
+	db.logger.Debug(fmt.Sprintf("Event body added: %+v", event))
 	return nil
 }
 
 // DelEvent deletes one event by id.
 func (db *DBPostgresEvents) DelEvent(id uuid.UUID) error {
 	// TODO
+	db.logger.Info(fmt.Sprintf("Event deleted: %s", id.String()))
+	//db.logger.Debug(fmt.Sprintf("Event body deleted: %+v", e))
 	return nil
 }
 
 // EditEvent updates one event.
 func (db *DBPostgresEvents) EditEvent(event models.Event) error {
 	// TODO
+	db.logger.Info(fmt.Sprintf("Event updated: %s", event.ID.String()))
+	db.logger.Debug(fmt.Sprintf("Event body updated: %+v", event))
 	return nil
 }
 
 // GetOneEvent returns one event by id.
 func (db *DBPostgresEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
 	// TODO
+	db.logger.Info(fmt.Sprintf("Event got: %s", id.String()))
+	//db.logger.Debug(fmt.Sprintf("Event body got: %+v", db.events[id]))
 	return models.Event{}, nil
 }
 
 // GetAllEvents return all events slice.
 func (db *DBPostgresEvents) GetAllEvents() []models.Event {
 	// TODO
+	db.logger.Info("All events got")
 	return []models.Event{}
 }

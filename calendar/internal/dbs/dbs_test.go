@@ -19,7 +19,7 @@ import (
 
 const (
 	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
-	FileCalendarConfigPath = "../configs/config.yml"
+	FileCalendarConfigPath = "../../config.yml"
 )
 
 func TestNewEvent(t *testing.T) {

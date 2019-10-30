@@ -7,31 +7,42 @@
 package main
 
 import (
+	"flag"
 	"github.com/evakom/calendar/internal/configs"
 	"github.com/evakom/calendar/internal/dbs"
 	"github.com/evakom/calendar/internal/domain/calendar"
+	"github.com/evakom/calendar/internal/domain/models"
 	"log"
 	"os"
 )
 
 // Constants
 const (
-	EnvCalendarConfigPath  = "CALENDAR_CONFIG_PATH"
-	FileCalendarConfigPath = "./internal/configs/config.yml"
+	EnvCalendarConfigPath = "CALENDAR_CONFIG_PATH"
 )
 
 func main() {
 
-	confPath := os.Getenv(EnvCalendarConfigPath)
+	configFile := flag.String("config", "config.yml", "path to config file")
+	flag.Parse()
 
+	confPath := os.Getenv(EnvCalendarConfigPath)
 	if confPath == "" {
-		confPath = FileCalendarConfigPath
+		confPath = *configFile
 	}
 
 	conf := configs.NewConfig(confPath)
 	if err := conf.ReadParameters(); err != nil {
 		log.Fatalln(err)
 	}
+
+	logFile, err := os.OpenFile(conf.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Error open log file '%s', error: %s", conf.LogFile, err)
+	}
+	defer logFile.Close()
+
+	models.NewLogger(conf.LogLevel, logFile)
 
 	db, err := dbs.NewDB(conf.DBType)
 	if db == nil {

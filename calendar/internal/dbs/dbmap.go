@@ -18,13 +18,17 @@ import (
 type DBMapEvents struct {
 	sync.RWMutex
 	events map[uuid.UUID]models.Event
+	logger models.Logger
 }
 
 // NewMapDB returns new map db struct.
 func NewMapDB() (*DBMapEvents, error) {
-	return &DBMapEvents{
+	dbm := &DBMapEvents{
 		events: make(map[uuid.UUID]models.Event),
-	}, nil
+		logger: models.GetLogger(),
+	}
+	dbm.logger.Info("New map DB created")
+	return dbm, nil
 }
 
 // AddEvent adds event to map db.
@@ -35,6 +39,8 @@ func (db *DBMapEvents) AddEvent(event models.Event) error {
 		return fmt.Errorf("event id = %s already exists", event.ID.String())
 	}
 	db.events[event.ID] = event
+	db.logger.Info(fmt.Sprintf("Event added: %s", event.ID.String()))
+	db.logger.Debug(fmt.Sprintf("Event body added: %+v", event))
 	return nil
 }
 
@@ -48,6 +54,8 @@ func (db *DBMapEvents) DelEvent(id uuid.UUID) error {
 	e := db.events[id]
 	e.DeletedAt = time.Now()
 	db.events[id] = e
+	db.logger.Info(fmt.Sprintf("Event deleted: %s", id.String()))
+	db.logger.Debug(fmt.Sprintf("Event body deleted: %+v", e))
 	return nil
 }
 
@@ -60,6 +68,8 @@ func (db *DBMapEvents) EditEvent(event models.Event) error {
 	defer db.Unlock()
 	event.UpdatedAt = time.Now()
 	db.events[event.ID] = event
+	db.logger.Info(fmt.Sprintf("Event updated: %s", event.ID.String()))
+	db.logger.Debug(fmt.Sprintf("Event body updated: %+v", event))
 	return nil
 }
 
@@ -71,6 +81,8 @@ func (db *DBMapEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
 	if !db.events[id].DeletedAt.IsZero() {
 		return models.Event{}, fmt.Errorf("event id = %d already deleted", id)
 	}
+	db.logger.Info(fmt.Sprintf("Event got: %s", id.String()))
+	db.logger.Debug(fmt.Sprintf("Event body got: %+v", db.events[id]))
 	return db.events[id], nil
 }
 
@@ -83,5 +95,6 @@ func (db *DBMapEvents) GetAllEvents() []models.Event {
 		}
 		events = append(events, event)
 	}
+	db.logger.Info("All events got")
 	return events
 }
