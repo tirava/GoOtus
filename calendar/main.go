@@ -12,6 +12,7 @@ import (
 	"github.com/evakom/calendar/internal/dbs"
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/website"
 	"log"
 	"os"
 )
@@ -54,4 +55,6 @@ func main() {
 	}
 
 	calendar.PrintTestData(db)
+
+	website.StartWebsite()
 }

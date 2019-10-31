@@ -35,7 +35,7 @@ func NewPostgresDB() (*DBPostgresEvents, error) {
 	}
 	dbp := &DBPostgresEvents{
 		db:     db,
-		logger: models.GetLogger(),
+		logger: models.Logger{}.GetLogger(),
 	}
 	dbp.logger.Info("Connected to postgres DB")
 	return dbp, nil
@@ -44,32 +44,32 @@ func NewPostgresDB() (*DBPostgresEvents, error) {
 // AddEvent adds event to postgres db.
 func (db *DBPostgresEvents) AddEvent(event models.Event) error {
 	// TODO
-	db.logger.Info(fmt.Sprintf("Event added: %s", event.ID.String()))
-	db.logger.Debug(fmt.Sprintf("Event body added: %+v", event))
+	db.logger.Info("Event added: %s", event.ID.String())
+	db.logger.Debug("Event body added: %+v", event)
 	return nil
 }
 
 // DelEvent deletes one event by id.
 func (db *DBPostgresEvents) DelEvent(id uuid.UUID) error {
 	// TODO
-	db.logger.Info(fmt.Sprintf("Event deleted: %s", id.String()))
-	//db.logger.Debug(fmt.Sprintf("Event body deleted: %+v", e))
+	db.logger.Info("Event deleted: %s", id.String())
+	//db.logger.Debug("Event body deleted: %+v", e)
 	return nil
 }
 
 // EditEvent updates one event.
 func (db *DBPostgresEvents) EditEvent(event models.Event) error {
 	// TODO
-	db.logger.Info(fmt.Sprintf("Event updated: %s", event.ID.String()))
-	db.logger.Debug(fmt.Sprintf("Event body updated: %+v", event))
+	db.logger.Info("Event updated: %s", event.ID.String())
+	db.logger.Debug("Event body updated: %+v", event)
 	return nil
 }
 
 // GetOneEvent returns one event by id.
 func (db *DBPostgresEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
 	// TODO
-	db.logger.Info(fmt.Sprintf("Event got: %s", id.String()))
-	//db.logger.Debug(fmt.Sprintf("Event body got: %+v", db.events[id]))
+	db.logger.Info("Event got: %s", id.String())
+	//db.logger.Debug("Event body got: %+v", db.events[id])
 	return models.Event{}, nil
 }
 

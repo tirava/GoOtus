@@ -152,6 +152,7 @@ func createNewDB() interfaces.DB {
 	if err := conf.ReadParameters(); err != nil {
 		log.Fatalln(err)
 	}
+	models.NewLogger("none", nil)
 	db, err := NewDB(conf.DBType)
 	if db == nil {
 		log.Fatalf("unsupported DB type: %s\n", conf.DBType)

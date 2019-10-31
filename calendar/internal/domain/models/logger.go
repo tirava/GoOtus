@@ -13,20 +13,25 @@ import (
 	"io/ioutil"
 )
 
+// Fields is the log fields type.
+type Fields map[string]interface{}
+
 // Logger is the base struct for all loggers.
 type Logger struct {
-	logger *log.Logger
+	logger     *log.Logger
+	Fields     Fields
+	withFields bool
 }
 
 var lg Logger
 
 // GetLogger returns global logger.
-func GetLogger() Logger {
+func (l Logger) GetLogger() Logger {
 	return lg
 }
 
-// NewLogger creates new logger instance.
-func NewLogger(level string, output io.Writer) Logger {
+// NewLogger inits logger instance.
+func NewLogger(level string, output io.Writer) {
 	lg = Logger{logger: log.New()}
 	if level == "none" {
 		lg.logger.SetOutput(ioutil.Discard)
@@ -40,30 +45,49 @@ func NewLogger(level string, output io.Writer) Logger {
 		lg.logger.SetLevel(log.InfoLevel)
 	case "warn":
 		lg.logger.SetLevel(log.WarnLevel)
-	//case "error":
-	//	lg.logger.SetLevel(log.ErrorLevel)
 	default:
 		lg.logger.SetLevel(log.ErrorLevel)
 	}
-	return lg
 }
 
 // Debug writes debug level to output.
-func (l Logger) Debug(line string) {
-	l.logger.Debugln(line)
+func (l Logger) Debug(format string, args ...interface{}) {
+	if l.withFields {
+		l.logger.WithFields(log.Fields(l.Fields)).Debugf(format, args...)
+		return
+	}
+	l.logger.Debugf(format, args...)
 }
 
 // Info writes info level to output.
-func (l Logger) Info(line string) {
-	l.logger.Infoln(line)
+func (l Logger) Info(format string, args ...interface{}) {
+	if l.withFields {
+		l.logger.WithFields(log.Fields(l.Fields)).Infof(format, args...)
+		return
+	}
+	l.logger.Infof(format, args...)
 }
 
 // Warn writes warn level to output.
-func (l Logger) Warn(line string) {
-	l.logger.Warnln(line)
+func (l Logger) Warn(format string, args ...interface{}) {
+	if l.withFields {
+		l.logger.WithFields(log.Fields(l.Fields)).Warnf(format, args...)
+		return
+	}
+	l.logger.Warnf(format, args...)
 }
 
 // Error writes error level to output.
-func (l Logger) Error(line string) {
-	l.logger.Errorln(line)
+func (l Logger) Error(format string, args ...interface{}) {
+	if l.withFields {
+		l.logger.WithFields(log.Fields(l.Fields)).Errorf(format, args...)
+		return
+	}
+	l.logger.Errorf(format, args...)
+}
+
+// WithFields support fields.
+func (l Logger) WithFields() Logger {
+	l.withFields = true
+	return l
 }
