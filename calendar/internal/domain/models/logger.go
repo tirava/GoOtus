@@ -19,7 +19,7 @@ type Fields map[string]interface{}
 // Logger is the base struct for all loggers.
 type Logger struct {
 	logger     *log.Logger
-	Fields     Fields
+	fields     Fields
 	withFields bool
 }
 
@@ -53,7 +53,7 @@ func NewLogger(level string, output io.Writer) {
 // Debug writes debug level to output.
 func (l Logger) Debug(format string, args ...interface{}) {
 	if l.withFields {
-		l.logger.WithFields(log.Fields(l.Fields)).Debugf(format, args...)
+		l.logger.WithFields(log.Fields(l.fields)).Debugf(format, args...)
 		return
 	}
 	l.logger.Debugf(format, args...)
@@ -62,7 +62,7 @@ func (l Logger) Debug(format string, args ...interface{}) {
 // Info writes info level to output.
 func (l Logger) Info(format string, args ...interface{}) {
 	if l.withFields {
-		l.logger.WithFields(log.Fields(l.Fields)).Infof(format, args...)
+		l.logger.WithFields(log.Fields(l.fields)).Infof(format, args...)
 		return
 	}
 	l.logger.Infof(format, args...)
@@ -71,7 +71,7 @@ func (l Logger) Info(format string, args ...interface{}) {
 // Warn writes warn level to output.
 func (l Logger) Warn(format string, args ...interface{}) {
 	if l.withFields {
-		l.logger.WithFields(log.Fields(l.Fields)).Warnf(format, args...)
+		l.logger.WithFields(log.Fields(l.fields)).Warnf(format, args...)
 		return
 	}
 	l.logger.Warnf(format, args...)
@@ -80,14 +80,18 @@ func (l Logger) Warn(format string, args ...interface{}) {
 // Error writes error level to output.
 func (l Logger) Error(format string, args ...interface{}) {
 	if l.withFields {
-		l.logger.WithFields(log.Fields(l.Fields)).Errorf(format, args...)
+		l.logger.WithFields(log.Fields(l.fields)).Errorf(format, args...)
 		return
 	}
 	l.logger.Errorf(format, args...)
 }
 
 // WithFields support fields.
-func (l Logger) WithFields() Logger {
+func (l Logger) WithFields(fields Fields) Logger {
 	l.withFields = true
+	l.fields = make(Fields)
+	for k, v := range fields {
+		l.fields[k] = v
+	}
 	return l
 }

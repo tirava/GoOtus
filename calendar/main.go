@@ -54,7 +54,7 @@ func main() {
 		log.Fatalf("Open DB: %s, error: %s \n", conf.DBType, err)
 	}
 
-	calendar.PrintTestData(db)
+	calendar.NewCalendar(db).PrintTestData()
 
-	website.StartWebsite()
+	website.StartWebsite(conf)
 }

@@ -23,8 +23,8 @@ type Config struct {
 }
 
 // NewConfig creates new config struct.
-func NewConfig(confPath string) *Config {
-	return &Config{
+func NewConfig(confPath string) Config {
+	return Config{
 		confPath: confPath,
 	}
 }

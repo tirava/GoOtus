@@ -8,8 +8,8 @@ log_file: /dev/stdout
 
 # loglevel - none | error |  warn | info | debug
 # default - error
-log_level: info
+log_level: debug
 
 # ip:port for listening http
 # default - localhost:8080
-http_listen:
+http_listen: :8080

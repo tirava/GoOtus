@@ -44,7 +44,9 @@ func NewPostgresDB() (*DBPostgresEvents, error) {
 // AddEvent adds event to postgres db.
 func (db *DBPostgresEvents) AddEvent(event models.Event) error {
 	// TODO
-	db.logger.Info("Event added: %s", event.ID.String())
+	db.logger.WithFields(models.Fields{
+		"id": event.ID.String(),
+	}).Info("Event added")
 	db.logger.Debug("Event body added: %+v", event)
 	return nil
 }
@@ -52,7 +54,9 @@ func (db *DBPostgresEvents) AddEvent(event models.Event) error {
 // DelEvent deletes one event by id.
 func (db *DBPostgresEvents) DelEvent(id uuid.UUID) error {
 	// TODO
-	db.logger.Info("Event deleted: %s", id.String())
+	db.logger.WithFields(models.Fields{
+		"id": id.String(),
+	}).Info("Event deleted")
 	//db.logger.Debug("Event body deleted: %+v", e)
 	return nil
 }
@@ -60,7 +64,9 @@ func (db *DBPostgresEvents) DelEvent(id uuid.UUID) error {
 // EditEvent updates one event.
 func (db *DBPostgresEvents) EditEvent(event models.Event) error {
 	// TODO
-	db.logger.Info("Event updated: %s", event.ID.String())
+	db.logger.WithFields(models.Fields{
+		"id": event.ID.String(),
+	}).Info("Event updated")
 	db.logger.Debug("Event body updated: %+v", event)
 	return nil
 }
@@ -68,7 +74,9 @@ func (db *DBPostgresEvents) EditEvent(event models.Event) error {
 // GetOneEvent returns one event by id.
 func (db *DBPostgresEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
 	// TODO
-	db.logger.Info("Event got: %s", id.String())
+	db.logger.WithFields(models.Fields{
+		"id": id.String(),
+	}).Info("Event got")
 	//db.logger.Debug("Event body got: %+v", db.events[id])
 	return models.Event{}, nil
 }

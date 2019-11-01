@@ -9,22 +9,19 @@ package website
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"github.com/evakom/calendar/internal/configs"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
-const SERVADDR = ":8080"
-
 // StartWebsite inits routing and starts web listener.
-func StartWebsite() {
+func StartWebsite(conf configs.Config) {
 
-	handlers := newHandler()
+	handlers := newHandlers()
 	srv := &http.Server{
-		Addr:    SERVADDR,
+		Addr:    conf.ListenHTTP,
 		Handler: handlers.prepareRoutes(),
 	}
 
@@ -34,12 +31,12 @@ func StartWebsite() {
 	defer cancel()
 
 	go func() {
-		log.Println("Signal received:", <-shutdown)
+		handlers.logger.Info("Signal received: %s", <-shutdown)
 		if err := srv.Shutdown(ctx); err != nil {
-			log.Println("Error while shutdown server:", err)
+			handlers.logger.Error("Error while shutdown server:", err)
 		}
 	}()
 
-	fmt.Println("Starting server at:", SERVADDR)
-	log.Printf("Shutdown server at: %s\n%v", SERVADDR, srv.ListenAndServe())
+	handlers.logger.Info("Starting server at: %s", conf.ListenHTTP)
+	handlers.logger.Info("Shutdown server at: %s\n%v", conf.ListenHTTP, srv.ListenAndServe())
 }
