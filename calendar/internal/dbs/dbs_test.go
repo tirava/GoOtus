@@ -10,11 +10,12 @@ import (
 	"github.com/evakom/calendar/internal/configs"
 	"github.com/evakom/calendar/internal/domain/interfaces"
 	"github.com/evakom/calendar/internal/domain/models"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"log"
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 const (
@@ -79,7 +80,7 @@ func TestGetEvent(t *testing.T) {
 	if !reflect.DeepEqual(e1, e3) {
 		t.Errorf("Event1 not equal Event3 after get from DB:\n%#v\n%#v", e1, e3)
 	}
-	e3.ID = uuid.NewV4()
+	e3.ID = uuid.New()
 	if _, err := events.GetOneEvent(e3.ID); err == nil {
 		t.Errorf("Error expected but was not returned for getting id = : %s", e3.ID.String())
 	}
@@ -89,6 +90,8 @@ func TestEditEvent(t *testing.T) {
 	events := createNewDB()
 	e1 := models.NewEvent()
 	_ = events.AddEvent(e1)
+
+	time.Sleep(time.Millisecond) // fix for windows
 
 	e2, _ := events.GetOneEvent(e1.ID)
 	e2.Subject = "11111111111111111"
@@ -107,7 +110,7 @@ func TestEditEvent(t *testing.T) {
 	if t2.Equal(t3) {
 		t.Errorf("Event1 updated time not correct in the DB:\nOld time: %v\nNew time: %v", t2, t3)
 	}
-	e3.ID = uuid.NewV4()
+	e3.ID = uuid.New()
 	if err := events.EditEvent(e3); err == nil {
 		t.Errorf("Editing event with same id should return error but returns no error")
 	}
@@ -123,7 +126,7 @@ func TestDelEvent(t *testing.T) {
 	if _, err := events.GetOneEvent(e.ID); err == nil {
 		t.Errorf("Error expected but was not returned for deleted id = : %s", e.ID.String())
 	}
-	e.ID = uuid.NewV4()
+	e.ID = uuid.New()
 	if err := events.DelEvent(e.ID); err == nil {
 		t.Errorf("Error expected but was not returned for deleting fake id = %s", e.ID.String())
 	}
@@ -148,8 +151,8 @@ func createNewDB() interfaces.DB {
 	if confPath == "" {
 		confPath = FileCalendarConfigPath
 	}
-	conf := configs.NewConfig(confPath)
-	if err := conf.ReadParameters(); err != nil {
+	conf, err := configs.NewConfig(confPath)
+	if err != nil {
 		log.Fatalln(err)
 	}
 	models.NewLogger("none", nil)

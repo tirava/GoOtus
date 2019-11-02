@@ -9,9 +9,9 @@ package dbs
 import (
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/stdlib" // driver for postgres
 	"github.com/jmoiron/sqlx"
-	uuid "github.com/satori/go.uuid"
 )
 
 // TODO into config

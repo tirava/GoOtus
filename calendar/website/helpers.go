@@ -9,7 +9,7 @@ package website
 import (
 	"context"
 	"github.com/evakom/calendar/internal/domain/models"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"net/http"
 )
 
@@ -52,7 +52,7 @@ func requestFields(r *http.Request, args ...string) models.Fields {
 }
 
 func assignRequestID(ctx context.Context) context.Context {
-	reqID := uuid.NewV4()
+	reqID := uuid.New()
 	return context.WithValue(ctx, contextKeyRequestID, reqID.String())
 }
 

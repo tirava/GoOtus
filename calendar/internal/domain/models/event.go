@@ -8,7 +8,7 @@
 package models
 
 import (
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"time"
 )
 
@@ -28,7 +28,7 @@ type Event struct {
 // NewEvent returns new example event.
 func NewEvent() Event {
 	return Event{
-		ID:        uuid.NewV4(),
+		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Subject:   "111",

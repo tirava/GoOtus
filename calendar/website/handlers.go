@@ -8,18 +8,22 @@ package website
 
 import (
 	"fmt"
+	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/google/uuid"
 	"net/http"
 	"time"
 )
 
 type handler struct {
-	logger models.Logger
+	calendar calendar.Calendar
+	logger   models.Logger
 }
 
-func newHandlers() *handler {
+func newHandlers(calendar calendar.Calendar) *handler {
 	return &handler{
-		logger: models.Logger{}.GetLogger(),
+		calendar: calendar,
+		logger:   models.Logger{}.GetLogger(),
 	}
 }
 
@@ -78,7 +82,10 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 		"code": http.StatusOK,
 		ID:     getRequestID(r.Context()),
 	}).Info("RESPONSE")
-	if _, err := fmt.Fprint(w, "Hello, my name is ", name); err != nil {
+
+	s := "Hello, my name is " + name + "\n\n" + h.calendar.GetAllEvents(uuid.Nil)
+
+	if _, err := fmt.Fprint(w, s); err != nil {
 		h.logger.Error("Error write to response writer!")
 	}
 }

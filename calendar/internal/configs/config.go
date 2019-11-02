@@ -23,14 +23,15 @@ type Config struct {
 }
 
 // NewConfig creates new config struct.
-func NewConfig(confPath string) Config {
-	return Config{
+func NewConfig(confPath string) (Config, error) {
+	conf := Config{
 		confPath: confPath,
 	}
+	return conf, conf.readParameters()
 }
 
 // ReadParameters reads config from file.
-func (c *Config) ReadParameters() error {
+func (c *Config) readParameters() error {
 	yamlFile, err := ioutil.ReadFile(c.confPath)
 	if err != nil {
 		return fmt.Errorf("error read config file: %w", err)
@@ -46,7 +47,7 @@ func (c *Config) ReadParameters() error {
 		c.LogFile = "calendar.log"
 	}
 	if c.LogLevel == "" {
-		c.LogLevel = "error"
+		c.LogLevel = "info"
 	}
 	if c.ListenHTTP == "" {
 		c.ListenHTTP = "localhost:8080"

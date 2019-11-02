@@ -32,8 +32,8 @@ func main() {
 		confPath = *configFile
 	}
 
-	conf := configs.NewConfig(confPath)
-	if err := conf.ReadParameters(); err != nil {
+	conf, err := configs.NewConfig(confPath)
+	if err != nil {
 		log.Fatalln(err)
 	}
 
@@ -49,12 +49,11 @@ func main() {
 	if db == nil {
 		log.Fatalf("unsupported DB type: %s\n", conf.DBType)
 	}
-
 	if err != nil {
 		log.Fatalf("Open DB: %s, error: %s \n", conf.DBType, err)
 	}
 
-	calendar.NewCalendar(db).PrintTestData()
+	cal := calendar.NewCalendar(db)
 
-	website.StartWebsite(conf)
+	website.StartWebsite(conf.ListenHTTP, cal)
 }

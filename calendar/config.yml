@@ -7,8 +7,8 @@ db_type: map
 log_file: /dev/stdout
 
 # loglevel - none | error |  warn | info | debug
-# default - error
-log_level: debug
+# default - info
+log_level:
 
 # ip:port for listening http
 # default - localhost:8080

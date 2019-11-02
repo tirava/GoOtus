@@ -9,7 +9,7 @@ package website
 
 import (
 	"context"
-	"github.com/evakom/calendar/internal/configs"
+	"github.com/evakom/calendar/internal/domain/calendar"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,11 +17,11 @@ import (
 )
 
 // StartWebsite inits routing and starts web listener.
-func StartWebsite(conf configs.Config) {
+func StartWebsite(listenHTTP string, calendar calendar.Calendar) {
 
-	handlers := newHandlers()
+	handlers := newHandlers(calendar)
 	srv := &http.Server{
-		Addr:    conf.ListenHTTP,
+		Addr:    listenHTTP,
 		Handler: handlers.prepareRoutes(),
 	}
 
@@ -33,10 +33,10 @@ func StartWebsite(conf configs.Config) {
 	go func() {
 		handlers.logger.Info("Signal received: %s", <-shutdown)
 		if err := srv.Shutdown(ctx); err != nil {
-			handlers.logger.Error("Error while shutdown server:", err)
+			handlers.logger.Error("Error while shutdown server: %s", err)
 		}
 	}()
 
-	handlers.logger.Info("Starting server at: %s", conf.ListenHTTP)
-	handlers.logger.Info("Shutdown server at: %s\n%v", conf.ListenHTTP, srv.ListenAndServe())
+	handlers.logger.Info("Starting server at: %s", listenHTTP)
+	handlers.logger.Info("Shutdown server at: %s\n%v", listenHTTP, srv.ListenAndServe())
 }

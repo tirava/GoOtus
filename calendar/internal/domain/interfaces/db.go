@@ -9,7 +9,7 @@ package interfaces
 
 import (
 	"github.com/evakom/calendar/internal/domain/models"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 // DB is thw main interface for any DBs

@@ -23,6 +23,7 @@ message Event {
     }
     int64 duration = 8;
     string location = 9;
+    string userID = 10;
 }
 
 message User {

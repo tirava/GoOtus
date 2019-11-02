@@ -9,7 +9,7 @@ package dbs
 import (
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/models"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"sync"
 	"time"
 )
