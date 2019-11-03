@@ -14,9 +14,10 @@ import (
 
 // DB is thw main interface for any DBs
 type DB interface {
-	AddEvent(event models.Event) error
-	EditEvent(event models.Event) error
-	DelEvent(id uuid.UUID) error
-	GetOneEvent(id uuid.UUID) (models.Event, error)
-	GetAllEvents() []models.Event
+	AddEventDB(event models.Event) error
+	EditEventDB(event models.Event) error
+	DelEventDB(id uuid.UUID) error
+	GetOneEventDB(id uuid.UUID) (models.Event, error)
+	GetAllEventsDB() []models.Event
+	CleanEventsDB() error
 }

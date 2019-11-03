@@ -31,8 +31,8 @@ func NewMapDB() (*DBMapEvents, error) {
 	return dbm, nil
 }
 
-// AddEvent adds event to map db.
-func (db *DBMapEvents) AddEvent(event models.Event) error {
+// AddEventDB adds event to map db.
+func (db *DBMapEvents) AddEventDB(event models.Event) error {
 	db.Lock()
 	defer db.Unlock()
 	if _, ok := db.events[event.ID]; ok {
@@ -41,13 +41,13 @@ func (db *DBMapEvents) AddEvent(event models.Event) error {
 	db.events[event.ID] = event
 	db.logger.WithFields(models.Fields{
 		"id": event.ID.String(),
-	}).Info("Event added")
-	db.logger.Debug("Event body added: %+v", event)
+	}).Info("Event added into map DB")
+	db.logger.Debug("Event body added into map DB: %+v", event)
 	return nil
 }
 
-// DelEvent deletes one event by id.
-func (db *DBMapEvents) DelEvent(id uuid.UUID) error {
+// DelEventDB deletes one event by id.
+func (db *DBMapEvents) DelEventDB(id uuid.UUID) error {
 	if _, ok := db.events[id]; !ok {
 		return fmt.Errorf("event id = %s not found", id.String())
 	}
@@ -58,13 +58,13 @@ func (db *DBMapEvents) DelEvent(id uuid.UUID) error {
 	db.events[id] = e
 	db.logger.WithFields(models.Fields{
 		"id": id.String(),
-	}).Info("Event deleted")
-	db.logger.Debug("Event body deleted: %+v", e)
+	}).Info("Event deleted from map DB")
+	db.logger.Debug("Event body deleted from map DB: %+v", e)
 	return nil
 }
 
-// EditEvent updates one event.
-func (db *DBMapEvents) EditEvent(event models.Event) error {
+// EditEventDB updates one event.
+func (db *DBMapEvents) EditEventDB(event models.Event) error {
 	if _, ok := db.events[event.ID]; !ok {
 		return fmt.Errorf("event id = %s not found", event.ID.String())
 	}
@@ -74,13 +74,13 @@ func (db *DBMapEvents) EditEvent(event models.Event) error {
 	db.events[event.ID] = event
 	db.logger.WithFields(models.Fields{
 		"id": event.ID.String(),
-	}).Info("Event updated")
-	db.logger.Debug("Event body updated: %+v", event)
+	}).Info("Event updated in map DB")
+	db.logger.Debug("Event body updated in map DB: %+v", event)
 	return nil
 }
 
-// GetOneEvent returns one event by id.
-func (db *DBMapEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
+// GetOneEventDB returns one event by id.
+func (db *DBMapEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	if _, ok := db.events[id]; !ok {
 		return models.Event{}, fmt.Errorf("event id = %d not found", id)
 	}
@@ -89,13 +89,13 @@ func (db *DBMapEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
 	}
 	db.logger.WithFields(models.Fields{
 		"id": id.String(),
-	}).Info("Event got")
-	db.logger.Debug("Event body got: %+v", db.events[id])
+	}).Info("Event got from map DB")
+	db.logger.Debug("Event body got from map DB: %+v", db.events[id])
 	return db.events[id], nil
 }
 
-// GetAllEvents return all events slice (no deleted).
-func (db *DBMapEvents) GetAllEvents() []models.Event {
+// GetAllEventsDB return all events slice (no deleted).
+func (db *DBMapEvents) GetAllEventsDB() []models.Event {
 	events := make([]models.Event, 0, len(db.events))
 	for _, event := range db.events {
 		if !event.DeletedAt.IsZero() {
@@ -103,6 +103,15 @@ func (db *DBMapEvents) GetAllEvents() []models.Event {
 		}
 		events = append(events, event)
 	}
-	db.logger.Info("All events got")
+	db.logger.Info("All events got from map DB")
 	return events
+}
+
+// CleanEventsDB cleans db and deletes all events in the db (no restoring!).
+func (db *DBMapEvents) CleanEventsDB() error {
+	db.Lock()
+	defer db.Unlock()
+	db.events = make(map[uuid.UUID]models.Event)
+	db.logger.Info("Map DB cleaned, all events deleted")
+	return nil
 }

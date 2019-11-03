@@ -7,10 +7,10 @@
 package website
 
 import (
-	"fmt"
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
+	"io"
 	"net/http"
 	"time"
 )
@@ -29,7 +29,7 @@ func newHandlers(calendar calendar.Calendar) *handler {
 
 func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
-	siteMux.HandleFunc("/hello", h.helloHandler)
+	siteMux.HandleFunc("/hello/", h.helloHandler)
 	siteMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		h.logger.WithFields(models.Fields{
 			"code": http.StatusNotFound,
@@ -75,6 +75,7 @@ func (h handler) loggerMiddleware(next http.Handler) http.Handler {
 func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	name := query.Get("name")
+	userID := query.Get("userid")
 	if name == "" {
 		name = "default name"
 	}
@@ -83,9 +84,18 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 		ID:     getRequestID(r.Context()),
 	}).Info("RESPONSE")
 
-	s := "Hello, my name is " + name + "\n\n" + h.calendar.GetAllEvents(uuid.Nil)
+	event := models.NewEvent()
+	event.Location = "qqqqqqqqqqqqqqqqqqqqqq"
+	event.UserID = uuid.New()
+	_ = h.calendar.AddEvent(event)
 
-	if _, err := fmt.Fprint(w, s); err != nil {
+	s := "Hello, my name is " + name + "\n\n"
+
+	for _, e := range h.calendar.GetAllEvents(userID) {
+		s += e.StringEr() + "\n"
+	}
+
+	if _, err := io.WriteString(w, s); err != nil {
 		h.logger.Error("Error write to response writer!")
 	}
 }

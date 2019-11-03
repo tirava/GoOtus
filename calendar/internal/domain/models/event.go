@@ -23,6 +23,7 @@ type Event struct {
 	Body      string
 	Duration  time.Duration
 	Location  string
+	UserID    uuid.UUID
 }
 
 // NewEvent returns new example event.
@@ -35,5 +36,19 @@ func NewEvent() Event {
 		Body:      "222",
 		Duration:  time.Minute,
 		Location:  "Moscow",
+		UserID:    uuid.Nil,
 	}
+}
+
+// StringEr is event stringer
+func (e Event) StringEr() string {
+	s := "ID: " + e.ID.String() + "\n"
+	s += "CreatedAt: " + e.CreatedAt.String() + "\n"
+	s += "UpdatedAt: " + e.UpdatedAt.String() + "\n"
+	s += "Subject: " + e.Subject + "\n"
+	s += "Body: " + e.Body + "\n"
+	s += "Duration: " + e.Duration.String() + "\n"
+	s += "Location: " + e.Location + "\n"
+	s += "UserID: " + e.UserID.String() + "\n"
+	return s
 }

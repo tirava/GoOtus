@@ -41,49 +41,56 @@ func NewPostgresDB() (*DBPostgresEvents, error) {
 	return dbp, nil
 }
 
-// AddEvent adds event to postgres db.
-func (db *DBPostgresEvents) AddEvent(event models.Event) error {
+// AddEventDB adds event to postgres db.
+func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
 	// TODO
 	db.logger.WithFields(models.Fields{
 		"id": event.ID.String(),
-	}).Info("Event added")
+	}).Info("Event added into postgres DB")
 	db.logger.Debug("Event body added: %+v", event)
 	return nil
 }
 
-// DelEvent deletes one event by id.
-func (db *DBPostgresEvents) DelEvent(id uuid.UUID) error {
+// DelEventDB deletes one event by id.
+func (db *DBPostgresEvents) DelEventDB(id uuid.UUID) error {
 	// TODO
 	db.logger.WithFields(models.Fields{
 		"id": id.String(),
-	}).Info("Event deleted")
-	//db.logger.Debug("Event body deleted: %+v", e)
+	}).Info("Event deleted from postgres DB")
+	//db.logger.Debug("Event body deleted from postgres DB: %+v", e)
 	return nil
 }
 
-// EditEvent updates one event.
-func (db *DBPostgresEvents) EditEvent(event models.Event) error {
+// EditEventDB updates one event.
+func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 	// TODO
 	db.logger.WithFields(models.Fields{
 		"id": event.ID.String(),
-	}).Info("Event updated")
-	db.logger.Debug("Event body updated: %+v", event)
+	}).Info("Event updated in postgres DB")
+	db.logger.Debug("Event body updated in postgres DB: %+v", event)
 	return nil
 }
 
-// GetOneEvent returns one event by id.
-func (db *DBPostgresEvents) GetOneEvent(id uuid.UUID) (models.Event, error) {
+// GetOneEventDB returns one event by id.
+func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	// TODO
 	db.logger.WithFields(models.Fields{
 		"id": id.String(),
-	}).Info("Event got")
-	//db.logger.Debug("Event body got: %+v", db.events[id])
+	}).Info("Event got from postgres DB")
+	//db.logger.Debug("Event body got from postgres DB: %+v", db.events[id])
 	return models.Event{}, nil
 }
 
-// GetAllEvents return all events slice.
-func (db *DBPostgresEvents) GetAllEvents() []models.Event {
+// GetAllEventsDB return all events slice.
+func (db *DBPostgresEvents) GetAllEventsDB() []models.Event {
 	// TODO
-	db.logger.Info("All events got")
+	db.logger.Info("All events got from postgres DB")
 	return []models.Event{}
+}
+
+// CleanEventsDB cleans db and deletes all events in the db (no restoring!).
+func (db *DBPostgresEvents) CleanEventsDB() error {
+	// TODO
+	db.logger.Info("Postgres DB cleaned, all events deleted")
+	return nil
 }
