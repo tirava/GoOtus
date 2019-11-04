@@ -8,6 +8,7 @@
 package calendar
 
 import (
+	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/interfaces"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
@@ -27,17 +28,48 @@ func NewCalendar(db interfaces.DB) Calendar {
 	}
 }
 
-// AddEvent adds new event for given user
+// AddEvent adds new event for given user.
 func (c Calendar) AddEvent(event models.Event) error {
+	c.logger.WithFields(models.Fields{
+		"id":     event.ID.String(),
+		"userID": event.UserID.String(),
+	}).Info("Request add event into calendar")
+	c.logger.Debug("Requested event body for adding into calendar: %+v", event)
 	return c.db.AddEventDB(event)
 }
 
-// GetAllEvents returns all calendar events for given user
-func (c Calendar) GetAllEvents(userID string) []models.Event {
-	uid, err := uuid.Parse(userID)
-	if err != nil {
-		return nil
+// GetAllEventsFilter returns all calendar events with given filter.
+func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error) {
+	result := make([]models.Event, 0)
+
+	if filter.ID != uuid.Nil {
+		e, err := c.db.GetOneEventDB(filter.ID)
+		if err != nil {
+			c.logger.WithFields(models.Fields{
+				"id": filter.ID,
+			}).Error("Filtered error: %s", err.Error())
+			return result, errors.ErrEventNotFound
+		}
+		result = append(result, e)
+		c.logger.WithFields(models.Fields{
+			"id": filter.ID,
+		}).Info("Returned filtered event by eventID")
+		return result, nil
 	}
 
-	return c.db.GetAllEventsDB()
+	if filter.UserID != uuid.Nil {
+		events := c.db.GetAllEventsDB()
+		for _, e := range events {
+			if e.UserID == filter.UserID {
+				result = append(result, e)
+			}
+		}
+		c.logger.WithFields(models.Fields{
+			"userID": filter.UserID,
+		}).Info("Returned filtered events by userID")
+		return result, nil
+	}
+
+	c.logger.Warn("No returned events by filter")
+	return nil, nil
 }

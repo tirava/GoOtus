@@ -9,6 +9,7 @@ package website
 import (
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/tools"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
@@ -76,6 +77,7 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	name := query.Get("name")
 	userID := query.Get("userid")
+	eventID := query.Get("eventid")
 	if name == "" {
 		name = "default name"
 	}
@@ -91,7 +93,16 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 
 	s := "Hello, my name is " + name + "\n\n"
 
-	for _, e := range h.calendar.GetAllEvents(userID) {
+	events, err := h.calendar.GetAllEventsFilter(models.Event{
+		ID:     tools.IDString2UUIDorNil(eventID),
+		UserID: tools.IDString2UUIDorNil(userID),
+	})
+
+	if err != nil {
+		s += err.Error()
+	}
+
+	for _, e := range events {
 		s += e.StringEr() + "\n"
 	}
 

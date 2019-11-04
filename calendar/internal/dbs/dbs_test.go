@@ -8,6 +8,7 @@ package dbs
 
 import (
 	"github.com/evakom/calendar/internal/configs"
+	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/interfaces"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
@@ -71,7 +72,7 @@ func TestNewEvent(t *testing.T) {
 //	}
 //}
 
-func TestAddEvent(t *testing.T) {
+func TestAddEventDB(t *testing.T) {
 	e := models.NewEvent()
 	e.Subject = "222222222222222222222"
 	e.Body = "3333333333333333333"
@@ -85,12 +86,18 @@ func TestAddEvent(t *testing.T) {
 	if l != 2 {
 		t.Errorf("After adding 2 events to MapDB length != 2, actual length = %d", l)
 	}
-	if err := events.AddEventDB(e); err == nil {
+	err := events.AddEventDB(e)
+	if err == nil {
 		t.Errorf("Adding event with same id should return error but returns no error")
+		return
+	}
+	if err != errors.ErrEventAlreadyExists {
+		t.Errorf("Returned error is not expected type, actual: %s, "+
+			"but expected: %s", err, errors.ErrEventAlreadyExists)
 	}
 }
 
-func TestGetEvent(t *testing.T) {
+func TestGetEventDB(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = events.AddEventDB(e1)
 	e2 := models.NewEvent()
@@ -100,12 +107,18 @@ func TestGetEvent(t *testing.T) {
 		t.Errorf("Event1 not equal Event3 after get from DB:\n%#v\n%#v", e1, e3)
 	}
 	e3.ID = uuid.New()
-	if _, err := events.GetOneEventDB(e3.ID); err == nil {
+	_, err := events.GetOneEventDB(e3.ID)
+	if err == nil {
 		t.Errorf("Error expected but was not returned for getting id = : %s", e3.ID.String())
+		return
+	}
+	if err != errors.ErrEventNotFound {
+		t.Errorf("Returned error is not expected type, actual: %s, "+
+			"but expected: %s", err, errors.ErrEventNotFound)
 	}
 }
 
-func TestEditEvent(t *testing.T) {
+func TestEditEventDB(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = events.AddEventDB(e1)
 
@@ -129,12 +142,18 @@ func TestEditEvent(t *testing.T) {
 		t.Errorf("Event1 updated time not correct in the DB:\nOld time: %v\nNew time: %v", t2, t3)
 	}
 	e3.ID = uuid.New()
-	if err := events.EditEventDB(e3); err == nil {
+	err := events.EditEventDB(e3)
+	if err == nil {
 		t.Errorf("Editing event with same id should return error but returns no error")
+		return
+	}
+	if err != errors.ErrEventNotFound {
+		t.Errorf("Returned error is not expected type, actual: %s, "+
+			"but expected: %s", err, errors.ErrEventNotFound)
 	}
 }
 
-func TestDelEvent(t *testing.T) {
+func TestDelEventDB(t *testing.T) {
 	e := models.NewEvent()
 	_ = events.AddEventDB(e)
 	if err := events.DelEventDB(e.ID); err != nil {
@@ -144,12 +163,18 @@ func TestDelEvent(t *testing.T) {
 		t.Errorf("Error expected but was not returned for deleted id = : %s", e.ID.String())
 	}
 	e.ID = uuid.New()
-	if err := events.DelEventDB(e.ID); err == nil {
+	err := events.DelEventDB(e.ID)
+	if err == nil {
 		t.Errorf("Error expected but was not returned for deleting fake id = %s", e.ID.String())
+		return
+	}
+	if err != errors.ErrEventNotFound {
+		t.Errorf("Returned error is not expected type, actual: %s, "+
+			"but expected: %s", err, errors.ErrEventNotFound)
 	}
 }
 
-func TestGetAllEvents(t *testing.T) {
+func TestGetAllEventsDB(t *testing.T) {
 	_ = events.CleanEventsDB()
 	e1 := models.NewEvent()
 	_ = events.AddEventDB(e1)

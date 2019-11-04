@@ -7,7 +7,7 @@
 package dbs
 
 import (
-	"fmt"
+	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
 	"sync"
@@ -36,7 +36,7 @@ func (db *DBMapEvents) AddEventDB(event models.Event) error {
 	db.Lock()
 	defer db.Unlock()
 	if _, ok := db.events[event.ID]; ok {
-		return fmt.Errorf("event id = %s already exists", event.ID.String())
+		return errors.ErrEventAlreadyExists
 	}
 	db.events[event.ID] = event
 	db.logger.WithFields(models.Fields{
@@ -49,7 +49,7 @@ func (db *DBMapEvents) AddEventDB(event models.Event) error {
 // DelEventDB deletes one event by id.
 func (db *DBMapEvents) DelEventDB(id uuid.UUID) error {
 	if _, ok := db.events[id]; !ok {
-		return fmt.Errorf("event id = %s not found", id.String())
+		return errors.ErrEventNotFound
 	}
 	db.Lock()
 	defer db.Unlock()
@@ -66,7 +66,7 @@ func (db *DBMapEvents) DelEventDB(id uuid.UUID) error {
 // EditEventDB updates one event.
 func (db *DBMapEvents) EditEventDB(event models.Event) error {
 	if _, ok := db.events[event.ID]; !ok {
-		return fmt.Errorf("event id = %s not found", event.ID.String())
+		return errors.ErrEventNotFound
 	}
 	db.Lock()
 	defer db.Unlock()
@@ -82,10 +82,10 @@ func (db *DBMapEvents) EditEventDB(event models.Event) error {
 // GetOneEventDB returns one event by id.
 func (db *DBMapEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	if _, ok := db.events[id]; !ok {
-		return models.Event{}, fmt.Errorf("event id = %d not found", id)
+		return models.Event{}, errors.ErrEventNotFound
 	}
 	if !db.events[id].DeletedAt.IsZero() {
-		return models.Event{}, fmt.Errorf("event id = %d already deleted", id)
+		return models.Event{}, errors.ErrEventAlreadyDeleted
 	}
 	db.logger.WithFields(models.Fields{
 		"id": id.String(),

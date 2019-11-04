@@ -36,7 +36,7 @@ func NewEvent() Event {
 		Body:      "222",
 		Duration:  time.Minute,
 		Location:  "Moscow",
-		UserID:    uuid.Nil,
+		UserID:    uuid.New(), // todo uuid.Nil
 	}
 }
 
