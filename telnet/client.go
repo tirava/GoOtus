@@ -19,26 +19,30 @@ import (
 	"time"
 )
 
-// DEADLINETIME constant need for waiting user for some time
-// and get some work if user "dead"
-const DEADLINETIME = time.Millisecond * 500
+// DEADLINETIME constant need for waiting user some time
+// and get some work if user is "dead"
+const (
+	DEADLINETIME = time.Millisecond * 500
+	READBUFFER   = 1024
+)
 
 type client struct {
-	serverAddr string
-	timeout    time.Duration
-	conn       net.Conn
-	ctx        context.Context
-	cancel     context.CancelFunc
-	abort      chan bool
-	stdin      chan string
+	serverAddr  string
+	timeout     time.Duration
+	conn        net.Conn
+	ctx         context.Context
+	cancel      context.CancelFunc
+	abortChan   chan bool
+	stdinChan   chan string
+	lastMessage string
 }
 
 func newClient(serverAddr string, timeout time.Duration) client {
 	c := client{
 		serverAddr: serverAddr,
 		timeout:    timeout,
-		abort:      make(chan bool),
-		stdin:      make(chan string),
+		abortChan:  make(chan bool),
+		stdinChan:  make(chan string),
 	}
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 	return c
@@ -50,7 +54,7 @@ func (c *client) dial() error {
 	c.conn, err = dialer.Dial("tcp", c.serverAddr)
 	if err == nil {
 		log.Printf("Connected to: %s", c.serverAddr)
-		fmt.Println("Press 'Ctrl+D or Ctrl+C' for exit")
+		log.Println("Press 'Ctrl+D or Ctrl+C' for exit")
 	}
 	return err
 }
@@ -61,7 +65,7 @@ func (c *client) waitOSKill() {
 		signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 		sig := <-ch
 		fmt.Println("\nGot signal:", sig)
-		c.abort <- true
+		c.abortChan <- true
 	}()
 }
 
@@ -77,16 +81,22 @@ func (c *client) close() error {
 
 func (c *client) readFromConn() chan bool {
 	go c.readRoutine()
-	return c.abort
+	return c.abortChan
 }
 
 func (c *client) writeToConn() chan bool {
 	go c.writeRoutine()
-	return c.abort
+	return c.abortChan
+}
+
+func (c *client) readFromWriteToConn() chan bool {
+	go c.readRoutine()
+	go c.writeRoutine()
+	return c.abortChan
 }
 
 func (c *client) readRoutine() {
-	reply := make([]byte, 1)
+	reply := make([]byte, READBUFFER)
 OUTER:
 	for {
 		select {
@@ -102,7 +112,7 @@ OUTER:
 			if err != nil {
 				if err == io.EOF {
 					log.Println("Remote host aborted connection, exiting from reading...")
-					c.abort <- true
+					c.abortChan <- true
 					break OUTER
 				}
 				if netErr, ok := err.(net.Error); ok && !netErr.Timeout() {
@@ -112,7 +122,11 @@ OUTER:
 			if n == 0 {
 				break
 			}
-			fmt.Print(string(reply))
+			bs := reply[:n]
+			if len(bs) != 0 {
+				c.lastMessage = string(bs)
+			}
+			fmt.Printf(c.lastMessage)
 		}
 	}
 	log.Println("...exited from reading")
@@ -126,14 +140,14 @@ func (c *client) writeRoutine() {
 			if err != nil {
 				if err == io.EOF {
 					log.Print("Ctrl+D detected, aborting...")
-					c.abort <- true
+					c.abortChan <- true
 					return
 				}
 				log.Println(err)
 			}
 			stdin <- s
 		}
-	}(c.stdin)
+	}(c.stdinChan)
 
 OUTER:
 	for {
@@ -146,7 +160,7 @@ OUTER:
 		STDIN:
 			for {
 				select {
-				case stdin, ok := <-c.stdin:
+				case stdin, ok := <-c.stdinChan:
 					if !ok {
 						break STDIN
 					}

@@ -9,7 +9,7 @@
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+cover.*
 
 # GoLand workspace
 /.idea
@@ -19,3 +19,4 @@ go-telnet
 
 # Others
 *.swp
+*.log
