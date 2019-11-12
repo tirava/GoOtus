@@ -9,6 +9,7 @@ package website
 import (
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/loggers"
 	"github.com/evakom/calendar/tools"
 	"github.com/google/uuid"
 	"io"
@@ -18,13 +19,13 @@ import (
 
 type handler struct {
 	calendar calendar.Calendar
-	logger   models.Logger
+	logger   loggers.Logger
 }
 
 func newHandlers(calendar calendar.Calendar) *handler {
 	return &handler{
 		calendar: calendar,
-		logger:   models.Logger{}.GetLogger(),
+		logger:   loggers.Logger{}.GetLogger(),
 	}
 }
 
@@ -32,7 +33,7 @@ func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
 	siteMux.HandleFunc("/hello/", h.helloHandler)
 	siteMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		h.logger.WithFields(models.Fields{
+		h.logger.WithFields(loggers.Fields{
 			"code": http.StatusNotFound,
 			ID:     getRequestID(r.Context()),
 		}).Error("RESPONSE")
@@ -66,7 +67,7 @@ func (h handler) loggerMiddleware(next http.Handler) http.Handler {
 		)).Info("REQUEST START")
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		h.logger.WithFields(models.Fields{
+		h.logger.WithFields(loggers.Fields{
 			"response_time": time.Since(start),
 			ID:              getRequestID(ctx),
 		}).Info("REQUEST END")
@@ -81,7 +82,7 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	if name == "" {
 		name = "default name"
 	}
-	h.logger.WithFields(models.Fields{
+	h.logger.WithFields(loggers.Fields{
 		"code": http.StatusOK,
 		ID:     getRequestID(r.Context()),
 	}).Info("RESPONSE")

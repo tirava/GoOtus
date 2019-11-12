@@ -9,6 +9,7 @@ package calendar
 import (
 	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/loggers"
 	"github.com/evakom/calendar/tools"
 	"github.com/google/uuid"
 	"testing"
@@ -20,7 +21,7 @@ var cal Calendar
 
 func init() {
 	conf := tools.InitConfig(fileConfigPath)
-	models.NewLogger("none", nil)
+	loggers.NewLogger("none", nil)
 	//models.NewLogger("debug", os.Stdout)
 	db := tools.InitDB(conf.DBType)
 	cal = NewCalendar(db)
@@ -39,7 +40,7 @@ func TestAddEvent(t *testing.T) {
 	}
 }
 
-func TestGetAllEventsFilterEventID(t *testing.T) {
+func TestGetAllEventsFilter_EventID(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = cal.AddEvent(e1)
 	e2 := models.NewEvent()
@@ -61,7 +62,7 @@ func TestGetAllEventsFilterEventID(t *testing.T) {
 	}
 }
 
-func TestGetAllEventsFilterUserID(t *testing.T) {
+func TestGetAllEventsFilter_UserID(t *testing.T) {
 	e1 := models.NewEvent()
 	_ = cal.AddEvent(e1)
 	e2 := models.NewEvent()
@@ -87,7 +88,7 @@ func TestGetAllEventsFilterUserID(t *testing.T) {
 	}
 	filter = models.Event{}
 	events, err = cal.GetAllEventsFilter(filter)
-	if events != nil || err != nil {
+	if len(events) != 0 || err != nil {
 		t.Errorf("Null filter must return nil events but returned:\n"+
 			"events=%v, err=%s", events, err)
 	}

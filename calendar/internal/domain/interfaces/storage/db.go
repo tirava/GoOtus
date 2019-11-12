@@ -4,8 +4,8 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-// Package interfaces implements interfaces.
-package interfaces
+// Package storage implements DB interfaces.
+package storage
 
 import (
 	"github.com/evakom/calendar/internal/domain/models"

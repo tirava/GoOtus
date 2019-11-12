@@ -8,9 +8,14 @@
 package models
 
 import (
+	"fmt"
 	"github.com/google/uuid"
+	"strings"
 	"time"
 )
+
+// FORMATSTRING for stringer
+const FORMATSTRING = "%-13s%s\n"
 
 // Event is the base event struct.
 type Event struct {
@@ -42,13 +47,14 @@ func NewEvent() Event {
 
 // StringEr is event stringer
 func (e Event) StringEr() string {
-	s := "ID: " + e.ID.String() + "\n"
-	s += "CreatedAt: " + e.CreatedAt.String() + "\n"
-	s += "UpdatedAt: " + e.UpdatedAt.String() + "\n"
-	s += "Subject: " + e.Subject + "\n"
-	s += "Body: " + e.Body + "\n"
-	s += "Duration: " + e.Duration.String() + "\n"
-	s += "Location: " + e.Location + "\n"
-	s += "UserID: " + e.UserID.String() + "\n"
-	return s
+	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf(FORMATSTRING, "ID:", e.ID))
+	sb.WriteString(fmt.Sprintf(FORMATSTRING, "CreatedAt:", e.CreatedAt))
+	sb.WriteString(fmt.Sprintf(FORMATSTRING, "UpdatedAt:", e.UpdatedAt))
+	sb.WriteString(fmt.Sprintf(FORMATSTRING, "Subject:", e.Subject))
+	sb.WriteString(fmt.Sprintf(FORMATSTRING, "Body:", e.Body))
+	sb.WriteString(fmt.Sprintf(FORMATSTRING, "Duration:", e.Duration))
+	sb.WriteString(fmt.Sprintf(FORMATSTRING, "Location:", e.Location))
+	sb.WriteString(fmt.Sprintf(FORMATSTRING, "UserID:", e.UserID))
+	return sb.String()
 }

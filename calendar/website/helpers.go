@@ -8,7 +8,7 @@ package website
 
 import (
 	"context"
-	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/loggers"
 	"github.com/google/uuid"
 	"net/http"
 )
@@ -28,8 +28,8 @@ type contextKey string
 
 const contextKeyRequestID contextKey = "requestID"
 
-func requestFields(r *http.Request, args ...string) models.Fields {
-	fields := make(models.Fields)
+func requestFields(r *http.Request, args ...string) loggers.Fields {
+	fields := make(loggers.Fields)
 	for _, s := range args {
 		switch s {
 		case ID:

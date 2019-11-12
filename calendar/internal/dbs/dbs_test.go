@@ -9,8 +9,9 @@ package dbs
 import (
 	"github.com/evakom/calendar/internal/configs"
 	"github.com/evakom/calendar/internal/domain/errors"
-	"github.com/evakom/calendar/internal/domain/interfaces"
+	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/loggers"
 	"github.com/google/uuid"
 	"log"
 	"os"
@@ -24,7 +25,7 @@ const (
 	fileConfigPath = "../../config.yml"
 )
 
-var events interfaces.DB
+var events storage.DB
 
 func init() {
 	confPath := os.Getenv(envConfigPath)
@@ -35,7 +36,7 @@ func init() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	models.NewLogger("none", nil)
+	loggers.NewLogger("none", nil)
 	events, err = NewDB(conf.DBType)
 	if events == nil {
 		log.Fatalf("unsupported DB type: %s\n", conf.DBType)

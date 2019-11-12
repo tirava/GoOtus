@@ -4,8 +4,8 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-// Package models implements base models.
-package models
+// Package loggers implements base models.
+package loggers
 
 import (
 	log "github.com/sirupsen/logrus"
