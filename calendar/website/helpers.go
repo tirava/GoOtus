@@ -15,13 +15,15 @@ import (
 
 // Constants
 const (
-	ID           = "id"
-	HOSTFIELD    = "host"
-	METHODFIELD  = "method"
-	URLFIELD     = "url"
-	BROWSERFIELD = "browser"
-	REMOTEFIELD  = "remote"
-	QUERYFIELD   = "query"
+	IDField       = "id"
+	HostField     = "host"
+	MethodField   = "method"
+	URLField      = "url"
+	BrowserField  = "browser"
+	RemoteField   = "remote"
+	QueryField    = "query"
+	CodeField     = "code"
+	RespTimeField = "response_time"
 )
 
 type contextKey string
@@ -32,20 +34,20 @@ func requestFields(r *http.Request, args ...string) loggers.Fields {
 	fields := make(loggers.Fields)
 	for _, s := range args {
 		switch s {
-		case ID:
-			fields[ID] = getRequestID(r.Context())
-		case HOSTFIELD:
-			fields[HOSTFIELD] = r.Host
-		case METHODFIELD:
-			fields[METHODFIELD] = r.Method
-		case URLFIELD:
-			fields[URLFIELD] = r.URL.Path
-		case BROWSERFIELD:
-			fields[BROWSERFIELD] = r.Header.Get("User-Agent")
-		case REMOTEFIELD:
-			fields[REMOTEFIELD] = r.RemoteAddr
-		case QUERYFIELD:
-			fields[QUERYFIELD] = r.URL.RawQuery
+		case IDField:
+			fields[IDField] = getRequestID(r.Context())
+		case HostField:
+			fields[HostField] = r.Host
+		case MethodField:
+			fields[MethodField] = r.Method
+		case URLField:
+			fields[URLField] = r.URL.Path
+		case BrowserField:
+			fields[BrowserField] = r.Header.Get("User-Agent")
+		case RemoteField:
+			fields[RemoteField] = r.RemoteAddr
+		case QueryField:
+			fields[QueryField] = r.URL.RawQuery
 		}
 	}
 	return fields

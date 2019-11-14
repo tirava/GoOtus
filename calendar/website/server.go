@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 // StartWebsite inits routing and starts web listener.
@@ -21,8 +22,11 @@ func StartWebsite(listenHTTP string, calendar calendar.Calendar) {
 
 	handlers := newHandlers(calendar)
 	srv := &http.Server{
-		Addr:    listenHTTP,
-		Handler: handlers.prepareRoutes(),
+		Addr:           listenHTTP,
+		Handler:        handlers.prepareRoutes(),
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
 
 	shutdown := make(chan os.Signal)

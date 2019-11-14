@@ -3,3 +3,6 @@ gen:
 
 build: gen
 	go build -o calendar main.go
+
+test: build
+	go test ./...

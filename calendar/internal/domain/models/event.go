@@ -14,8 +14,7 @@ import (
 	"time"
 )
 
-// FORMATSTRING for stringer
-const FORMATSTRING = "%-13s%s\n"
+const formatString = "%-13s%s\n"
 
 // Event is the base event struct.
 type Event struct {
@@ -48,13 +47,13 @@ func NewEvent() Event {
 // StringEr is event stringer
 func (e Event) StringEr() string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf(FORMATSTRING, "ID:", e.ID))
-	sb.WriteString(fmt.Sprintf(FORMATSTRING, "CreatedAt:", e.CreatedAt))
-	sb.WriteString(fmt.Sprintf(FORMATSTRING, "UpdatedAt:", e.UpdatedAt))
-	sb.WriteString(fmt.Sprintf(FORMATSTRING, "Subject:", e.Subject))
-	sb.WriteString(fmt.Sprintf(FORMATSTRING, "Body:", e.Body))
-	sb.WriteString(fmt.Sprintf(FORMATSTRING, "Duration:", e.Duration))
-	sb.WriteString(fmt.Sprintf(FORMATSTRING, "Location:", e.Location))
-	sb.WriteString(fmt.Sprintf(FORMATSTRING, "UserID:", e.UserID))
+	sb.WriteString(fmt.Sprintf(formatString, "ID:", e.ID))
+	sb.WriteString(fmt.Sprintf(formatString, "CreatedAt:", e.CreatedAt))
+	sb.WriteString(fmt.Sprintf(formatString, "UpdatedAt:", e.UpdatedAt))
+	sb.WriteString(fmt.Sprintf(formatString, "Subject:", e.Subject))
+	sb.WriteString(fmt.Sprintf(formatString, "Body:", e.Body))
+	sb.WriteString(fmt.Sprintf(formatString, "Duration:", e.Duration))
+	sb.WriteString(fmt.Sprintf(formatString, "Location:", e.Location))
+	sb.WriteString(fmt.Sprintf(formatString, "UserID:", e.UserID))
 	return sb.String()
 }
