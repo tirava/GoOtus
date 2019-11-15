@@ -9,38 +9,23 @@ package website
 import (
 	"github.com/evakom/calendar/internal/loggers"
 	"net/http"
+	"path"
 	"time"
 )
 
-//func (p *pathResolver) parse(mux *http.ServeMux) {
-//	check := req.Method + " " + req.URL.Path
-//	for pattern, handlerFunc := range p.handlers {
-//		if ok, err := path.Match(pattern, check); ok && err == nil {
-//			handlerFunc(res, req)
-//			return
-//		} else if err != nil {
-//			fmt.Fprint(res, req)
-//		}
-//	}
-//	//fmt.Fprint(res, "qqq")
-//	http.NotFound(res, req)
-//}
-
 func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
-	h.addPath("GET /hello/*", h.helloHandler)
-	h.addPath("POST /create_event", h.createEventHandler)
-	//siteMux.HandleFunc("/hello/", h.helloHandler)
-	//siteMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	//	h.logger.WithFields(loggers.Fields{
-	//		CodeField: http.StatusNotFound,
-	//		IDField:   getRequestID(r.Context()),
-	//	}).Error("RESPONSE")
-	//	http.NotFound(w, r)
-	//})
-	// path must be last
-	//siteHandler := h.pathMiddleware(siteMux)
-	siteHandler := h.loggerMiddleware(siteMux)
+
+	h.addPath("GET /hello/*", h.hello)
+	h.addPath("POST /create_event", h.createEvent)
+	h.addPath("PUT /update_event", h.updateEvent)
+	h.addPath("DELETE /delete_event", h.deleteEvent)
+	h.addPath("GET /events_for_day", h.eventsForDay)
+	h.addPath("GET /events_for_week", h.eventsForWeek)
+	h.addPath("GET /events_for_month", h.eventsForMonth)
+
+	siteHandler := h.pathMiddleware(siteMux)
+	siteHandler = h.loggerMiddleware(siteHandler)
 	siteHandler = h.panicMiddleware(siteHandler)
 	return siteHandler
 }
@@ -49,22 +34,26 @@ func (h handler) addPath(path string, handler http.HandlerFunc) {
 	h.handlers[path] = handler
 }
 
-//func (h handler) pathMiddleware(next http.Handler) http.Handler {
-//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//		check := r.Method + " " + r.URL.Path
-//		for pattern, handlerFunc := range h.handlers {
-//			if ok, err := path.Match(pattern, check); ok && err == nil {
-//				handlerFunc(w, r)
-//				next.ServeHTTP(w, r)
-//				//		} else if err != nil {
-//				//			fmt.Fprint(res, req)
-//				//		}
-//			}
-//			http.NotFound(w, r)
-//			next.ServeHTTP(w, r)
-//		}
-//	})
-//}
+func (h handler) pathMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		check := r.Method + " " + r.URL.Path
+		for pattern, handlerFunc := range h.handlers {
+			if ok, err := path.Match(pattern, check); ok && err == nil {
+				handlerFunc(w, r)
+				return
+			} else if err != nil {
+				h.logger.Error("error match router path: %s", err)
+				http.Error(w, http.StatusText(http.StatusInternalServerError),
+					http.StatusInternalServerError)
+			}
+		}
+		h.logger.WithFields(loggers.Fields{
+			CodeField: http.StatusNotFound,
+			IDField:   getRequestID(r.Context()),
+		}).Error("RESPONSE")
+		http.NotFound(w, r)
+	})
+}
 
 func (h handler) panicMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

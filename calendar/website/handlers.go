@@ -30,7 +30,7 @@ func newHandlers(calendar calendar.Calendar) *handler {
 	}
 }
 
-func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
+func (h handler) hello(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	name := query.Get("name")
 	userID := query.Get("userid")
@@ -65,6 +65,26 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h handler) createEventHandler(w http.ResponseWriter, r *http.Request) {
+func (h handler) createEvent(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "create")
+}
+
+func (h handler) updateEvent(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "update")
+}
+
+func (h handler) deleteEvent(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "delete")
+}
+
+func (h handler) eventsForDay(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "events for day")
+}
+
+func (h handler) eventsForWeek(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "events for week")
+}
+
+func (h handler) eventsForMonth(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "events for month")
 }
