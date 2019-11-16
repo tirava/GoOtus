@@ -38,7 +38,7 @@ func TestGetHello(t *testing.T) {
 	req.URL.RawQuery = query.Encode()
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(handlers.helloHandler)
+	handler := http.HandlerFunc(handlers.hello)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {

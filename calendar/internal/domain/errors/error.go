@@ -18,6 +18,7 @@ func (e EventError) Error() string {
 // Errors
 var (
 	ErrEventNotFound       = EventError("Event not found")
+	ErrEventsNotFound      = EventError("Events not found")
 	ErrEventAlreadyExists  = EventError("Event already exists")
 	ErrEventAlreadyDeleted = EventError("Event already deleted")
 	//ErrOverlapping       = EventError("another event exists for this date")

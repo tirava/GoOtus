@@ -18,6 +18,6 @@ type DB interface {
 	EditEventDB(event models.Event) error
 	DelEventDB(id uuid.UUID) error
 	GetOneEventDB(id uuid.UUID) (models.Event, error)
-	GetAllEventsDB() []models.Event
-	CleanEventsDB() error
+	GetAllEventsDB(id uuid.UUID) []models.Event
+	CleanEventsDB(id uuid.UUID) error
 }

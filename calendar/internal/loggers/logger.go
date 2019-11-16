@@ -26,7 +26,7 @@ type Logger struct {
 var lg Logger
 
 // GetLogger returns global logger.
-func (l Logger) GetLogger() Logger {
+func GetLogger() Logger {
 	return lg
 }
 

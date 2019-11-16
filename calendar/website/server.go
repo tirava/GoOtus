@@ -35,7 +35,7 @@ func StartWebsite(listenHTTP string, calendar calendar.Calendar) {
 	defer cancel()
 
 	go func() {
-		handlers.logger.Info("Signal received: %s", <-shutdown)
+		handlers.logger.Warn("Signal received: %s", <-shutdown)
 		if err := srv.Shutdown(ctx); err != nil {
 			handlers.logger.Error("Error while shutdown server: %s", err)
 		}

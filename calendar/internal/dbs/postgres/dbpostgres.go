@@ -16,8 +16,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// TODO into config
-const dsn = ""
+const (
+	dsn          = "" // TODO into config
+	eventIDField = "event_id"
+	userIDField  = "user_id"
+)
 
 // DBPostgresEvents is the base struct for using map db.
 type DBPostgresEvents struct {
@@ -37,7 +40,7 @@ func NewPostgresDB() (*DBPostgresEvents, error) {
 	}
 	dbp := &DBPostgresEvents{
 		db:     db,
-		logger: loggers.Logger{}.GetLogger(),
+		logger: loggers.GetLogger(),
 	}
 	dbp.logger.Info("Connected to postgres DB")
 	return dbp, nil
@@ -47,7 +50,8 @@ func NewPostgresDB() (*DBPostgresEvents, error) {
 func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
 	// TODO
 	db.logger.WithFields(loggers.Fields{
-		"id": event.ID.String(),
+		eventIDField: event.ID.String(),
+		userIDField:  event.UserID.String(),
 	}).Info("Event added into postgres DB")
 	db.logger.Debug("Event body added: %+v", event)
 	return nil
@@ -57,7 +61,8 @@ func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
 func (db *DBPostgresEvents) DelEventDB(id uuid.UUID) error {
 	// TODO
 	db.logger.WithFields(loggers.Fields{
-		"id": id.String(),
+		eventIDField: id.String(),
+		//userIdField:  e.UserID.String(),
 	}).Info("Event deleted from postgres DB")
 	//db.logger.Debug("Event body deleted from postgres DB: %+v", e)
 	return nil
@@ -67,7 +72,8 @@ func (db *DBPostgresEvents) DelEventDB(id uuid.UUID) error {
 func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 	// TODO
 	db.logger.WithFields(loggers.Fields{
-		"id": event.ID.String(),
+		eventIDField: event.ID.String(),
+		userIDField:  event.UserID.String(),
 	}).Info("Event updated in postgres DB")
 	db.logger.Debug("Event body updated in postgres DB: %+v", event)
 	return nil
@@ -77,22 +83,27 @@ func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 	// TODO
 	db.logger.WithFields(loggers.Fields{
-		"id": id.String(),
+		eventIDField: id.String(),
+		//userIdField:  db.events[id].UserID.String(),
 	}).Info("Event got from postgres DB")
 	//db.logger.Debug("Event body got from postgres DB: %+v", db.events[id])
 	return models.Event{}, nil
 }
 
-// GetAllEventsDB return all events slice.
-func (db *DBPostgresEvents) GetAllEventsDB() []models.Event {
+// GetAllEventsDB return all events slice for given user id (no deleted).
+func (db *DBPostgresEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 	// TODO
-	db.logger.Info("All events got from postgres DB")
+	db.logger.WithFields(loggers.Fields{
+		userIDField: id.String(),
+	}).Info("All events got from map DB")
 	return []models.Event{}
 }
 
-// CleanEventsDB cleans db and deletes all events in the db (no restoring!).
-func (db *DBPostgresEvents) CleanEventsDB() error {
+// CleanEventsDB cleans db and deletes all events in the db for given user id (no restoring!).
+func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
 	// TODO
-	db.logger.Info("Postgres DB cleaned, all events deleted")
+	db.logger.WithFields(loggers.Fields{
+		userIDField: id.String(),
+	}).Info("All events deleted")
 	return nil
 }

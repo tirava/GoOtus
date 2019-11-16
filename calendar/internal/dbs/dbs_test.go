@@ -83,7 +83,7 @@ func TestAddEventDB(t *testing.T) {
 	e = models.NewEvent()
 	e.Duration = 555
 	_ = events.AddEventDB(e)
-	l := len(events.GetAllEventsDB())
+	l := len(events.GetAllEventsDB(uuid.Nil))
 	if l != 2 {
 		t.Errorf("After adding 2 events to MapDB length != 2, actual length = %d", l)
 	}
@@ -176,13 +176,13 @@ func TestDelEventDB(t *testing.T) {
 }
 
 func TestGetAllEventsDB(t *testing.T) {
-	_ = events.CleanEventsDB()
+	_ = events.CleanEventsDB(uuid.Nil)
 	e1 := models.NewEvent()
 	_ = events.AddEventDB(e1)
 	e2 := models.NewEvent()
 	_ = events.AddEventDB(e2)
 	_ = events.DelEventDB(e1.ID)
-	e3 := events.GetAllEventsDB()
+	e3 := events.GetAllEventsDB(uuid.Nil)
 	l := len(e3)
 	if l != 1 {
 		t.Errorf("After getting all events length slice != 1, actual length = %d", l)

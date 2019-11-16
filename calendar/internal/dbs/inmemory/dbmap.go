@@ -16,6 +16,11 @@ import (
 	"time"
 )
 
+const (
+	eventIDField = "event_id"
+	userIDField  = "user_id"
+)
+
 // DBMapEvents is the base struct for using map db.
 type DBMapEvents struct {
 	sync.RWMutex
@@ -27,7 +32,7 @@ type DBMapEvents struct {
 func NewMapDB() (*DBMapEvents, error) {
 	dbm := &DBMapEvents{
 		events: make(map[uuid.UUID]models.Event),
-		logger: loggers.Logger{}.GetLogger(),
+		logger: loggers.GetLogger(),
 	}
 	dbm.logger.Info("New map DB created")
 	return dbm, nil
@@ -42,7 +47,8 @@ func (db *DBMapEvents) AddEventDB(event models.Event) error {
 	}
 	db.events[event.ID] = event
 	db.logger.WithFields(loggers.Fields{
-		"id": event.ID.String(),
+		eventIDField: event.ID.String(),
+		userIDField:  event.UserID.String(),
 	}).Info("Event added into map DB")
 	db.logger.Debug("Event body added into map DB: %+v", event)
 	return nil
@@ -59,7 +65,8 @@ func (db *DBMapEvents) DelEventDB(id uuid.UUID) error {
 	e.DeletedAt = time.Now()
 	db.events[id] = e
 	db.logger.WithFields(loggers.Fields{
-		"id": id.String(),
+		eventIDField: id.String(),
+		userIDField:  e.UserID.String(),
 	}).Info("Event deleted from map DB")
 	db.logger.Debug("Event body deleted from map DB: %+v", e)
 	return nil
@@ -75,7 +82,8 @@ func (db *DBMapEvents) EditEventDB(event models.Event) error {
 	event.UpdatedAt = time.Now()
 	db.events[event.ID] = event
 	db.logger.WithFields(loggers.Fields{
-		"id": event.ID.String(),
+		eventIDField: event.ID.String(),
+		userIDField:  event.UserID.String(),
 	}).Info("Event updated in map DB")
 	db.logger.Debug("Event body updated in map DB: %+v", event)
 	return nil
@@ -90,30 +98,45 @@ func (db *DBMapEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 		return models.Event{}, errors.ErrEventAlreadyDeleted
 	}
 	db.logger.WithFields(loggers.Fields{
-		"id": id.String(),
+		eventIDField: id.String(),
+		userIDField:  db.events[id].UserID.String(),
 	}).Info("Event got from map DB")
 	db.logger.Debug("Event body got from map DB: %+v", db.events[id])
 	return db.events[id], nil
 }
 
-// GetAllEventsDB return all events slice (no deleted).
-func (db *DBMapEvents) GetAllEventsDB() []models.Event {
+// GetAllEventsDB return all events slice for given user id (no deleted).
+func (db *DBMapEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 	events := make([]models.Event, 0, len(db.events))
 	for _, event := range db.events {
 		if !event.DeletedAt.IsZero() {
 			continue
 		}
-		events = append(events, event)
+		if event.UserID == id || id == uuid.Nil {
+			events = append(events, event)
+		}
 	}
-	db.logger.Info("All events got from map DB")
+	db.logger.WithFields(loggers.Fields{
+		userIDField: id.String(),
+	}).Info("All events got from map DB")
 	return events
 }
 
-// CleanEventsDB cleans db and deletes all events in the db (no restoring!).
-func (db *DBMapEvents) CleanEventsDB() error {
+// CleanEventsDB cleans db and deletes all events in the db for given user id (no restoring!).
+func (db *DBMapEvents) CleanEventsDB(id uuid.UUID) error {
 	db.Lock()
 	defer db.Unlock()
-	db.events = make(map[uuid.UUID]models.Event)
-	db.logger.Info("Map DB cleaned, all events deleted")
+	if id == uuid.Nil {
+		db.events = make(map[uuid.UUID]models.Event)
+	} else {
+		for _, event := range db.events {
+			if event.UserID == id {
+				delete(db.events, event.ID)
+			}
+		}
+	}
+	db.logger.WithFields(loggers.Fields{
+		userIDField: id.String(),
+	}).Info("All events deleted")
 	return nil
 }
