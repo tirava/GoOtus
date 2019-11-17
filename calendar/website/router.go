@@ -17,6 +17,8 @@ func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
 
 	h.addPath("GET /hello/*", h.hello)
+	h.addPath("GET /get_event", h.getEvent)
+	h.addPath("GET /get_user_events", h.getUserEvents)
 	h.addPath("POST /create_event", h.createEvent)
 	h.addPath("PUT /update_event", h.updateEvent)
 	h.addPath("DELETE /delete_event", h.deleteEvent)
@@ -48,8 +50,8 @@ func (h handler) pathMiddleware(next http.Handler) http.Handler {
 			}
 		}
 		h.logger.WithFields(loggers.Fields{
-			CodeField: http.StatusNotFound,
-			IDField:   getRequestID(r.Context()),
+			CodeField:  http.StatusNotFound,
+			ReqIDField: getRequestID(r.Context()),
 		}).Error("RESPONSE")
 		http.NotFound(w, r)
 	})
@@ -74,14 +76,14 @@ func (h handler) loggerMiddleware(next http.Handler) http.Handler {
 		ctx := assignRequestID(r.Context())
 		r = r.WithContext(ctx)
 		h.logger.WithFields(requestFields(
-			r, IDField, HostField, MethodField, URLField,
+			r, ReqIDField, HostField, MethodField, URLField,
 			BrowserField, RemoteField, QueryField,
 		)).Info("REQUEST START")
 		start := time.Now()
 		next.ServeHTTP(w, r)
 		h.logger.WithFields(loggers.Fields{
 			RespTimeField: time.Since(start),
-			IDField:       getRequestID(ctx),
+			ReqIDField:    getRequestID(ctx),
 		}).Info("REQUEST END")
 	})
 }

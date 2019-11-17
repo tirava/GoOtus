@@ -64,16 +64,18 @@ func TestGetAllEventsFilter_EventID(t *testing.T) {
 
 func TestGetAllEventsFilter_UserID(t *testing.T) {
 	e1 := models.NewEvent()
+	e1.UserID = uuid.New()
 	_ = cal.AddEvent(e1)
 	e2 := models.NewEvent()
+	e2.UserID = uuid.New()
 	_ = cal.AddEvent(e2)
 	e3 := models.NewEvent()
 	e3.UserID = e1.UserID
 	_ = cal.AddEvent(e3)
 	filter := models.Event{UserID: e1.UserID}
 	events, err := cal.GetAllEventsFilter(filter)
-	if err != nil {
-		t.Errorf("Filtered event by user should not return error but returns it: %s", err)
+	if err != nil && err != errors.ErrNothingFound {
+		t.Errorf("Filtered event by user should return ErrNothingFound but returns: %s", err)
 		return
 	}
 	l := len(events)
@@ -88,8 +90,8 @@ func TestGetAllEventsFilter_UserID(t *testing.T) {
 	}
 	filter = models.Event{}
 	events, err = cal.GetAllEventsFilter(filter)
-	if len(events) != 0 || err != nil {
-		t.Errorf("Null filter must return nil events but returned:\n"+
+	if len(events) != 0 || err != errors.ErrNothingFound {
+		t.Errorf("Null filter must return no events and ErrNothingFound but returned:\n"+
 			"events=%v, err=%s", events, err)
 	}
 }

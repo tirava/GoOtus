@@ -8,13 +8,9 @@
 package models
 
 import (
-	"fmt"
 	"github.com/google/uuid"
-	"strings"
 	"time"
 )
-
-const formatString = "%-13s%s\n"
 
 // Event is the base event struct.
 type Event struct {
@@ -36,24 +32,6 @@ func NewEvent() Event {
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Subject:   "111",
-		Body:      "222",
-		Duration:  time.Minute,
-		Location:  "Moscow",
-		UserID:    uuid.New(), // todo uuid.Nil
+		UserID:    uuid.Nil,
 	}
-}
-
-// StringEr is event stringer
-func (e Event) StringEr() string {
-	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf(formatString, "ID:", e.ID))
-	sb.WriteString(fmt.Sprintf(formatString, "CreatedAt:", e.CreatedAt))
-	sb.WriteString(fmt.Sprintf(formatString, "UpdatedAt:", e.UpdatedAt))
-	sb.WriteString(fmt.Sprintf(formatString, "Subject:", e.Subject))
-	sb.WriteString(fmt.Sprintf(formatString, "Body:", e.Body))
-	sb.WriteString(fmt.Sprintf(formatString, "Duration:", e.Duration))
-	sb.WriteString(fmt.Sprintf(formatString, "Location:", e.Location))
-	sb.WriteString(fmt.Sprintf(formatString, "UserID:", e.UserID))
-	return sb.String()
 }

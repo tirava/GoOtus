@@ -52,5 +52,5 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 		return events, nil
 	}
 
-	return nil, nil
+	return nil, errors.ErrNothingFound
 }
