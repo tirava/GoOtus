@@ -8,7 +8,7 @@
 package urlform
 
 import (
-	"errors"
+	"fmt"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/tools"
 	"github.com/google/uuid"
@@ -21,32 +21,49 @@ const (
 	FormBody     = "body"
 	FormLocation = "location"
 	FormDuration = "duration"
-	FormUserID   = "user"
+	FormUserID   = "user_id"
+	FormEventID  = "event_id"
 )
 
 // Values is the base www-url-form values type.
 type Values map[string]string
 
+// DecodeID returns decoded string id to uuid.
+func DecodeID(sid string) (uuid.UUID, error) {
+	uid := tools.IDString2UUIDorNil(sid)
+	if uid == uuid.Nil {
+		return uid, fmt.Errorf("invalid id=%s", sid)
+	}
+	return uid, nil
+}
+
 // DecodeEvent returns decoded event from www-url-form values.
 func (v Values) DecodeEvent() (models.Event, error) {
+	event := models.NewEvent()
 
 	duration, err := time.ParseDuration(v[FormDuration])
 	if err != nil {
-		return models.Event{}, err
+		return event, err
 	}
 
-	userID := tools.IDString2UUIDorNil(v[FormUserID])
-	if userID == uuid.Nil {
-		return models.Event{}, errors.New("illegal user id")
+	if v[FormEventID] == "" {
+		userID, err := DecodeID(v[FormUserID])
+		if err != nil {
+			return event, fmt.Errorf("illegal user id - %w", err)
+		}
+		event.UserID = userID
+	} else {
+		eventID, err := DecodeID(v[FormEventID])
+		if err != nil {
+			return event, fmt.Errorf("illegal event id - %w", err)
+		}
+		event.ID = eventID
 	}
-
-	event := models.NewEvent()
 
 	event.Subject = v[FormSubject]
 	event.Body = v[FormBody]
 	event.Location = v[FormLocation]
 	event.Duration = duration
-	event.UserID = userID
 
 	return event, nil
 }

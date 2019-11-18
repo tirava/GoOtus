@@ -7,12 +7,11 @@
 package website
 
 import (
+	"fmt"
 	"github.com/evakom/calendar/internal/domain/calendar"
-	"github.com/evakom/calendar/internal/domain/json"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/domain/urlform"
 	"github.com/evakom/calendar/internal/loggers"
-	"github.com/evakom/calendar/tools"
 	"io"
 	"net/http"
 )
@@ -50,16 +49,10 @@ func (h handler) hello(w http.ResponseWriter, r *http.Request) {
 	if _, err := io.WriteString(w, s); err != nil {
 		h.logger.Error("[hello] error write to response writer")
 	}
-
-	// test code for debug
-	event := models.NewEvent()
-	event.Location = "qqqqqqqqqqqqqqqqqqqqqq"
-	event.UserID = tools.IDString2UUIDorNil("a7fdcee4-8a27-4200-8529-c5336c886f77")
-	_ = h.calendar.AddEvent(event)
 }
 
 func (h handler) getEvent(w http.ResponseWriter, r *http.Request) {
-	key := "event_id"
+	key := urlform.FormEventID
 	value := r.URL.Query().Get(key)
 	if err := h.getEventsAndSend(key, value, w, r); err != nil {
 		h.logger.Debug("[getEvent] error: %s", err)
@@ -67,7 +60,7 @@ func (h handler) getEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) getUserEvents(w http.ResponseWriter, r *http.Request) {
-	key := "user_id"
+	key := urlform.FormUserID
 	value := r.URL.Query().Get(key)
 	if err := h.getEventsAndSend(key, value, w, r); err != nil {
 		h.logger.Debug("[getUserEvents] error: %s", err)
@@ -75,66 +68,109 @@ func (h handler) getUserEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) createEvent(w http.ResponseWriter, r *http.Request) {
-	values := make(urlform.Values)
-	values[urlform.FormSubject] = r.FormValue(urlform.FormSubject)
-	values[urlform.FormBody] = r.FormValue(urlform.FormBody)
-	values[urlform.FormLocation] = r.FormValue(urlform.FormLocation)
-	values[urlform.FormDuration] = r.FormValue(urlform.FormDuration)
-	values[urlform.FormUserID] = r.FormValue(urlform.FormUserID)
 
-	event, err := values.DecodeEvent()
+	event, err := h.parseURLFormValues(w, r)
 	if err != nil {
-		h.logger.WithFields(loggers.Fields{
-			CodeField:  http.StatusBadRequest,
-			ReqIDField: getRequestID(r.Context()),
-		}).Error(err.Error())
-		h.error.send(w, http.StatusBadRequest, err, "error while decode form values")
+		h.logger.Debug("[createEvent] error: %s", err)
 		return
 	}
 
 	if err := h.calendar.AddEvent(event); err != nil {
 		h.logger.WithFields(loggers.Fields{
-			CodeField:  http.StatusInternalServerError,
-			ReqIDField: getRequestID(r.Context()),
+			CodeField:    http.StatusInternalServerError,
+			ReqIDField:   getRequestID(r.Context()),
+			EventIDField: event.ID.String(),
 		}).Error(err.Error())
 		h.error.send(w, http.StatusInternalServerError, err,
-			"error while adding to DB, event id="+event.ID.String())
+			"error while adding into calendar, event id="+event.ID.String())
 		return
 	}
 
 	events := make([]models.Event, 0)
 	events = append(events, event)
 
-	// send result helper
-	result, err := json.NewEventResult(events).Encode()
-	if err != nil {
-		h.logger.WithFields(loggers.Fields{
-			CodeField:  http.StatusOK,
-			ReqIDField: getRequestID(r.Context()),
-		}).Error(err.Error())
-		h.error.send(w, http.StatusOK, err, "error while encode event id="+event.ID.String())
-		return
+	if err := h.sendResult(events, "createEvent", w, r); err != nil {
+		h.logger.Error("[createEvent] error: %s", err)
 	}
-
-	if _, err := io.WriteString(w, result); err != nil {
-		h.logger.Error("[createEvent] error write to response writer")
-		return
-	}
-	// -----------------------
 
 	h.logger.WithFields(loggers.Fields{
-		CodeField:    http.StatusOK,
-		ReqIDField:   getRequestID(r.Context()),
-		EventIDField: event.ID.String(),
+		CodeField:  http.StatusOK,
+		ReqIDField: getRequestID(r.Context()),
 	}).Info("RESPONSE")
 }
 
 func (h handler) updateEvent(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "update")
+
+	event, err := h.parseURLFormValues(w, r)
+	if err != nil {
+		h.logger.Debug("[updateEvent] error: %s", err)
+		return
+	}
+
+	eventNew, err := h.calendar.UpdateEventFromEvent(event)
+	if err != nil {
+		h.logger.WithFields(loggers.Fields{
+			CodeField:    http.StatusOK,
+			ReqIDField:   getRequestID(r.Context()),
+			EventIDField: event.ID.String(),
+		}).Error(err.Error())
+		h.error.send(w, http.StatusOK, err,
+			"error while update calendar, event id="+event.ID.String())
+		return
+	}
+
+	events := make([]models.Event, 0)
+	events = append(events, eventNew)
+
+	if err := h.sendResult(events, "updateEvent", w, r); err != nil {
+		h.logger.Error("[updateEvent] error: %s", err)
+	}
+
+	h.logger.WithFields(loggers.Fields{
+		CodeField:  http.StatusOK,
+		ReqIDField: getRequestID(r.Context()),
+	}).Info("RESPONSE")
 }
 
 func (h handler) deleteEvent(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "delete")
+	value := r.FormValue(urlform.FormEventID)
+
+	uid, err := urlform.DecodeID(value)
+	if err != nil {
+		h.logger.WithFields(loggers.Fields{
+			CodeField:  http.StatusBadRequest,
+			ReqIDField: getRequestID(r.Context()),
+		}).Error(err.Error())
+		h.error.send(w, http.StatusBadRequest, err,
+			fmt.Sprintf("error while decode event id=%s", value))
+		return
+	}
+
+	if err := h.calendar.DelEvent(uid); err != nil {
+		h.logger.WithFields(loggers.Fields{
+			CodeField:    http.StatusOK,
+			ReqIDField:   getRequestID(r.Context()),
+			EventIDField: uid.String(),
+		}).Error(err.Error())
+		h.error.send(w, http.StatusOK, err,
+			"error while delete from calendar, event id="+uid.String())
+		return
+	}
+
+	events := make([]models.Event, 0)
+	event := models.Event{}
+	event.ID = uid
+	events = append(events, event)
+
+	if err := h.sendResult(events, "deleteEvent", w, r); err != nil {
+		h.logger.Error("[deleteEvent] error: %s", err)
+	}
+
+	h.logger.WithFields(loggers.Fields{
+		CodeField:  http.StatusOK,
+		ReqIDField: getRequestID(r.Context()),
+	}).Info("RESPONSE")
+
 }
 
 func (h handler) eventsForDay(w http.ResponseWriter, r *http.Request) {

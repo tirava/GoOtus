@@ -26,9 +26,24 @@ func NewCalendar(db storage.DB) Calendar {
 	}
 }
 
-// AddEvent adds new event for given user.
+// AddEvent adds new event.
 func (c Calendar) AddEvent(event models.Event) error {
 	return c.db.AddEventDB(event)
+}
+
+// GetEvent got one event.
+func (c Calendar) GetEvent(eventID uuid.UUID) (models.Event, error) {
+	return c.db.GetOneEventDB(eventID)
+}
+
+// DelEvent deletes event.
+func (c Calendar) DelEvent(eventID uuid.UUID) error {
+	return c.db.DelEventDB(eventID)
+}
+
+// UpdateEvent updates event.
+func (c Calendar) UpdateEvent(event models.Event) error {
+	return c.db.EditEventDB(event)
 }
 
 // GetAllEventsFilter returns all calendar events with given filter.
@@ -53,4 +68,9 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 	}
 
 	return nil, errors.ErrNothingFound
+}
+
+func (c Calendar) UpdateEventFromEvent(event models.Event) (models.Event, error) {
+
+	return event, nil
 }

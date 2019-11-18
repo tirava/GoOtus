@@ -67,8 +67,8 @@ Web-сервер должен запускаться на ip:port указанн
 
 Методы API:
 POST /create_event
-POST (PUT) /update_event
-POST (DELETE) /delete_event
+POST /update_event
+POST /delete_event
 GET /events_for_day
 GET /events_for_week
 GET /events_for_month

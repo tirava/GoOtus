@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/json"
 	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/domain/urlform"
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/evakom/calendar/tools"
 	"github.com/google/uuid"
@@ -96,9 +97,10 @@ func (h handler) getEventsAndSend(key, value string, w http.ResponseWriter, r *h
 	}
 
 	fields[ReqIDField] = getRequestID(r.Context())
+
 	if err != nil {
 		h.logger.WithFields(fields).Error(err.Error())
-		h.error.send(w, http.StatusOK, err, fmt.Sprintf("error while get events %s=%s", key, value))
+		h.error.send(w, http.StatusOK, err, fmt.Sprintf("error while get events, %s=%s", key, value))
 		return err
 	}
 
@@ -123,4 +125,47 @@ func (h handler) getEventsAndSend(key, value string, w http.ResponseWriter, r *h
 	}).Info("RESPONSE")
 
 	return nil
+}
+
+func (h handler) sendResult(events []models.Event, fromHandler string,
+	w http.ResponseWriter, r *http.Request) error {
+
+	result, err := json.NewEventResult(events).Encode()
+	if err != nil {
+		h.logger.WithFields(loggers.Fields{
+			CodeField:  http.StatusOK,
+			ReqIDField: getRequestID(r.Context()),
+		}).Error(err.Error())
+		h.error.send(w, http.StatusOK, err, "error while encode events for send result")
+		return err
+	}
+
+	if _, err := io.WriteString(w, result); err != nil {
+		h.logger.Error("[%s] error write to response writer", fromHandler)
+		return err
+	}
+
+	return nil
+}
+
+func (h handler) parseURLFormValues(w http.ResponseWriter, r *http.Request) (models.Event, error) {
+	values := make(urlform.Values)
+	values[urlform.FormEventID] = r.FormValue(urlform.FormEventID)
+	values[urlform.FormSubject] = r.FormValue(urlform.FormSubject)
+	values[urlform.FormBody] = r.FormValue(urlform.FormBody)
+	values[urlform.FormLocation] = r.FormValue(urlform.FormLocation)
+	values[urlform.FormDuration] = r.FormValue(urlform.FormDuration)
+	values[urlform.FormUserID] = r.FormValue(urlform.FormUserID)
+
+	event, err := values.DecodeEvent()
+	if err != nil {
+		h.logger.WithFields(loggers.Fields{
+			CodeField:  http.StatusBadRequest,
+			ReqIDField: getRequestID(r.Context()),
+		}).Error(err.Error())
+		h.error.send(w, http.StatusBadRequest, err, "error while decode form values")
+		return models.Event{}, err
+	}
+
+	return event, nil
 }
