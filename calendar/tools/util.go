@@ -6,7 +6,10 @@
 
 package tools
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 // IDString2UUIDorNil returns UUID from string or UUID Nil if error.
 func IDString2UUIDorNil(id string) uuid.UUID {
@@ -15,4 +18,10 @@ func IDString2UUIDorNil(id string) uuid.UUID {
 		return uuid.Nil
 	}
 	return uid
+}
+
+// DayString2TimeOrNil return date parse of string date
+func DayString2TimeOrNil(date string) time.Time {
+	d, _ := time.Parse("2006-01-02", date)
+	return d
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/evakom/calendar/internal/domain/interfaces/storage"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
+	"time"
 )
 
 // Calendar is the main calendar struct.
@@ -47,7 +48,7 @@ func (c Calendar) UpdateEvent(event models.Event) error {
 }
 
 // GetAllEventsFilter returns all calendar events with given filter.
-func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error) {
+func (c Calendar) GetAllEventsFilter(filter models.Event, opt int) ([]models.Event, error) {
 	result := make([]models.Event, 0)
 
 	if filter.ID != uuid.Nil {
@@ -67,10 +68,54 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 		return events, nil
 	}
 
+	dNil := time.Time{}
+	if filter.OccursAt != dNil {
+		events := c.db.GetAllEventsDBDays(filter.OccursAt, opt)
+		if len(events) == 0 {
+			return nil, errors.ErrEventsNotFound
+		}
+		return events, nil
+	}
+
 	return nil, errors.ErrNothingFound
 }
 
+func (c Calendar) getEventUpdateTime(id uuid.UUID) (time.Time, error) {
+	event, err := c.GetEvent(id)
+	if err != nil {
+		return time.Now(), errors.ErrEventNotFound
+	}
+	return event.UpdatedAt, nil
+}
+
+// UpdateEventFromEvent updates current event
+// with fields from new event by event id
 func (c Calendar) UpdateEventFromEvent(event models.Event) (models.Event, error) {
 
-	return event, nil
+	e, err := c.GetEvent(event.ID)
+	if err != nil {
+		return event, errors.ErrEventNotFound
+	}
+
+	if event.Subject != "" {
+		e.Subject = event.Subject
+	}
+	if event.Body != "" {
+		e.Body = event.Body
+	}
+	if event.Location != "" {
+		e.Location = event.Location
+	}
+	if event.Duration != 0 {
+		e.Duration = event.Duration
+	}
+
+	if err := c.UpdateEvent(e); err != nil {
+		return e, err
+	}
+	if e.UpdatedAt, err = c.getEventUpdateTime(e.ID); err != nil {
+		return e, err
+	}
+
+	return e, nil
 }

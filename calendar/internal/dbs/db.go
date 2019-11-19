@@ -17,6 +17,9 @@ import (
 const (
 	MapDBType      = "map"
 	PostgresDBType = "postgres"
+	EventIDField   = "event_id"
+	UserIDField    = "user_id"
+	DayField       = "day"
 )
 
 // NewDB returns DB by db type

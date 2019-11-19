@@ -46,7 +46,7 @@ func TestGetAllEventsFilter_EventID(t *testing.T) {
 	e2 := models.NewEvent()
 	_ = cal.AddEvent(e2)
 	filter := models.Event{ID: e1.ID}
-	events, err := cal.GetAllEventsFilter(filter)
+	events, err := cal.GetAllEventsFilter(filter, 0)
 	if err != nil {
 		t.Errorf("Filtered event by id should not return error but returns it: %s", err)
 		return
@@ -55,7 +55,7 @@ func TestGetAllEventsFilter_EventID(t *testing.T) {
 		t.Errorf("Added event with 'id=%v' but filtered with 'id=%v'", e1.ID, events[0].ID)
 	}
 	filter = models.Event{ID: uuid.New()}
-	_, err = cal.GetAllEventsFilter(filter)
+	_, err = cal.GetAllEventsFilter(filter, 0)
 	if err != errors.ErrEventNotFound {
 		t.Errorf("Returned error is not expected type, actual: %s, "+
 			"but expected: %s", err, errors.ErrEventNotFound)
@@ -73,7 +73,7 @@ func TestGetAllEventsFilter_UserID(t *testing.T) {
 	e3.UserID = e1.UserID
 	_ = cal.AddEvent(e3)
 	filter := models.Event{UserID: e1.UserID}
-	events, err := cal.GetAllEventsFilter(filter)
+	events, err := cal.GetAllEventsFilter(filter, 0)
 	if err != nil && err != errors.ErrNothingFound {
 		t.Errorf("Filtered event by user should return ErrNothingFound but returns: %s", err)
 		return
@@ -89,7 +89,7 @@ func TestGetAllEventsFilter_UserID(t *testing.T) {
 		}
 	}
 	filter = models.Event{}
-	events, err = cal.GetAllEventsFilter(filter)
+	events, err = cal.GetAllEventsFilter(filter, 0)
 	if len(events) != 0 || err != errors.ErrNothingFound {
 		t.Errorf("Null filter must return no events and ErrNothingFound but returned:\n"+
 			"events=%v, err=%s", events, err)

@@ -33,6 +33,7 @@ const (
 	RespTimeField = "response_time"
 	EventIDField  = "event_id"
 	UserIDField   = "user_id"
+	DayField      = "day"
 )
 
 type contextKey string
@@ -81,16 +82,21 @@ func (h handler) getEventsAndSend(key, value string, w http.ResponseWriter, r *h
 	var fields loggers.Fields
 
 	switch key {
-	case EventIDField:
+	case urlform.FormEventID:
 		events, err = h.calendar.GetAllEventsFilter(models.Event{
 			ID: tools.IDString2UUIDorNil(value),
-		})
+		}, 0)
 		fields = loggers.Fields{EventIDField: value}
-	case UserIDField:
+	case urlform.FormUserID:
 		events, err = h.calendar.GetAllEventsFilter(models.Event{
 			UserID: tools.IDString2UUIDorNil(value),
-		})
+		}, 0)
 		fields = loggers.Fields{UserIDField: value}
+	case urlform.FormDay:
+		events, err = h.calendar.GetAllEventsFilter(models.Event{
+			OccursAt: tools.DayString2TimeOrNil(value),
+		}, 1)
+		fields = loggers.Fields{DayField: value}
 	default:
 		err = errors.New("invalid key-value in query for getting events")
 		fields = loggers.Fields{}
@@ -150,6 +156,7 @@ func (h handler) sendResult(events []models.Event, fromHandler string,
 
 func (h handler) parseURLFormValues(w http.ResponseWriter, r *http.Request) (models.Event, error) {
 	values := make(urlform.Values)
+	values[urlform.FormOccursAt] = r.FormValue(urlform.FormOccursAt)
 	values[urlform.FormEventID] = r.FormValue(urlform.FormEventID)
 	values[urlform.FormSubject] = r.FormValue(urlform.FormSubject)
 	values[urlform.FormBody] = r.FormValue(urlform.FormBody)

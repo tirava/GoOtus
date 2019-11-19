@@ -3,6 +3,7 @@ syntax = "proto3";
 package api;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 message Event {
     string id = 1;
@@ -14,14 +15,15 @@ message Event {
     string body = 7;
     message alertBefore {
         enum BeforeType {
-            DAYS = 0;
-            HOURS = 1;
-            MINUTES = 2;
+            UNKNOWN = 0;
+            DAYS = 1;
+            HOURS = 2;
+            MINUTES = 3;
         }
         BeforeType type = 1;
         int64 before = 2;
     }
-    int64 duration = 8;
+    google.protobuf.Duration duration = 8;
     string location = 9;
     string userID = 10;
 }
