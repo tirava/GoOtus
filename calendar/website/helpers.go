@@ -10,14 +10,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/evakom/calendar/internal/domain/json"
 	"github.com/evakom/calendar/internal/domain/models"
-	"github.com/evakom/calendar/internal/domain/urlform"
+	"github.com/evakom/calendar/internal/json"
 	"github.com/evakom/calendar/internal/loggers"
+	"github.com/evakom/calendar/internal/urlform"
 	"github.com/evakom/calendar/tools"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
+	"time"
 )
 
 // Constants
@@ -34,6 +35,8 @@ const (
 	EventIDField  = "event_id"
 	UserIDField   = "user_id"
 	DayField      = "day"
+	WeekField     = "week"
+	MonthField    = "month"
 )
 
 type contextKey string
@@ -85,18 +88,31 @@ func (h handler) getEventsAndSend(key, value string, w http.ResponseWriter, r *h
 	case urlform.FormEventID:
 		events, err = h.calendar.GetAllEventsFilter(models.Event{
 			ID: tools.IDString2UUIDorNil(value),
-		}, 0)
+		})
 		fields = loggers.Fields{EventIDField: value}
 	case urlform.FormUserID:
 		events, err = h.calendar.GetAllEventsFilter(models.Event{
 			UserID: tools.IDString2UUIDorNil(value),
-		}, 0)
+		})
 		fields = loggers.Fields{UserIDField: value}
 	case urlform.FormDay:
 		events, err = h.calendar.GetAllEventsFilter(models.Event{
 			OccursAt: tools.DayString2TimeOrNil(value),
-		}, 1)
+			Duration: 24 * time.Hour,
+		})
 		fields = loggers.Fields{DayField: value}
+	case urlform.FormWeek:
+		events, err = h.calendar.GetAllEventsFilter(models.Event{
+			OccursAt: tools.DayString2TimeOrNil(value),
+			Duration: 24 * time.Hour * 7,
+		})
+		fields = loggers.Fields{WeekField: value}
+	case urlform.FormMonth:
+		events, err = h.calendar.GetAllEventsFilter(models.Event{
+			OccursAt: tools.DayString2TimeOrNil(value),
+			Duration: 24 * time.Hour * 30,
+		})
+		fields = loggers.Fields{MonthField: value}
 	default:
 		err = errors.New("invalid key-value in query for getting events")
 		fields = loggers.Fields{}

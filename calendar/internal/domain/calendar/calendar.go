@@ -48,36 +48,33 @@ func (c Calendar) UpdateEvent(event models.Event) error {
 }
 
 // GetAllEventsFilter returns all calendar events with given filter.
-func (c Calendar) GetAllEventsFilter(filter models.Event, opt int) ([]models.Event, error) {
+func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error) {
 	result := make([]models.Event, 0)
+	dateNil := time.Time{}
 
-	if filter.ID != uuid.Nil {
+	switch {
+	case filter.ID != uuid.Nil:
 		e, err := c.db.GetOneEventDB(filter.ID)
 		if err != nil {
 			return result, errors.ErrEventNotFound
 		}
 		result = append(result, e)
 		return result, nil
-	}
-
-	if filter.UserID != uuid.Nil {
+	case filter.UserID != uuid.Nil:
 		events := c.db.GetAllEventsDB(filter.UserID)
 		if len(events) == 0 {
 			return nil, errors.ErrEventsNotFound
 		}
 		return events, nil
-	}
-
-	dNil := time.Time{}
-	if filter.OccursAt != dNil {
-		events := c.db.GetAllEventsDBDays(filter.OccursAt, opt)
+	case filter.OccursAt != dateNil:
+		events := c.db.GetAllEventsDBDays(filter.OccursAt, filter.Duration)
 		if len(events) == 0 {
 			return nil, errors.ErrEventsNotFound
 		}
 		return events, nil
+	default:
+		return nil, errors.ErrNothingFound
 	}
-
-	return nil, errors.ErrNothingFound
 }
 
 func (c Calendar) getEventUpdateTime(id uuid.UUID) (time.Time, error) {
@@ -97,16 +94,14 @@ func (c Calendar) UpdateEventFromEvent(event models.Event) (models.Event, error)
 		return event, errors.ErrEventNotFound
 	}
 
-	if event.Subject != "" {
+	switch {
+	case event.Subject != "":
 		e.Subject = event.Subject
-	}
-	if event.Body != "" {
+	case event.Body != "":
 		e.Body = event.Body
-	}
-	if event.Location != "" {
+	case event.Location != "":
 		e.Location = event.Location
-	}
-	if event.Duration != 0 {
+	case event.Duration != 0:
 		e.Duration = event.Duration
 	}
 

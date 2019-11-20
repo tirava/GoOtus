@@ -25,6 +25,8 @@ const (
 	FormUserID   = "user_id"
 	FormEventID  = "event_id"
 	FormDay      = "day"
+	FormWeek     = "week"
+	FormMonth    = "month"
 )
 
 // Values is the base www-url-form values type.

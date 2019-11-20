@@ -21,5 +21,5 @@ type DB interface {
 	GetOneEventDB(id uuid.UUID) (models.Event, error)
 	GetAllEventsDB(id uuid.UUID) []models.Event
 	CleanEventsDB(id uuid.UUID) error
-	GetAllEventsDBDays(time.Time, int) []models.Event
+	GetAllEventsDBDays(time.Time, time.Duration) []models.Event
 }

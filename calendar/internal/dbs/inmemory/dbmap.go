@@ -8,13 +8,20 @@
 package inmemory
 
 import (
-	"github.com/evakom/calendar/internal/dbs"
 	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/google/uuid"
 	"sync"
 	"time"
+)
+
+// Constants
+const (
+	EventIDField = "event_id"
+	UserIDField  = "user_id"
+	DayField     = "day"
+	DeltaField   = "delta"
 )
 
 // DBMapEvents is the base struct for using map db.
@@ -43,8 +50,8 @@ func (db *DBMapEvents) AddEventDB(event models.Event) error {
 	}
 	db.events[event.ID] = event
 	db.logger.WithFields(loggers.Fields{
-		dbs.EventIDField: event.ID.String(),
-		dbs.UserIDField:  event.UserID.String(),
+		EventIDField: event.ID.String(),
+		UserIDField:  event.UserID.String(),
 	}).Info("Event added into map DB")
 	db.logger.Debug("Event body added into map DB: %+v", event)
 	return nil
@@ -61,8 +68,8 @@ func (db *DBMapEvents) DelEventDB(id uuid.UUID) error {
 	e.DeletedAt = time.Now()
 	db.events[id] = e
 	db.logger.WithFields(loggers.Fields{
-		dbs.EventIDField: id.String(),
-		dbs.UserIDField:  e.UserID.String(),
+		EventIDField: id.String(),
+		UserIDField:  e.UserID.String(),
 	}).Info("Event deleted from map DB")
 	db.logger.Debug("Event body deleted from map DB: %+v", e)
 	return nil
@@ -78,8 +85,8 @@ func (db *DBMapEvents) EditEventDB(event models.Event) error {
 	event.UpdatedAt = time.Now()
 	db.events[event.ID] = event
 	db.logger.WithFields(loggers.Fields{
-		dbs.EventIDField: event.ID.String(),
-		dbs.UserIDField:  event.UserID.String(),
+		EventIDField: event.ID.String(),
+		UserIDField:  event.UserID.String(),
 	}).Info("Event updated in map DB")
 	db.logger.Debug("Event body updated in map DB: %+v", event)
 	return nil
@@ -94,8 +101,8 @@ func (db *DBMapEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 		return models.Event{}, errors.ErrEventAlreadyDeleted
 	}
 	db.logger.WithFields(loggers.Fields{
-		dbs.EventIDField: id.String(),
-		dbs.UserIDField:  db.events[id].UserID.String(),
+		EventIDField: id.String(),
+		UserIDField:  db.events[id].UserID.String(),
 	}).Info("Event got from map DB")
 	db.logger.Debug("Event body got from map DB: %+v", db.events[id])
 	return db.events[id], nil
@@ -113,7 +120,7 @@ func (db *DBMapEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 		}
 	}
 	db.logger.WithFields(loggers.Fields{
-		dbs.UserIDField: id.String(),
+		UserIDField: id.String(),
 	}).Info("All events got from map DB")
 	return events
 }
@@ -132,23 +139,24 @@ func (db *DBMapEvents) CleanEventsDB(id uuid.UUID) error {
 		}
 	}
 	db.logger.WithFields(loggers.Fields{
-		dbs.UserIDField: id.String(),
+		UserIDField: id.String(),
 	}).Info("All events deleted")
 	return nil
 }
 
-func (db *DBMapEvents) GetAllEventsDBDays(date time.Time, days int) []models.Event {
+// GetAllEventsDBDays returns events for num of the days
+func (db *DBMapEvents) GetAllEventsDBDays(date time.Time, delta time.Duration) []models.Event {
 	events := make([]models.Event, 0, len(db.events))
 	for _, event := range db.events {
-		//if !event.DeletedAt.IsZero() {
-		//	continue
-		//}
-		//if event.UserID == id || id == uuid.Nil {
-		//	events = append(events, event)
-		//}
+		occursEnd := date.Add(delta)
+		if event.OccursAt.Equal(date) ||
+			(event.OccursAt.After(date) && event.OccursAt.Before(occursEnd)) {
+			events = append(events, event)
+		}
 	}
 	db.logger.WithFields(loggers.Fields{
-		dbs.DayField: date.String(),
-	}).Info("All events for day(s) got from map DB")
+		DayField:   date.String(),
+		DeltaField: delta,
+	}).Info("All events for day(s) with delta got from map DB")
 	return events
 }
