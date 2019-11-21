@@ -20,6 +20,7 @@ type Config struct {
 	LogFile    string `yaml:"log_file"`
 	LogLevel   string `yaml:"log_level"`
 	ListenHTTP string `yaml:"http_listen"`
+	DSN        string `yaml:"dsn"`
 }
 
 // NewConfig creates new config struct.

@@ -7,4 +7,4 @@
 // Package api implements grpc api.
 package api
 
-//go:generate protoc --go_out=. --proto_path=../../../api api.proto
+//go:generate protoc --go_out=plugins=grpc:. --proto_path=../../../api api.proto

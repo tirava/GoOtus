@@ -7,6 +7,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/tools"
@@ -22,7 +23,7 @@ func main() {
 	logFile := tools.InitLogger(conf)
 	defer logFile.Close()
 
-	db := tools.InitDB(conf.DBType)
+	db := tools.InitDB(conf.DBType, conf.DSN, context.TODO())
 
 	cal := calendar.NewCalendar(db)
 

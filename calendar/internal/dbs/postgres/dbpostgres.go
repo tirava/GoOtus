@@ -8,51 +8,62 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/stdlib" // driver for postgres
 	"github.com/jmoiron/sqlx"
+	"log"
 	"time"
 )
 
 // Constants
 const (
-	dsn          = "" // TODO into config
 	EventIDField = "event_id"
 	UserIDField  = "user_id"
 	DayField     = "day"
 	DeltaField   = "delta"
+	EventsTable  = "events"
 )
 
 // DBPostgresEvents is the base struct for using map db.
 type DBPostgresEvents struct {
 	db     *sqlx.DB
+	ctx    context.Context
 	logger loggers.Logger
 }
 
 // NewPostgresDB returns new postgres db struct.
-func NewPostgresDB() (*DBPostgresEvents, error) {
+func NewPostgresDB(dsn string, ctx context.Context) (*DBPostgresEvents, error) {
 	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
-		return &DBPostgresEvents{}, fmt.Errorf("error open db: %w", err)
+		return nil, fmt.Errorf("error open db: %w", err)
 	}
 	err = db.Ping()
 	if err != nil {
-		return &DBPostgresEvents{}, fmt.Errorf("error ping db: %w", err)
+		return nil, fmt.Errorf("error ping db: %w", err)
 	}
-	dbp := &DBPostgresEvents{
+	dbPg := &DBPostgresEvents{
 		db:     db,
+		ctx:    ctx,
 		logger: loggers.GetLogger(),
 	}
-	dbp.logger.Info("Connected to postgres DB")
-	return dbp, nil
+	dbPg.logger.Info("Connected to postgres DB")
+	return dbPg, nil
 }
 
 // AddEventDB adds event to postgres db.
 func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
-	// TODO
+	query := `insert into events values(:id, :createdat, :updatedat, :deletedat,
+                          :occursat, :subject, :body, :duration, :location, :userid)`
+	result, err := db.db.NamedExecContext(db.ctx, query, event)
+	if err != nil {
+		return err
+	}
+	log.Println(result.RowsAffected())
+
 	db.logger.WithFields(loggers.Fields{
 		EventIDField: event.ID.String(),
 		UserIDField:  event.UserID.String(),

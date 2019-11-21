@@ -7,6 +7,7 @@
 package website
 
 import (
+	"context"
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/loggers"
 	"github.com/evakom/calendar/tools"
@@ -23,7 +24,7 @@ var handlers *handler
 func init() {
 	conf := tools.InitConfig(fileConfigPath)
 	loggers.NewLogger("none", nil)
-	db := tools.InitDB(conf.DBType)
+	db := tools.InitDB(conf.DBType, conf.DSN, context.TODO())
 	cal := calendar.NewCalendar(db)
 	handlers = newHandlers(cal)
 }

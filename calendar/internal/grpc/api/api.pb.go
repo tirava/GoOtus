@@ -4,10 +4,14 @@
 package api
 
 import (
+	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	duration "github.com/golang/protobuf/ptypes/duration"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -282,42 +286,656 @@ func (m *User) GetBirthday() *timestamp.Timestamp {
 	return nil
 }
 
+type ID struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ID) Reset()         { *m = ID{} }
+func (m *ID) String() string { return proto.CompactTextString(m) }
+func (*ID) ProtoMessage()    {}
+func (*ID) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{2}
+}
+
+func (m *ID) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ID.Unmarshal(m, b)
+}
+func (m *ID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ID.Marshal(b, m, deterministic)
+}
+func (m *ID) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ID.Merge(m, src)
+}
+func (m *ID) XXX_Size() int {
+	return xxx_messageInfo_ID.Size(m)
+}
+func (m *ID) XXX_DiscardUnknown() {
+	xxx_messageInfo_ID.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ID proto.InternalMessageInfo
+
+func (m *ID) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+type Day struct {
+	Day                  *timestamp.Timestamp `protobuf:"bytes,1,opt,name=day,proto3" json:"day,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *Day) Reset()         { *m = Day{} }
+func (m *Day) String() string { return proto.CompactTextString(m) }
+func (*Day) ProtoMessage()    {}
+func (*Day) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{3}
+}
+
+func (m *Day) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Day.Unmarshal(m, b)
+}
+func (m *Day) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Day.Marshal(b, m, deterministic)
+}
+func (m *Day) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Day.Merge(m, src)
+}
+func (m *Day) XXX_Size() int {
+	return xxx_messageInfo_Day.Size(m)
+}
+func (m *Day) XXX_DiscardUnknown() {
+	xxx_messageInfo_Day.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Day proto.InternalMessageInfo
+
+func (m *Day) GetDay() *timestamp.Timestamp {
+	if m != nil {
+		return m.Day
+	}
+	return nil
+}
+
+type EventResponse struct {
+	// Types that are valid to be assigned to Result:
+	//	*EventResponse_Event
+	//	*EventResponse_Error
+	Result               isEventResponse_Result `protobuf_oneof:"result"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
+}
+
+func (m *EventResponse) Reset()         { *m = EventResponse{} }
+func (m *EventResponse) String() string { return proto.CompactTextString(m) }
+func (*EventResponse) ProtoMessage()    {}
+func (*EventResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{4}
+}
+
+func (m *EventResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EventResponse.Unmarshal(m, b)
+}
+func (m *EventResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EventResponse.Marshal(b, m, deterministic)
+}
+func (m *EventResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventResponse.Merge(m, src)
+}
+func (m *EventResponse) XXX_Size() int {
+	return xxx_messageInfo_EventResponse.Size(m)
+}
+func (m *EventResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventResponse proto.InternalMessageInfo
+
+type isEventResponse_Result interface {
+	isEventResponse_Result()
+}
+
+type EventResponse_Event struct {
+	Event *Event `protobuf:"bytes,1,opt,name=event,proto3,oneof"`
+}
+
+type EventResponse_Error struct {
+	Error string `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
+}
+
+func (*EventResponse_Event) isEventResponse_Result() {}
+
+func (*EventResponse_Error) isEventResponse_Result() {}
+
+func (m *EventResponse) GetResult() isEventResponse_Result {
+	if m != nil {
+		return m.Result
+	}
+	return nil
+}
+
+func (m *EventResponse) GetEvent() *Event {
+	if x, ok := m.GetResult().(*EventResponse_Event); ok {
+		return x.Event
+	}
+	return nil
+}
+
+func (m *EventResponse) GetError() string {
+	if x, ok := m.GetResult().(*EventResponse_Error); ok {
+		return x.Error
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*EventResponse) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*EventResponse_Event)(nil),
+		(*EventResponse_Error)(nil),
+	}
+}
+
 func init() {
 	proto.RegisterEnum("api.EventAlertBefore_BeforeType", EventAlertBefore_BeforeType_name, EventAlertBefore_BeforeType_value)
 	proto.RegisterType((*Event)(nil), "api.Event")
 	proto.RegisterType((*EventAlertBefore)(nil), "api.Event.alertBefore")
 	proto.RegisterType((*User)(nil), "api.User")
+	proto.RegisterType((*ID)(nil), "api.ID")
+	proto.RegisterType((*Day)(nil), "api.Day")
+	proto.RegisterType((*EventResponse)(nil), "api.EventResponse")
 }
 
 func init() { proto.RegisterFile("api.proto", fileDescriptor_00212fb1f9d3bf1c) }
 
 var fileDescriptor_00212fb1f9d3bf1c = []byte{
-	// 421 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x8c, 0x92, 0x4d, 0xcb, 0xd3, 0x40,
-	0x10, 0xc7, 0x4d, 0x93, 0xb4, 0xc9, 0x14, 0x1e, 0xc2, 0x22, 0x12, 0x73, 0xf0, 0xa5, 0x27, 0x4f,
-	0x29, 0x54, 0x54, 0xc4, 0x53, 0xa5, 0x05, 0x8b, 0x98, 0x42, 0xda, 0x20, 0x9e, 0x64, 0x93, 0x6c,
-	0x6b, 0x24, 0xe9, 0x86, 0xcd, 0x46, 0xe8, 0xb7, 0xf0, 0xea, 0x17, 0xf1, 0xf3, 0xb9, 0x6f, 0xa9,
-	0x62, 0x0f, 0x7d, 0x4e, 0x99, 0xf9, 0xef, 0xef, 0x3f, 0xb3, 0xd9, 0x19, 0xf0, 0x71, 0x5b, 0xc5,
-	0x2d, 0xa3, 0x9c, 0x22, 0x5b, 0x84, 0xd1, 0xd3, 0x23, 0xa5, 0xc7, 0x9a, 0xcc, 0x95, 0x94, 0xf7,
-	0x87, 0x39, 0xaf, 0x1a, 0xd2, 0x71, 0xdc, 0xb4, 0x9a, 0x8a, 0x9e, 0xfc, 0x0f, 0x94, 0x3d, 0xc3,
-	0xbc, 0xa2, 0x27, 0x7d, 0x3e, 0xfb, 0xed, 0x80, 0xbb, 0xfe, 0x41, 0x4e, 0x1c, 0xdd, 0xc1, 0xa8,
-	0x2a, 0x43, 0xeb, 0x99, 0xf5, 0xc2, 0x4f, 0x45, 0x84, 0xde, 0x02, 0x14, 0x8c, 0x60, 0x4e, 0xca,
-	0xaf, 0x98, 0x87, 0x23, 0xa1, 0x4f, 0x17, 0x51, 0xac, 0xcb, 0xc5, 0x43, 0xb9, 0x78, 0x3f, 0xf4,
-	0x4b, 0x7d, 0x43, 0x2f, 0xb9, 0xb4, 0xf6, 0x6d, 0x39, 0x58, 0xed, 0xdb, 0x56, 0x43, 0x6b, 0x6b,
-	0x49, 0x6a, 0x62, 0xac, 0xce, 0x6d, 0xab, 0xa1, 0x85, 0xf5, 0x0d, 0xf8, 0xb4, 0x28, 0x7a, 0xd6,
-	0x49, 0xa7, 0x7b, 0xd3, 0xe9, 0x69, 0x58, 0x18, 0x43, 0x98, 0x74, 0x7d, 0xfe, 0x9d, 0x14, 0x3c,
-	0x1c, 0xab, 0xdf, 0x1f, 0x52, 0x84, 0xc0, 0xc9, 0x69, 0x79, 0x0e, 0x27, 0x4a, 0x56, 0x31, 0x7a,
-	0x05, 0xde, 0xf0, 0x86, 0xa1, 0xa7, 0xba, 0x3c, 0xbe, 0xea, 0xb2, 0x32, 0x40, 0x7a, 0x41, 0x51,
-	0x04, 0x5e, 0x4d, 0x0b, 0x6d, 0xf3, 0x55, 0xb9, 0x4b, 0x8e, 0x1e, 0xc1, 0xb8, 0xef, 0x08, 0xdb,
-	0xac, 0x42, 0x50, 0x27, 0x26, 0x8b, 0x7e, 0x59, 0x30, 0xc5, 0x35, 0x61, 0xfc, 0x3d, 0x39, 0x50,
-	0x46, 0x44, 0x6b, 0x87, 0x9f, 0x5b, 0xa2, 0x86, 0x74, 0xb7, 0x78, 0x1e, 0xcb, 0x65, 0x50, 0xc3,
-	0x8b, 0xff, 0xa1, 0x62, 0xfd, 0xd9, 0x0b, 0x30, 0x55, 0xb8, 0x2c, 0x9f, 0x2b, 0x4d, 0x4d, 0xd1,
-	0x4e, 0x4d, 0x36, 0x7b, 0x07, 0xf0, 0x97, 0x45, 0x53, 0x98, 0x64, 0xc9, 0xc7, 0x64, 0xfb, 0x39,
-	0x09, 0x1e, 0x20, 0x0f, 0x9c, 0xd5, 0xf2, 0xcb, 0x2e, 0xb0, 0x90, 0x0f, 0xee, 0x87, 0x6d, 0x96,
-	0xee, 0x82, 0x91, 0x24, 0x3e, 0x6d, 0x92, 0x6c, 0xbf, 0xde, 0x05, 0xf6, 0xec, 0xa7, 0x05, 0x4e,
-	0x26, 0xae, 0x79, 0xb5, 0x37, 0xe2, 0xcd, 0x4e, 0xb8, 0xd1, 0xbd, 0xc4, 0x9b, 0xc9, 0x18, 0x3d,
-	0x04, 0x97, 0x34, 0xb8, 0xaa, 0xc5, 0x2e, 0xd8, 0x42, 0xd4, 0x89, 0xbc, 0x57, 0x43, 0xf3, 0xaa,
-	0x26, 0x62, 0xce, 0x52, 0x36, 0x19, 0x7a, 0x0d, 0x5e, 0x5e, 0x31, 0xfe, 0xad, 0xc4, 0xe7, 0xfb,
-	0xcc, 0x71, 0x60, 0xf3, 0xb1, 0x3a, 0x7d, 0xf9, 0x27, 0x00, 0x00, 0xff, 0xff, 0xed, 0x01, 0x13,
-	0xef, 0x25, 0x03, 0x00, 0x00,
+	// 610 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x8c, 0x93, 0x4d, 0x4f, 0xdb, 0x4c,
+	0x10, 0xc7, 0xe3, 0x38, 0x2f, 0xce, 0x44, 0x40, 0x9e, 0x15, 0x7a, 0xe4, 0xe6, 0xd0, 0x17, 0x9f,
+	0xa8, 0x4a, 0x4d, 0x05, 0x6a, 0xab, 0xaa, 0x27, 0xc0, 0xb4, 0xa0, 0x8a, 0x20, 0x39, 0x58, 0xa8,
+	0xa7, 0xca, 0x2f, 0x03, 0xb8, 0x75, 0xbc, 0xd6, 0x7a, 0x8d, 0x94, 0x5b, 0x3f, 0x42, 0xaf, 0xfd,
+	0x22, 0xfd, 0x7c, 0xdd, 0x17, 0x9b, 0x44, 0xd0, 0x36, 0x9c, 0x3c, 0x33, 0xfe, 0xfd, 0x67, 0x66,
+	0x67, 0x76, 0x61, 0x10, 0x16, 0xa9, 0x5b, 0x30, 0xca, 0x29, 0x31, 0x85, 0x39, 0x7e, 0x72, 0x45,
+	0xe9, 0x55, 0x86, 0x3b, 0x2a, 0x14, 0x55, 0x97, 0x3b, 0x3c, 0x9d, 0x61, 0xc9, 0xc3, 0x59, 0xa1,
+	0xa9, 0xf1, 0xe3, 0xbb, 0x40, 0x52, 0xb1, 0x90, 0xa7, 0x34, 0xd7, 0xff, 0x9d, 0x5f, 0x1d, 0xe8,
+	0x1e, 0xdd, 0x60, 0xce, 0xc9, 0x3a, 0xb4, 0xd3, 0xc4, 0x36, 0x9e, 0x1a, 0x5b, 0x03, 0x5f, 0x58,
+	0xe4, 0x1d, 0x40, 0xcc, 0x30, 0xe4, 0x98, 0x7c, 0x09, 0xb9, 0xdd, 0x16, 0xf1, 0xe1, 0xee, 0xd8,
+	0xd5, 0xe9, 0xdc, 0x26, 0x9d, 0x7b, 0xde, 0xd4, 0xf3, 0x07, 0x35, 0xbd, 0xcf, 0xa5, 0xb4, 0x2a,
+	0x92, 0x46, 0x6a, 0xae, 0x96, 0xd6, 0xb4, 0x96, 0x26, 0x98, 0x61, 0x2d, 0xed, 0xac, 0x96, 0xd6,
+	0xb4, 0x90, 0xbe, 0x85, 0x01, 0x8d, 0xe3, 0x8a, 0x95, 0x52, 0xd9, 0x5d, 0xa9, 0xb4, 0x34, 0x2c,
+	0x84, 0x36, 0xf4, 0xcb, 0x2a, 0xfa, 0x8a, 0x31, 0xb7, 0x7b, 0xea, 0xf8, 0x8d, 0x4b, 0x08, 0x74,
+	0x22, 0x9a, 0xcc, 0xed, 0xbe, 0x0a, 0x2b, 0x9b, 0xbc, 0x06, 0xab, 0x99, 0xa1, 0x6d, 0xa9, 0x2a,
+	0x8f, 0xee, 0x55, 0xf1, 0x6a, 0xc0, 0xbf, 0x45, 0xc9, 0x18, 0xac, 0x8c, 0xc6, 0x5a, 0x36, 0x50,
+	0xe9, 0x6e, 0x7d, 0xf2, 0x3f, 0xf4, 0xaa, 0x12, 0xd9, 0x89, 0x67, 0x83, 0xfa, 0x53, 0x7b, 0xe3,
+	0x9f, 0x06, 0x0c, 0xc3, 0x0c, 0x19, 0x3f, 0xc0, 0x4b, 0xca, 0x50, 0x94, 0xee, 0xf0, 0x79, 0x81,
+	0x6a, 0x49, 0xeb, 0xbb, 0xcf, 0x5c, 0x79, 0x19, 0xd4, 0xf2, 0xdc, 0x25, 0xca, 0xd5, 0x9f, 0x73,
+	0x01, 0xfa, 0x0a, 0x97, 0xe9, 0x23, 0x15, 0x53, 0x5b, 0x34, 0xfd, 0xda, 0x73, 0xde, 0x03, 0x2c,
+	0x58, 0x32, 0x84, 0x7e, 0x30, 0xf9, 0x34, 0x39, 0xbb, 0x98, 0x8c, 0x5a, 0xc4, 0x82, 0x8e, 0xb7,
+	0xff, 0x79, 0x3a, 0x32, 0xc8, 0x00, 0xba, 0xc7, 0x67, 0x81, 0x3f, 0x1d, 0xb5, 0x25, 0x71, 0x7a,
+	0x32, 0x09, 0xce, 0x8f, 0xa6, 0x23, 0xd3, 0xf9, 0x61, 0x40, 0x27, 0x10, 0x6d, 0xde, 0xbb, 0x37,
+	0x62, 0x66, 0x79, 0x38, 0xd3, 0xb5, 0xc4, 0xcc, 0xa4, 0x4d, 0x36, 0xa1, 0x8b, 0xb3, 0x30, 0xcd,
+	0xc4, 0x5d, 0x30, 0x45, 0x50, 0x3b, 0xb2, 0xaf, 0x19, 0x8d, 0xd2, 0x0c, 0xc5, 0x9e, 0x65, 0xb8,
+	0xf6, 0xc8, 0x1b, 0xb0, 0xa2, 0x94, 0xf1, 0xeb, 0x24, 0x9c, 0x3f, 0x64, 0x8f, 0x0d, 0xeb, 0x6c,
+	0x42, 0xfb, 0xc4, 0xbb, 0xdb, 0x8f, 0xb3, 0x07, 0xa6, 0x17, 0xce, 0xc9, 0x36, 0x98, 0x32, 0x9f,
+	0xb1, 0x32, 0x9f, 0xc4, 0x9c, 0x00, 0xd6, 0xd4, 0x60, 0x7d, 0x2c, 0x0b, 0x9a, 0x97, 0x48, 0x1c,
+	0x71, 0x02, 0x19, 0xa8, 0x13, 0xc0, 0x62, 0xf6, 0xc7, 0x2d, 0x5f, 0xff, 0x12, 0xe7, 0xe9, 0x22,
+	0x63, 0x94, 0xe9, 0xa3, 0xab, 0xb8, 0x74, 0x0f, 0x2c, 0xe8, 0x31, 0x2c, 0xab, 0x8c, 0xef, 0x7e,
+	0x37, 0x61, 0xe3, 0x50, 0xec, 0x2a, 0x4f, 0x42, 0x36, 0x45, 0x76, 0x93, 0xc6, 0x48, 0x76, 0x60,
+	0x78, 0xa8, 0x5e, 0x8e, 0x7e, 0x86, 0x4b, 0x99, 0xc7, 0x64, 0x61, 0x37, 0x8d, 0x38, 0x2d, 0xf2,
+	0x1c, 0xac, 0x8f, 0xc8, 0x35, 0xdd, 0x57, 0x84, 0xb8, 0x2a, 0x7f, 0x46, 0xb7, 0x60, 0x4d, 0xa0,
+	0x72, 0x4d, 0xea, 0x4f, 0xb9, 0xe0, 0x97, 0xca, 0x38, 0xad, 0x57, 0x86, 0xec, 0x22, 0x50, 0x8f,
+	0xf0, 0xa1, 0x5d, 0x6c, 0xc3, 0xd0, 0x53, 0x4f, 0xef, 0x41, 0x8d, 0xbc, 0x80, 0x8d, 0xa6, 0xe7,
+	0xf2, 0x03, 0x65, 0x72, 0x21, 0x96, 0x02, 0x85, 0x75, 0xaf, 0x97, 0x6d, 0x18, 0x2d, 0xc3, 0x17,
+	0x88, 0xdf, 0xfe, 0x41, 0xbf, 0x84, 0xff, 0x96, 0xe9, 0x53, 0x9a, 0xf3, 0xeb, 0xbf, 0xe3, 0x51,
+	0x4f, 0xad, 0x7c, 0xef, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff, 0x19, 0x38, 0xaa, 0x1d, 0x4a, 0x05,
+	0x00, 0x00,
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// CalendarServiceClient is the client API for CalendarService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type CalendarServiceClient interface {
+	CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*EventResponse, error)
+	GetEvent(ctx context.Context, in *ID, opts ...grpc.CallOption) (*EventResponse, error)
+	GetUserEvents(ctx context.Context, in *ID, opts ...grpc.CallOption) (CalendarService_GetUserEventsClient, error)
+	UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*EventResponse, error)
+	DeleteEvent(ctx context.Context, in *ID, opts ...grpc.CallOption) (*EventResponse, error)
+	GetEventsForDay(ctx context.Context, in *Day, opts ...grpc.CallOption) (CalendarService_GetEventsForDayClient, error)
+	GetEventsForWeek(ctx context.Context, in *Day, opts ...grpc.CallOption) (CalendarService_GetEventsForWeekClient, error)
+	GetEventsForMonth(ctx context.Context, in *Day, opts ...grpc.CallOption) (CalendarService_GetEventsForMonthClient, error)
+}
+
+type calendarServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewCalendarServiceClient(cc *grpc.ClientConn) CalendarServiceClient {
+	return &calendarServiceClient{cc}
+}
+
+func (c *calendarServiceClient) CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*EventResponse, error) {
+	out := new(EventResponse)
+	err := c.cc.Invoke(ctx, "/api.CalendarService/CreateEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarServiceClient) GetEvent(ctx context.Context, in *ID, opts ...grpc.CallOption) (*EventResponse, error) {
+	out := new(EventResponse)
+	err := c.cc.Invoke(ctx, "/api.CalendarService/GetEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarServiceClient) GetUserEvents(ctx context.Context, in *ID, opts ...grpc.CallOption) (CalendarService_GetUserEventsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_CalendarService_serviceDesc.Streams[0], "/api.CalendarService/GetUserEvents", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &calendarServiceGetUserEventsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type CalendarService_GetUserEventsClient interface {
+	Recv() (*Event, error)
+	grpc.ClientStream
+}
+
+type calendarServiceGetUserEventsClient struct {
+	grpc.ClientStream
+}
+
+func (x *calendarServiceGetUserEventsClient) Recv() (*Event, error) {
+	m := new(Event)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *calendarServiceClient) UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*EventResponse, error) {
+	out := new(EventResponse)
+	err := c.cc.Invoke(ctx, "/api.CalendarService/UpdateEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarServiceClient) DeleteEvent(ctx context.Context, in *ID, opts ...grpc.CallOption) (*EventResponse, error) {
+	out := new(EventResponse)
+	err := c.cc.Invoke(ctx, "/api.CalendarService/DeleteEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarServiceClient) GetEventsForDay(ctx context.Context, in *Day, opts ...grpc.CallOption) (CalendarService_GetEventsForDayClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_CalendarService_serviceDesc.Streams[1], "/api.CalendarService/GetEventsForDay", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &calendarServiceGetEventsForDayClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type CalendarService_GetEventsForDayClient interface {
+	Recv() (*Event, error)
+	grpc.ClientStream
+}
+
+type calendarServiceGetEventsForDayClient struct {
+	grpc.ClientStream
+}
+
+func (x *calendarServiceGetEventsForDayClient) Recv() (*Event, error) {
+	m := new(Event)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *calendarServiceClient) GetEventsForWeek(ctx context.Context, in *Day, opts ...grpc.CallOption) (CalendarService_GetEventsForWeekClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_CalendarService_serviceDesc.Streams[2], "/api.CalendarService/GetEventsForWeek", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &calendarServiceGetEventsForWeekClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type CalendarService_GetEventsForWeekClient interface {
+	Recv() (*Event, error)
+	grpc.ClientStream
+}
+
+type calendarServiceGetEventsForWeekClient struct {
+	grpc.ClientStream
+}
+
+func (x *calendarServiceGetEventsForWeekClient) Recv() (*Event, error) {
+	m := new(Event)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *calendarServiceClient) GetEventsForMonth(ctx context.Context, in *Day, opts ...grpc.CallOption) (CalendarService_GetEventsForMonthClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_CalendarService_serviceDesc.Streams[3], "/api.CalendarService/GetEventsForMonth", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &calendarServiceGetEventsForMonthClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type CalendarService_GetEventsForMonthClient interface {
+	Recv() (*Event, error)
+	grpc.ClientStream
+}
+
+type calendarServiceGetEventsForMonthClient struct {
+	grpc.ClientStream
+}
+
+func (x *calendarServiceGetEventsForMonthClient) Recv() (*Event, error) {
+	m := new(Event)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// CalendarServiceServer is the server API for CalendarService service.
+type CalendarServiceServer interface {
+	CreateEvent(context.Context, *Event) (*EventResponse, error)
+	GetEvent(context.Context, *ID) (*EventResponse, error)
+	GetUserEvents(*ID, CalendarService_GetUserEventsServer) error
+	UpdateEvent(context.Context, *Event) (*EventResponse, error)
+	DeleteEvent(context.Context, *ID) (*EventResponse, error)
+	GetEventsForDay(*Day, CalendarService_GetEventsForDayServer) error
+	GetEventsForWeek(*Day, CalendarService_GetEventsForWeekServer) error
+	GetEventsForMonth(*Day, CalendarService_GetEventsForMonthServer) error
+}
+
+// UnimplementedCalendarServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedCalendarServiceServer struct {
+}
+
+func (*UnimplementedCalendarServiceServer) CreateEvent(ctx context.Context, req *Event) (*EventResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateEvent not implemented")
+}
+func (*UnimplementedCalendarServiceServer) GetEvent(ctx context.Context, req *ID) (*EventResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetEvent not implemented")
+}
+func (*UnimplementedCalendarServiceServer) GetUserEvents(req *ID, srv CalendarService_GetUserEventsServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetUserEvents not implemented")
+}
+func (*UnimplementedCalendarServiceServer) UpdateEvent(ctx context.Context, req *Event) (*EventResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateEvent not implemented")
+}
+func (*UnimplementedCalendarServiceServer) DeleteEvent(ctx context.Context, req *ID) (*EventResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteEvent not implemented")
+}
+func (*UnimplementedCalendarServiceServer) GetEventsForDay(req *Day, srv CalendarService_GetEventsForDayServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetEventsForDay not implemented")
+}
+func (*UnimplementedCalendarServiceServer) GetEventsForWeek(req *Day, srv CalendarService_GetEventsForWeekServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetEventsForWeek not implemented")
+}
+func (*UnimplementedCalendarServiceServer) GetEventsForMonth(req *Day, srv CalendarService_GetEventsForMonthServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetEventsForMonth not implemented")
+}
+
+func RegisterCalendarServiceServer(s *grpc.Server, srv CalendarServiceServer) {
+	s.RegisterService(&_CalendarService_serviceDesc, srv)
+}
+
+func _CalendarService_CreateEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Event)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CalendarServiceServer).CreateEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.CalendarService/CreateEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CalendarServiceServer).CreateEvent(ctx, req.(*Event))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CalendarService_GetEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CalendarServiceServer).GetEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.CalendarService/GetEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CalendarServiceServer).GetEvent(ctx, req.(*ID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CalendarService_GetUserEvents_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ID)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CalendarServiceServer).GetUserEvents(m, &calendarServiceGetUserEventsServer{stream})
+}
+
+type CalendarService_GetUserEventsServer interface {
+	Send(*Event) error
+	grpc.ServerStream
+}
+
+type calendarServiceGetUserEventsServer struct {
+	grpc.ServerStream
+}
+
+func (x *calendarServiceGetUserEventsServer) Send(m *Event) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _CalendarService_UpdateEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Event)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CalendarServiceServer).UpdateEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.CalendarService/UpdateEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CalendarServiceServer).UpdateEvent(ctx, req.(*Event))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CalendarService_DeleteEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CalendarServiceServer).DeleteEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.CalendarService/DeleteEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CalendarServiceServer).DeleteEvent(ctx, req.(*ID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CalendarService_GetEventsForDay_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Day)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CalendarServiceServer).GetEventsForDay(m, &calendarServiceGetEventsForDayServer{stream})
+}
+
+type CalendarService_GetEventsForDayServer interface {
+	Send(*Event) error
+	grpc.ServerStream
+}
+
+type calendarServiceGetEventsForDayServer struct {
+	grpc.ServerStream
+}
+
+func (x *calendarServiceGetEventsForDayServer) Send(m *Event) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _CalendarService_GetEventsForWeek_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Day)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CalendarServiceServer).GetEventsForWeek(m, &calendarServiceGetEventsForWeekServer{stream})
+}
+
+type CalendarService_GetEventsForWeekServer interface {
+	Send(*Event) error
+	grpc.ServerStream
+}
+
+type calendarServiceGetEventsForWeekServer struct {
+	grpc.ServerStream
+}
+
+func (x *calendarServiceGetEventsForWeekServer) Send(m *Event) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _CalendarService_GetEventsForMonth_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Day)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CalendarServiceServer).GetEventsForMonth(m, &calendarServiceGetEventsForMonthServer{stream})
+}
+
+type CalendarService_GetEventsForMonthServer interface {
+	Send(*Event) error
+	grpc.ServerStream
+}
+
+type calendarServiceGetEventsForMonthServer struct {
+	grpc.ServerStream
+}
+
+func (x *calendarServiceGetEventsForMonthServer) Send(m *Event) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+var _CalendarService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.CalendarService",
+	HandlerType: (*CalendarServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateEvent",
+			Handler:    _CalendarService_CreateEvent_Handler,
+		},
+		{
+			MethodName: "GetEvent",
+			Handler:    _CalendarService_GetEvent_Handler,
+		},
+		{
+			MethodName: "UpdateEvent",
+			Handler:    _CalendarService_UpdateEvent_Handler,
+		},
+		{
+			MethodName: "DeleteEvent",
+			Handler:    _CalendarService_DeleteEvent_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetUserEvents",
+			Handler:       _CalendarService_GetUserEvents_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetEventsForDay",
+			Handler:       _CalendarService_GetEventsForDay_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetEventsForWeek",
+			Handler:       _CalendarService_GetEventsForWeek_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetEventsForMonth",
+			Handler:       _CalendarService_GetEventsForMonth_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "api.proto",
 }

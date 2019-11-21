@@ -1,6 +1,6 @@
 # dbtype - map | postgres
 # default - map
-db_type: map
+db_type: postgres
 
 # path to log file
 # default - calendar.log in the current dir
@@ -13,3 +13,6 @@ log_level:
 # ip:port for listening http
 # default - localhost:8080
 http_listen: :8080
+
+# dsn for db - no default, need to set here
+dsn: postgres://testuser:123456@Klim.go:5432/calendar

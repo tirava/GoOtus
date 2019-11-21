@@ -7,6 +7,7 @@
 package dbs
 
 import (
+	"context"
 	"github.com/evakom/calendar/internal/configs"
 	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/interfaces/storage"
@@ -37,7 +38,7 @@ func init() {
 		log.Fatalln(err)
 	}
 	loggers.NewLogger("none", nil)
-	events, err = NewDB(conf.DBType)
+	events, err = NewDB(conf.DBType, conf.DSN, context.TODO())
 	if events == nil {
 		log.Fatalf("unsupported DB type: %s\n", conf.DBType)
 	}

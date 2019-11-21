@@ -35,3 +35,37 @@ message User {
     repeated string mobile = 4;
     google.protobuf.Timestamp birthday = 5;
 }
+
+message ID {
+    string id = 1;
+}
+
+message Day {
+    google.protobuf.Timestamp day = 1;
+}
+
+message EventResponse {
+    oneof result {
+        Event event = 1;
+        string error = 2;
+    }
+}
+
+service CalendarService {
+    rpc CreateEvent (Event) returns (EventResponse) {
+    }
+    rpc GetEvent (ID) returns (EventResponse) {
+    }
+    rpc GetUserEvents (ID) returns (stream Event) {
+    }
+    rpc UpdateEvent (Event) returns (EventResponse) {
+    }
+    rpc DeleteEvent (ID) returns (EventResponse) {
+    }
+    rpc GetEventsForDay (Day) returns (stream Event) {
+    }
+    rpc GetEventsForWeek (Day) returns (stream Event) {
+    }
+    rpc GetEventsForMonth (Day) returns (stream Event) {
+    }
+}
