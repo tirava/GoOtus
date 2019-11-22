@@ -23,7 +23,7 @@ func main() {
 	logFile := tools.InitLogger(conf)
 	defer logFile.Close()
 
-	db := tools.InitDB(conf.DBType, conf.DSN, context.TODO())
+	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
 
 	cal := calendar.NewCalendar(db)
 

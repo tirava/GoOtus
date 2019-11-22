@@ -21,7 +21,6 @@ type User struct {
 }
 
 // NewUser returns new user struct.
-// TODO get events for specific user
 //func NewUser() User {
 //	return User{
 //		ID:       uuid.NewV4(),

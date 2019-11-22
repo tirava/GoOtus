@@ -42,7 +42,7 @@ func (c *Config) readParameters() error {
 		return fmt.Errorf("error unmarshal config file: %w", err)
 	}
 	if c.DBType == "" {
-		c.DBType = "map"
+		c.DBType = "inmemory"
 	}
 	if c.LogFile == "" {
 		c.LogFile = "calendar.log"

@@ -1,5 +1,5 @@
-# dbtype - map | postgres
-# default - map
+# dbtype - inmemory | postgres
+# default - inmemory
 db_type: postgres
 
 # path to log file

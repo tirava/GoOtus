@@ -38,7 +38,7 @@ func init() {
 		log.Fatalln(err)
 	}
 	loggers.NewLogger("none", nil)
-	events, err = NewDB(conf.DBType, conf.DSN, context.TODO())
+	events, err = NewDB(context.TODO(), conf.DBType, conf.DSN)
 	if events == nil {
 		log.Fatalf("unsupported DB type: %s\n", conf.DBType)
 	}

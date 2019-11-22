@@ -24,7 +24,7 @@ func init() {
 	conf := tools.InitConfig(fileConfigPath)
 	loggers.NewLogger("none", nil)
 	//models.NewLogger("debug", os.Stdout)
-	db := tools.InitDB(conf.DBType, conf.DSN, context.TODO())
+	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
 	cal = NewCalendar(db)
 }
 

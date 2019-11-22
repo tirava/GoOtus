@@ -46,8 +46,8 @@ func InitLogger(conf configs.Config) *os.File {
 }
 
 // InitDB inits db interface.
-func InitDB(dbType, dsn string, ctx context.Context) storage.DB {
-	db, err := dbs.NewDB(dbType, dsn, ctx)
+func InitDB(ctx context.Context, dbType, dsn string) storage.DB {
+	db, err := dbs.NewDB(ctx, dbType, dsn)
 	if db == nil {
 		log.Fatalf("unsupported DB type: %s\n", dbType)
 	}

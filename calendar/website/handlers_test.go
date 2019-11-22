@@ -24,7 +24,7 @@ var handlers *handler
 func init() {
 	conf := tools.InitConfig(fileConfigPath)
 	loggers.NewLogger("none", nil)
-	db := tools.InitDB(conf.DBType, conf.DSN, context.TODO())
+	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
 	cal := calendar.NewCalendar(db)
 	handlers = newHandlers(cal)
 }
