@@ -67,7 +67,7 @@ func (c Calendar) GetAllEventsFilter(filter models.Event) ([]models.Event, error
 		}
 		return events, nil
 	case filter.OccursAt != dateNil:
-		events := c.db.GetAllEventsDBDays(filter.OccursAt, filter.Duration)
+		events := c.db.GetAllEventsDBDays(filter)
 		if len(events) == 0 {
 			return nil, errors.ErrEventsNotFound
 		}
@@ -94,15 +94,21 @@ func (c Calendar) UpdateEventFromEvent(event models.Event) (models.Event, error)
 		return event, errors.ErrEventNotFound
 	}
 
-	switch {
-	case event.Subject != "":
+	if event.Subject != "" {
 		e.Subject = event.Subject
-	case event.Body != "":
+	}
+	if event.Body != "" {
 		e.Body = event.Body
-	case event.Location != "":
+	}
+	if event.Location != "" {
 		e.Location = event.Location
-	case event.Duration != 0:
+	}
+	if event.Duration != 0 {
 		e.Duration = event.Duration
+	}
+	timeNil := time.Time{}
+	if event.OccursAt != timeNil {
+		e.OccursAt = event.OccursAt
 	}
 
 	if err := c.UpdateEvent(e); err != nil {

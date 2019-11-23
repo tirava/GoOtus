@@ -4,7 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package website
+package http
 
 import (
 	"encoding/json"

@@ -4,7 +4,7 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-package website
+package http
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-const fileConfigPath = "../config.yml"
+const fileConfigPath = "../../config.yml"
 
 var handlers *handler
 

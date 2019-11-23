@@ -10,8 +10,8 @@ import (
 	"context"
 	"flag"
 	"github.com/evakom/calendar/internal/domain/calendar"
+	"github.com/evakom/calendar/internal/http"
 	"github.com/evakom/calendar/tools"
-	"github.com/evakom/calendar/website"
 )
 
 func main() {
@@ -27,5 +27,5 @@ func main() {
 
 	cal := calendar.NewCalendar(db)
 
-	website.StartWebsite(conf.ListenHTTP, cal)
+	http.StartWebsite(conf.ListenHTTP, cal)
 }

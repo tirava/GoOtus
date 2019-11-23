@@ -10,16 +10,15 @@ package storage
 import (
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
-	"time"
 )
 
 // DB is thw main interface for any DBs
 type DB interface {
-	AddEventDB(event models.Event) error
-	EditEventDB(event models.Event) error
-	DelEventDB(id uuid.UUID) error
-	GetOneEventDB(id uuid.UUID) (models.Event, error)
-	GetAllEventsDB(id uuid.UUID) []models.Event
-	CleanEventsDB(id uuid.UUID) error
-	GetAllEventsDBDays(time.Time, time.Duration) []models.Event
+	AddEventDB(models.Event) error
+	EditEventDB(models.Event) error
+	DelEventDB(uuid.UUID) error
+	GetOneEventDB(uuid.UUID) (models.Event, error)
+	GetAllEventsDB(uuid.UUID) []models.Event
+	CleanEventsDB(uuid.UUID) error
+	GetAllEventsDBDays(models.Event) []models.Event
 }

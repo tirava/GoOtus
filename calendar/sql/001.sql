@@ -3,7 +3,7 @@ create table events (
 	createdat timestamp not null,
 	updatedat timestamp,
 	deletedat timestamp,
-	occursdat timestamp,
+	occursat timestamp,
 	subject text not null,
 	body text,
 	duration bigint,

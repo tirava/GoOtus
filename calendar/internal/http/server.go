@@ -4,8 +4,8 @@
  * Copyright (c) 2019 - Eugene Klimov
  */
 
-// Package website implements http server control.
-package website
+// Package http implements http server control.
+package http
 
 import (
 	"context"

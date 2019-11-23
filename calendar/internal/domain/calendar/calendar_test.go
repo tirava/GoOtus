@@ -23,9 +23,11 @@ var cal Calendar
 func init() {
 	conf := tools.InitConfig(fileConfigPath)
 	loggers.NewLogger("none", nil)
-	//models.NewLogger("debug", os.Stdout)
+	conf.DBType = "inmemory"
 	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
 	cal = NewCalendar(db)
+	// WARNING!!! will be deleted all events!!!
+	_ = db.CleanEventsDB(uuid.Nil)
 }
 
 func TestAddEvent(t *testing.T) {
@@ -52,7 +54,7 @@ func TestGetAllEventsFilter_EventID(t *testing.T) {
 		t.Errorf("Filtered event by id should not return error but returns it: %s", err)
 		return
 	}
-	if events[0] != e1 {
+	if events[0].ID != e1.ID {
 		t.Errorf("Added event with 'id=%v' but filtered with 'id=%v'", e1.ID, events[0].ID)
 	}
 	filter = models.Event{ID: uuid.New()}
