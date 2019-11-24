@@ -17,8 +17,8 @@ import (
 	"time"
 )
 
-// StartWebsite inits routing and starts web listener.
-func StartWebsite(listenHTTP string, calendar calendar.Calendar) {
+// StartHTTPServer inits routing and starts web listener.
+func StartHTTPServer(listenHTTP string, calendar calendar.Calendar) {
 
 	handlers := newHandlers(calendar)
 	srv := &http.Server{
@@ -41,6 +41,10 @@ func StartWebsite(listenHTTP string, calendar calendar.Calendar) {
 		}
 	}()
 
-	handlers.logger.Info("Starting server at: %s", listenHTTP)
-	handlers.logger.Info("Shutdown server at: %s\n%v", listenHTTP, srv.ListenAndServe())
+	handlers.logger.Info("Starting HTTP server at: %s", listenHTTP)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		handlers.logger.Error(err.Error())
+		os.Exit(1)
+	}
+	handlers.logger.Info("Shutdown HTTP server at: %s", listenHTTP)
 }

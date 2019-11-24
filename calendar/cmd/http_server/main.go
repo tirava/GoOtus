@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	configFile := flag.String("config", "config.yml", "path to config file")
+	configFile := flag.String("config", "../../config.yml", "path to config file")
 	flag.Parse()
 
 	conf := tools.InitConfig(*configFile)
@@ -24,8 +24,7 @@ func main() {
 	defer logFile.Close()
 
 	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
-
 	cal := calendar.NewCalendar(db)
 
-	http.StartWebsite(conf.ListenHTTP, cal)
+	http.StartHTTPServer(conf.ListenHTTP, cal)
 }

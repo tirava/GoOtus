@@ -20,6 +20,7 @@ type Config struct {
 	LogFile    string `yaml:"log_file"`
 	LogLevel   string `yaml:"log_level"`
 	ListenHTTP string `yaml:"http_listen"`
+	ListenGRPC string `yaml:"grpc_listen"`
 	DSN        string `yaml:"dsn"`
 }
 
@@ -52,6 +53,9 @@ func (c *Config) readParameters() error {
 	}
 	if c.ListenHTTP == "" {
 		c.ListenHTTP = "localhost:8080"
+	}
+	if c.ListenGRPC == "" {
+		c.ListenGRPC = "localhost:50051"
 	}
 	return nil
 }
