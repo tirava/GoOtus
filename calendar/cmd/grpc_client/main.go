@@ -40,11 +40,12 @@ func init() {
 
 	fileName := filepath.Base(os.Args[0])
 	flag.Usage = func() {
-		fmt.Printf("Create event: %s -method create_event -user_id uuid "+
+		fmt.Printf("Call server on custom host:port: %s -server host:port -method ...\n", fileName)
+		fmt.Printf("Create event:       %s -method create_event -user_id uuid "+
 			"[-occurs_at 'date time'] [-duration duration] "+
 			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
-		fmt.Printf("Get event: %s -method get_event -event_id uuid\n", fileName)
-		fmt.Printf("Call server on custom host:port: %s -server host:port -method ...\n", fileName)
+		fmt.Printf("Get event:          %s -method get_event -event_id uuid\n", fileName)
+		fmt.Printf("Get user events:    %s -method get_user_events -user_id uuid\n", fileName)
 		flag.PrintDefaults()
 	}
 
@@ -86,25 +87,37 @@ func main() {
 		Duration: durat,
 		UserID:   uid,
 	}
-
-	id := &api.ID{Id: eid}
+	eId := &api.ID{Id: eid}
+	uId := &api.ID{Id: uid}
 	resp := &api.EventResponse{}
+	resps := &api.EventsResponse{}
 	ctx := context.TODO()
+	needUsage := false
 
 	switch method {
 	case "create_event":
-		if uid == uuid.Nil.String() {
-			flag.Usage()
-			os.Exit(2)
+		if uid == "" || uid == uuid.Nil.String() {
+			needUsage = true
+			break
 		}
 		resp, err = client.CreateEvent(ctx, req)
 	case "get_event":
-		if eid == uuid.Nil.String() {
-			flag.Usage()
-			os.Exit(2)
+		if eid == "" || eid == uuid.Nil.String() {
+			needUsage = true
+			break
 		}
-		resp, err = client.GetEvent(ctx, id)
+		resp, err = client.GetEvent(ctx, eId)
+	case "get_user_events":
+		if uid == "" || uid == uuid.Nil.String() {
+			needUsage = true
+			break
+		}
+		resps, err = client.GetUserEvents(ctx, uId)
 	default:
+		needUsage = true
+	}
+
+	if needUsage {
 		flag.Usage()
 		os.Exit(2)
 	}
@@ -115,8 +128,12 @@ func main() {
 	if resp.GetError() != "" {
 		log.Fatal(resp.GetError())
 	}
+	log.Println("Event:", resp.GetEvent())
 
-	log.Println(resp.GetEvent())
+	if resps.GetError() != "" {
+		log.Fatal(resps.GetError())
+	}
+	log.Println("Events:", resps.GetEvents())
 
 	if err := conn.Close(); err != nil {
 		log.Fatal(err)

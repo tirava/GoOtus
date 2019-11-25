@@ -62,6 +62,7 @@ message EventResponse {
 
 message EventsResponse {
     repeated Event events = 1;
+    string error = 2;
 }
 
 service CalendarService {
