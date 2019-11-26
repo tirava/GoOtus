@@ -28,26 +28,33 @@ const (
 	EventsTable  = "events"
 )
 
-// DBPostgresEvents is the base struct for using map db.
-type DBPostgresEvents struct {
+// DBPostgres is the base struct for using map db.
+type DBPostgres struct {
 	db     *sqlx.DB
-	ctx    context.Context
 	logger loggers.Logger
 }
 
+// CloseDB closes storage
+func (db *DBPostgres) CloseDB() error {
+	if err := db.db.Close(); err != nil {
+		return err
+	}
+	db.logger.Info("Closed postgres DB")
+	return nil
+}
+
 // NewPostgresDB returns new postgres db struct.
-func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgresEvents, error) {
+func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgres, error) {
 	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("error open db: %w", err)
 	}
-	err = db.Ping()
+	err = db.PingContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error ping db: %w", err)
 	}
-	dbPg := &DBPostgresEvents{
+	dbPg := &DBPostgres{
 		db:     db,
-		ctx:    ctx,
 		logger: loggers.GetLogger(),
 	}
 	dbPg.logger.Info("Connected to postgres DB")
@@ -55,16 +62,15 @@ func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgresEvents, error) {
 }
 
 // AddEventDB adds event to postgres db.
-func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
-	query := "insert into " + EventsTable + " (id, createdat, updatedat, deletedat, occursat, " +
-		"subject, body, duration, location, userid) " +
-		"values(:id, :createdat, :updatedat, :deletedat, :occursat, " +
-		":subject, :body, :duration, :location, :userid)"
-	result, err := db.db.NamedExecContext(db.ctx, query, event)
+func (db *DBPostgres) AddEventDB(ctx context.Context, event models.Event) error {
+	query := fmt.Sprintf(`insert into %s 
+		(id, createdat, updatedat, deletedat, occursat, subject, body, duration, location, userid) 
+		values(:id, :createdat, :updatedat, :deletedat, :occursat, :subject, :body, :duration, :location, :userid)`,
+		EventsTable)
+	result, err := db.db.NamedExecContext(ctx, query, event)
 	if err != nil {
 		db.logger.Error("[AddEventDB][NamedExecContext]: %s", err)
 		return errors.ErrEventAlreadyExists
-		//return fmt.Errorf("error execute adding event into DB")
 	}
 
 	ra, err := result.RowsAffected()
@@ -86,14 +92,14 @@ func (db *DBPostgresEvents) AddEventDB(event models.Event) error {
 }
 
 // DelEventDB deletes one event by id.
-func (db *DBPostgresEvents) DelEventDB(id uuid.UUID) error {
+func (db *DBPostgres) DelEventDB(ctx context.Context, id uuid.UUID) error {
 	event := models.Event{
 		ID:        id,
 		DeletedAt: time.Now(),
 	}
-	query := "update " + EventsTable + " set deletedat=:deletedat where id=:id"
+	query := fmt.Sprintf("update %s set deletedat=:deletedat where id=:id", EventsTable)
 
-	result, err := db.db.NamedExecContext(db.ctx, query, event)
+	result, err := db.db.NamedExecContext(ctx, query, event)
 	if err != nil {
 		db.logger.Error("[DelEventDB][NamedExecContext]: %s", err)
 		return fmt.Errorf("error execute delete event from DB")
@@ -111,14 +117,13 @@ func (db *DBPostgresEvents) DelEventDB(id uuid.UUID) error {
 
 	db.logger.WithFields(loggers.Fields{
 		EventIDField: id.String(),
-		UserIDField:  event.UserID.String(),
 	}).Info("Event deleted from postgres DB")
 	db.logger.Debug("Event body deleted from postgres DB: %+v", event)
 	return nil
 }
 
 // EditEventDB updates one event.
-func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
+func (db *DBPostgres) EditEventDB(ctx context.Context, event models.Event) error {
 	eventNew := models.Event{
 		ID:        event.ID,
 		UpdatedAt: time.Now(),
@@ -129,12 +134,13 @@ func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 		Location:  event.Location,
 		UserID:    event.UserID,
 	}
-	query := "update " + EventsTable + " set updatedat=:updatedat, " +
-		"occursat=:occursat, subject=:subject, body=:body, " +
-		"duration=:duration, location=:location " +
-		"where id=:id and deletedat =:deletedat"
+	query := fmt.Sprintf(`update %s 
+		set updatedat=:updatedat, occursat=:occursat, 
+		subject=:subject, body=:body, duration=:duration, 
+		location=:location where id=:id and deletedat =:deletedat`,
+		EventsTable)
 
-	result, err := db.db.NamedExecContext(db.ctx, query, eventNew)
+	result, err := db.db.NamedExecContext(ctx, query, eventNew)
 	if err != nil {
 		db.logger.Error("[EditEventDB][NamedExecContext]: %s", err)
 		return fmt.Errorf("error execute update event in DB")
@@ -160,23 +166,22 @@ func (db *DBPostgresEvents) EditEventDB(event models.Event) error {
 }
 
 // GetOneEventDB returns one event by id.
-func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
+func (db *DBPostgres) GetOneEventDB(ctx context.Context, id uuid.UUID) (models.Event, error) {
 	event := models.Event{ID: id}
-	query := "select * from " + EventsTable + " where id=:id and deletedat =:deletedat"
+	query := fmt.Sprintf("select * from %s where id=:id and deletedat =:deletedat", EventsTable)
 
-	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
+	rows, err := db.db.NamedQueryContext(ctx, query, event)
 	if err != nil {
 		db.logger.Error("[GetOneEventDB][NamedQueryContext]: %s", err)
 		return event, fmt.Errorf("error execute get one event from DB")
 	}
 
-	if rows.Next() {
-		if err := rows.StructScan(&event); err != nil {
-			db.logger.Error("[GetOneEventDB][StructScan]: %s", err)
-			return event, fmt.Errorf("error scan DB row to event")
-		}
-	} else {
+	if !rows.Next() {
 		return event, errors.ErrEventNotFound
+	}
+	if err := rows.StructScan(&event); err != nil {
+		db.logger.Error("[GetOneEventDB][StructScan]: %s", err)
+		return event, fmt.Errorf("error scan DB row to event")
 	}
 
 	db.logger.WithFields(loggers.Fields{
@@ -192,12 +197,12 @@ func (db *DBPostgresEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 }
 
 // GetAllEventsDB return all events slice for given user id (no deleted).
-func (db *DBPostgresEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
+func (db *DBPostgres) GetAllEventsDB(ctx context.Context, id uuid.UUID) []models.Event {
 	events := make([]models.Event, 0)
 	event := models.Event{UserID: id}
-	query := "select * from " + EventsTable + " where userid=:userid and deletedat =:deletedat"
+	query := fmt.Sprintf("select * from %s where userid=:userid and deletedat =:deletedat", EventsTable)
 
-	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
+	rows, err := db.db.NamedQueryContext(ctx, query, event)
 	if err != nil {
 		db.logger.Error("[GetAllEventsDB][NamedQueryContext]: %s", err)
 		return events
@@ -222,16 +227,16 @@ func (db *DBPostgresEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 }
 
 // CleanEventsDB cleans db and deletes all events in the db for given user id (no restoring!).
-func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
+func (db *DBPostgres) CleanEventsDB(ctx context.Context, id uuid.UUID) error {
 	event := models.Event{UserID: id}
 
 	uid := ""
 	if id != uuid.Nil {
 		uid = " where userid=:userid"
 	}
-	query := "delete from " + EventsTable + uid
+	query := fmt.Sprintf("delete from %s %s", EventsTable, uid)
 
-	result, err := db.db.NamedExecContext(db.ctx, query, event)
+	result, err := db.db.NamedExecContext(ctx, query, event)
 	if err != nil {
 		db.logger.Error("[CleanEventsDB][NamedExecContext]: %s", err)
 		return fmt.Errorf("error execute delete events from DB: %w", err)
@@ -254,7 +259,7 @@ func (db *DBPostgresEvents) CleanEventsDB(id uuid.UUID) error {
 }
 
 // GetAllEventsDBDays returns events for num of the days for given user
-func (db *DBPostgresEvents) GetAllEventsDBDays(filter models.Event) []models.Event {
+func (db *DBPostgres) GetAllEventsDBDays(ctx context.Context, filter models.Event) []models.Event {
 	events := make([]models.Event, 0)
 	event := models.Event{
 		UserID:   filter.UserID,
@@ -268,10 +273,11 @@ func (db *DBPostgresEvents) GetAllEventsDBDays(filter models.Event) []models.Eve
 		uid = "userid=:userid and"
 	}
 
-	query := "select * from " + EventsTable + " where " + uid +
-		" deletedat =:deletedat and occursat>=:occursat and occursat<:updatedat"
+	query := fmt.Sprintf(`select * from %s where %s 
+		deletedat =:deletedat and occursat>=:occursat and occursat<:updatedat`,
+		EventsTable, uid)
 
-	rows, err := db.db.NamedQueryContext(db.ctx, query, event)
+	rows, err := db.db.NamedQueryContext(ctx, query, event)
 	if err != nil {
 		db.logger.Error("[GetAllEventsDBDays][NamedQueryContext]: %s", err)
 		return events

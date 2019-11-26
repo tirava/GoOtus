@@ -26,7 +26,9 @@ const (
 
 // CreateEvent creates event.
 func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*EventResponse, error) {
-	cs.logger.Info("REQUEST [CreateEvent]")
+	cs.logger.WithFields(loggers.Fields{
+		UserIDField: req.GetUserID(),
+	}).Info("REQUEST [CreateEvent]")
 
 	event := models.NewEvent()
 	protoEvent := &Event{
@@ -68,7 +70,7 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 	event.Location = protoEvent.Location
 	event.UserID = uid
 
-	if err := cs.calendar.AddEvent(event); err != nil {
+	if err := cs.calendar.AddEvent(ctx, event); err != nil {
 		cs.logger.WithFields(loggers.Fields{
 			CodeField: codes.Internal,
 		}).Error("RESPONSE [CreateEvent]: %s", err)
@@ -90,6 +92,7 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 	cs.logger.WithFields(loggers.Fields{
 		CodeField:    codes.OK,
 		EventIDField: protoEvent.Id,
+		UserIDField:  protoEvent.UserID,
 	}).Info("RESPONSE [CreateEvent]")
 
 	resp := &EventResponse{
@@ -104,7 +107,9 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 
 // GetEvent got one event by id.
 func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse, error) {
-	cs.logger.Info("REQUEST [GetEvent]")
+	cs.logger.WithFields(loggers.Fields{
+		EventIDField: id.GetId(),
+	}).Info("REQUEST [GetEvent]")
 
 	eid, err := uuid.Parse(id.GetId())
 	if err != nil {
@@ -114,7 +119,7 @@ func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse,
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	event, err := cs.calendar.GetEvent(eid)
+	event, err := cs.calendar.GetEvent(ctx, eid)
 	if err != nil {
 		cs.logger.WithFields(loggers.Fields{
 			CodeField: codes.Internal,
@@ -158,6 +163,7 @@ func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse,
 	cs.logger.WithFields(loggers.Fields{
 		CodeField:    codes.OK,
 		EventIDField: protoEvent.Id,
+		UserIDField:  protoEvent.UserID,
 	}).Info("RESPONSE [GetEvent]")
 
 	resp := &EventResponse{
@@ -172,7 +178,9 @@ func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse,
 
 // GetUserEvents returns all events for given user.
 func (cs *CalendarServer) GetUserEvents(ctx context.Context, id *ID) (*EventsResponse, error) {
-	cs.logger.Info("REQUEST [GetUserEvents]")
+	cs.logger.WithFields(loggers.Fields{
+		UserIDField: id.GetId(),
+	}).Info("REQUEST [GetUserEvents]")
 
 	uid, err := uuid.Parse(id.GetId())
 	if err != nil {
@@ -182,7 +190,7 @@ func (cs *CalendarServer) GetUserEvents(ctx context.Context, id *ID) (*EventsRes
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	events, err := cs.calendar.GetAllEventsFilter(models.Event{UserID: uid})
+	events, err := cs.calendar.GetAllEventsFilter(ctx, models.Event{UserID: uid})
 	if err != nil {
 		cs.logger.WithFields(loggers.Fields{
 			CodeField: codes.Internal,
@@ -228,13 +236,134 @@ func (cs *CalendarServer) GetUserEvents(ctx context.Context, id *ID) (*EventsRes
 }
 
 // DeleteEvent deletes event from DB.
-func (cs *CalendarServer) DeleteEvent(context.Context, *ID) (*EventResponse, error) {
-	panic("DeleteEvent implement me")
+func (cs *CalendarServer) DeleteEvent(ctx context.Context, id *ID) (*EventResponse, error) {
+	cs.logger.WithFields(loggers.Fields{
+		EventIDField: id.GetId(),
+	}).Info("REQUEST [DeleteEvent]")
+
+	eid, err := uuid.Parse(id.GetId())
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [DeleteEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if err := cs.calendar.DelEvent(ctx, eid); err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.Internal,
+		}).Error("RESPONSE [DeleteEvent]: %s", err)
+		if bizErr, ok := err.(errors.EventError); ok {
+			resp := &EventResponse{
+				Result: &EventResponse_Error{
+					Error: bizErr.Error(),
+				},
+			}
+			return resp, nil
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	protoEvent := &Event{Id: id.GetId()}
+
+	cs.logger.WithFields(loggers.Fields{
+		CodeField:    codes.OK,
+		EventIDField: protoEvent.Id,
+	}).Info("RESPONSE [DeleteEvent]")
+
+	resp := &EventResponse{
+		Result: &EventResponse_Event{
+			Event: protoEvent,
+		},
+	}
+	cs.logger.Debug("[DeleteEvent] Response body: %+v", resp)
+
+	return resp, nil
 }
 
 // UpdateEvent updates event by id.
-func (cs *CalendarServer) UpdateEvent(context.Context, *EventRequest) (*EventResponse, error) {
-	panic("UpdateEvent implement me")
+func (cs *CalendarServer) UpdateEvent(ctx context.Context, req *EventRequest) (*EventResponse, error) {
+	cs.logger.WithFields(loggers.Fields{
+		EventIDField: req.GetID(),
+	}).Info("REQUEST [UpdateEvent]")
+
+	protoEvent := &Event{
+		Id:       req.GetID(),
+		OccursAt: req.GetOccursAt(),
+		Subject:  req.GetSubject(),
+		Body:     req.GetBody(),
+		Duration: req.GetDuration(),
+		Location: req.GetLocation(),
+	}
+
+	id, err := uuid.Parse(req.GetID())
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [UpdateEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	occursAt, err := ptypes.Timestamp(protoEvent.OccursAt)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [UpdateEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	duration, err := ptypes.Duration(protoEvent.Duration)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [UpdateEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	event := models.Event{
+		ID:       id,
+		OccursAt: occursAt,
+		Subject:  protoEvent.Subject,
+		Body:     protoEvent.Body,
+		Duration: duration,
+		Location: protoEvent.Location,
+	}
+
+	eventNew, err := cs.calendar.UpdateEventFromEvent(ctx, event)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField:    codes.Internal,
+			EventIDField: protoEvent.Id,
+		}).Error("RESPONSE [UpdateEvent]: %s", err)
+		if bizErr, ok := err.(errors.EventError); ok {
+			resp := &EventResponse{
+				Result: &EventResponse_Error{
+					Error: bizErr.Error(),
+				},
+			}
+			return resp, nil
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	cs.logger.WithFields(loggers.Fields{
+		CodeField:    codes.OK,
+		EventIDField: eventNew.ID.String(),
+		UserIDField:  eventNew.UserID.String(),
+	}).Info("RESPONSE [UpdateEvent]")
+
+	updatedAt, err := ptypes.TimestampProto(eventNew.UpdatedAt)
+	if err != nil {
+		cs.logger.Error("[UpdateEvent] error convert event update to proto: %s", err)
+	}
+	protoEvent.UpdatedAt = updatedAt
+
+	resp := &EventResponse{
+		Result: &EventResponse_Event{
+			Event: protoEvent,
+		},
+	}
+	cs.logger.Debug("[UpdateEvent] Response body: %+v", resp)
+
+	return resp, nil
 }
 
 // GetEventsForDay returns all events for given day.

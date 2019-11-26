@@ -8,6 +8,7 @@
 package inmemory
 
 import (
+	"context"
 	"github.com/evakom/calendar/internal/domain/errors"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/evakom/calendar/internal/loggers"
@@ -42,7 +43,7 @@ func NewMapDB() (*DBMapEvents, error) {
 }
 
 // AddEventDB adds event to map db.
-func (db *DBMapEvents) AddEventDB(event models.Event) error {
+func (db *DBMapEvents) AddEventDB(ctx context.Context, event models.Event) error {
 	db.Lock()
 	defer db.Unlock()
 	if _, ok := db.events[event.ID]; ok {
@@ -58,7 +59,7 @@ func (db *DBMapEvents) AddEventDB(event models.Event) error {
 }
 
 // DelEventDB deletes one event by id.
-func (db *DBMapEvents) DelEventDB(id uuid.UUID) error {
+func (db *DBMapEvents) DelEventDB(ctx context.Context, id uuid.UUID) error {
 	if _, ok := db.events[id]; !ok {
 		return errors.ErrEventNotFound
 	}
@@ -76,7 +77,7 @@ func (db *DBMapEvents) DelEventDB(id uuid.UUID) error {
 }
 
 // EditEventDB updates one event.
-func (db *DBMapEvents) EditEventDB(event models.Event) error {
+func (db *DBMapEvents) EditEventDB(ctx context.Context, event models.Event) error {
 	if _, ok := db.events[event.ID]; !ok {
 		return errors.ErrEventNotFound
 	}
@@ -93,7 +94,7 @@ func (db *DBMapEvents) EditEventDB(event models.Event) error {
 }
 
 // GetOneEventDB returns one event by id.
-func (db *DBMapEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
+func (db *DBMapEvents) GetOneEventDB(ctx context.Context, id uuid.UUID) (models.Event, error) {
 	if _, ok := db.events[id]; !ok {
 		return models.Event{}, errors.ErrEventNotFound
 	}
@@ -109,7 +110,7 @@ func (db *DBMapEvents) GetOneEventDB(id uuid.UUID) (models.Event, error) {
 }
 
 // GetAllEventsDB return all events slice for given user id (no deleted).
-func (db *DBMapEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
+func (db *DBMapEvents) GetAllEventsDB(ctx context.Context, id uuid.UUID) []models.Event {
 	events := make([]models.Event, 0, len(db.events))
 	for _, event := range db.events {
 		if !event.DeletedAt.IsZero() {
@@ -126,7 +127,7 @@ func (db *DBMapEvents) GetAllEventsDB(id uuid.UUID) []models.Event {
 }
 
 // CleanEventsDB cleans db and deletes all events in the db for given user id (no restoring!).
-func (db *DBMapEvents) CleanEventsDB(id uuid.UUID) error {
+func (db *DBMapEvents) CleanEventsDB(ctx context.Context, id uuid.UUID) error {
 	db.Lock()
 	defer db.Unlock()
 	if id == uuid.Nil {
@@ -144,8 +145,8 @@ func (db *DBMapEvents) CleanEventsDB(id uuid.UUID) error {
 	return nil
 }
 
-// GetAllEventsDBDays returns events for num of the days for given user
-func (db *DBMapEvents) GetAllEventsDBDays(filter models.Event) []models.Event {
+// GetAllEventsDBDays returns events for num of the days for given user.
+func (db *DBMapEvents) GetAllEventsDBDays(ctx context.Context, filter models.Event) []models.Event {
 	events := make([]models.Event, 0, len(db.events))
 	occursEnd := filter.OccursAt.Add(filter.Duration)
 	for _, event := range db.events {
@@ -162,4 +163,10 @@ func (db *DBMapEvents) GetAllEventsDBDays(filter models.Event) []models.Event {
 		DeltaField: filter.Duration,
 	}).Info("All events [%d] for day(s) with delta got from map DB", len(events))
 	return events
+}
+
+// CloseDB closes storage.
+func (db *DBMapEvents) CloseDB() error {
+	db.logger.Info("Closed map DB")
+	return nil
 }

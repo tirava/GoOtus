@@ -51,6 +51,7 @@ message EventRequest {
     string location = 4;
     google.protobuf.Duration duration = 5;
     string userID = 6;
+    string ID = 7;
 }
 
 message EventResponse {

@@ -26,6 +26,7 @@ const (
 )
 
 var events storage.DB
+var ctx = context.TODO()
 
 func init() {
 	confPath := os.Getenv(envConfigPath)
@@ -46,7 +47,7 @@ func init() {
 		log.Fatalf("Open DB: %s, error: %s \n", conf.DBType, err)
 	}
 	// WARNING!!! will be deleted all events!!!
-	_ = events.CleanEventsDB(uuid.Nil)
+	_ = events.CleanEventsDB(ctx, uuid.Nil)
 }
 
 func TestNewEvent(t *testing.T) {
@@ -80,17 +81,17 @@ func TestAddEventDB(t *testing.T) {
 	e := models.NewEvent()
 	e.Subject = "222222222222222222222"
 	e.Body = "3333333333333333333"
-	if err := events.AddEventDB(e); err != nil {
+	if err := events.AddEventDB(ctx, e); err != nil {
 		t.Errorf("Adding event should not return error but returns it: %s", err)
 	}
 	e = models.NewEvent()
 	e.Duration = 555
-	_ = events.AddEventDB(e)
-	l := len(events.GetAllEventsDB(uuid.Nil))
+	_ = events.AddEventDB(ctx, e)
+	l := len(events.GetAllEventsDB(ctx, uuid.Nil))
 	if l != 2 {
 		t.Errorf("After adding 2 events to MapDB length != 2, actual length = %d", l)
 	}
-	err := events.AddEventDB(e)
+	err := events.AddEventDB(ctx, e)
 	if err == nil {
 		t.Errorf("Adding event with same id should return error but returns no error")
 		return
@@ -103,13 +104,13 @@ func TestAddEventDB(t *testing.T) {
 
 func TestGetEventDB(t *testing.T) {
 	e1 := models.NewEvent()
-	_ = events.AddEventDB(e1)
-	e3, _ := events.GetOneEventDB(e1.ID)
+	_ = events.AddEventDB(ctx, e1)
+	e3, _ := events.GetOneEventDB(ctx, e1.ID)
 	if e1.ID != e3.ID { //!reflect.DeepEqual(e1, e3) {
 		t.Errorf("Event1 not equal Event3 after get from DB:\n%+v\n%+v", e1, e3)
 	}
 	e3.ID = uuid.New()
-	_, err := events.GetOneEventDB(e3.ID)
+	_, err := events.GetOneEventDB(ctx, e3.ID)
 	if err == nil {
 		t.Errorf("Error expected but was not returned for getting id = : %s", e3.ID.String())
 		return
@@ -122,18 +123,18 @@ func TestGetEventDB(t *testing.T) {
 
 func TestEditEventDB(t *testing.T) {
 	e1 := models.NewEvent()
-	_ = events.AddEventDB(e1)
+	_ = events.AddEventDB(ctx, e1)
 
 	time.Sleep(time.Millisecond) // fix for windows
 
-	e2, _ := events.GetOneEventDB(e1.ID)
+	e2, _ := events.GetOneEventDB(ctx, e1.ID)
 	e2.Subject = "11111111111111111"
 	e2.Body = "22222222222222222"
-	if err := events.EditEventDB(e2); err != nil {
+	if err := events.EditEventDB(ctx, e2); err != nil {
 		t.Errorf("Editing event should not return error but returns it: %s", err)
 	}
 
-	e3, _ := events.GetOneEventDB(e1.ID)
+	e3, _ := events.GetOneEventDB(ctx, e1.ID)
 	if e3.Subject != e2.Subject || e3.Body != e2.Body {
 		t.Errorf("Event1 not properly updated in the DB:\nExpected: %+v\nActual: %+v", e2, e3)
 	}
@@ -144,7 +145,7 @@ func TestEditEventDB(t *testing.T) {
 		t.Errorf("Event1 updated time not correct in the DB:\nOld time: %v\nNew time: %v", t2, t3)
 	}
 	e3.ID = uuid.New()
-	err := events.EditEventDB(e3)
+	err := events.EditEventDB(ctx, e3)
 	if err == nil {
 		t.Errorf("Editing event with same id should return error but returns no error")
 		return
@@ -157,15 +158,15 @@ func TestEditEventDB(t *testing.T) {
 
 func TestDelEventDB(t *testing.T) {
 	e := models.NewEvent()
-	_ = events.AddEventDB(e)
-	if err := events.DelEventDB(e.ID); err != nil {
+	_ = events.AddEventDB(ctx, e)
+	if err := events.DelEventDB(ctx, e.ID); err != nil {
 		t.Errorf("Error while delete event with ID = %d, error: %v", e.ID, err)
 	}
-	if _, err := events.GetOneEventDB(e.ID); err == nil {
+	if _, err := events.GetOneEventDB(ctx, e.ID); err == nil {
 		t.Errorf("Error expected but was not returned for deleted id = : %s", e.ID.String())
 	}
 	e.ID = uuid.New()
-	err := events.DelEventDB(e.ID)
+	err := events.DelEventDB(ctx, e.ID)
 	if err == nil {
 		t.Errorf("Error expected but was not returned for deleting fake id = %s", e.ID.String())
 		return
@@ -177,13 +178,13 @@ func TestDelEventDB(t *testing.T) {
 }
 
 func TestGetAllEventsDB(t *testing.T) {
-	_ = events.CleanEventsDB(uuid.Nil)
+	_ = events.CleanEventsDB(ctx, uuid.Nil)
 	e1 := models.NewEvent()
-	_ = events.AddEventDB(e1)
+	_ = events.AddEventDB(ctx, e1)
 	e2 := models.NewEvent()
-	_ = events.AddEventDB(e2)
-	_ = events.DelEventDB(e1.ID)
-	e3 := events.GetAllEventsDB(uuid.Nil)
+	_ = events.AddEventDB(ctx, e2)
+	_ = events.DelEventDB(ctx, e1.ID)
+	e3 := events.GetAllEventsDB(ctx, uuid.Nil)
 	l := len(e3)
 	if l != 1 {
 		t.Errorf("After getting all events length slice != 1, actual length = %d", l)

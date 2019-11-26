@@ -12,6 +12,7 @@ import (
 	"github.com/evakom/calendar/internal/domain/calendar"
 	"github.com/evakom/calendar/internal/http"
 	"github.com/evakom/calendar/tools"
+	"log"
 )
 
 func main() {
@@ -27,4 +28,8 @@ func main() {
 	cal := calendar.NewCalendar(db)
 
 	http.StartHTTPServer(conf.ListenHTTP, cal)
+
+	if err := db.CloseDB(); err != nil {
+		log.Println("Error close DB:", err)
+	}
 }

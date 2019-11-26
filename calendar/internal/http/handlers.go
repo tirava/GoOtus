@@ -97,7 +97,7 @@ func (h handler) createEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.calendar.AddEvent(event); err != nil {
+	if err := h.calendar.AddEvent(r.Context(), event); err != nil {
 		h.logger.WithFields(loggers.Fields{
 			CodeField:    http.StatusInternalServerError,
 			ReqIDField:   getRequestID(r.Context()),
@@ -129,7 +129,7 @@ func (h handler) updateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	eventNew, err := h.calendar.UpdateEventFromEvent(event)
+	eventNew, err := h.calendar.UpdateEventFromEvent(r.Context(), event)
 	if err != nil {
 		h.logger.WithFields(loggers.Fields{
 			CodeField:    http.StatusOK,
@@ -168,7 +168,7 @@ func (h handler) deleteEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.calendar.DelEvent(uid); err != nil {
+	if err := h.calendar.DelEvent(r.Context(), uid); err != nil {
 		h.logger.WithFields(loggers.Fields{
 			CodeField:    http.StatusOK,
 			ReqIDField:   getRequestID(r.Context()),
@@ -226,29 +226,29 @@ func (h handler) getEventsAndSend(key, value string, w http.ResponseWriter, r *h
 
 	switch key {
 	case urlform.FormEventID:
-		events, err = h.calendar.GetAllEventsFilter(models.Event{
+		events, err = h.calendar.GetAllEventsFilter(r.Context(), models.Event{
 			ID: tools.IDString2UUIDorNil(value),
 		})
 		fields = loggers.Fields{EventIDField: value}
 	case urlform.FormUserID:
-		events, err = h.calendar.GetAllEventsFilter(models.Event{
+		events, err = h.calendar.GetAllEventsFilter(r.Context(), models.Event{
 			UserID: tools.IDString2UUIDorNil(value),
 		})
 		fields = loggers.Fields{UserIDField: value}
 	case urlform.FormDay:
-		events, err = h.calendar.GetAllEventsFilter(models.Event{
+		events, err = h.calendar.GetAllEventsFilter(r.Context(), models.Event{
 			OccursAt: tools.DayString2TimeOrNil(value),
 			Duration: 24 * time.Hour,
 		})
 		fields = loggers.Fields{DayField: value}
 	case urlform.FormWeek:
-		events, err = h.calendar.GetAllEventsFilter(models.Event{
+		events, err = h.calendar.GetAllEventsFilter(r.Context(), models.Event{
 			OccursAt: tools.DayString2TimeOrNil(value),
 			Duration: 24 * time.Hour * 7,
 		})
 		fields = loggers.Fields{WeekField: value}
 	case urlform.FormMonth:
-		events, err = h.calendar.GetAllEventsFilter(models.Event{
+		events, err = h.calendar.GetAllEventsFilter(r.Context(), models.Event{
 			OccursAt: tools.DayString2TimeOrNil(value),
 			Duration: 24 * time.Hour * 30,
 		})

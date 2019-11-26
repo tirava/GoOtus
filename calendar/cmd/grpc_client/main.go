@@ -44,7 +44,11 @@ func init() {
 		fmt.Printf("Create event:       %s -method create_event -user_id uuid "+
 			"[-occurs_at 'date time'] [-duration duration] "+
 			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
+		fmt.Printf("Update event:       %s -method update_event -event_id uuid "+
+			"[-occurs_at 'date time'] [-duration duration] "+
+			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
 		fmt.Printf("Get event:          %s -method get_event -event_id uuid\n", fileName)
+		fmt.Printf("Delete event:       %s -method del_event -event_id uuid\n", fileName)
 		fmt.Printf("Get user events:    %s -method get_user_events -user_id uuid\n", fileName)
 		flag.PrintDefaults()
 	}
@@ -53,9 +57,9 @@ func init() {
 	flag.StringVar(&method, "method", "get_event", "call method")
 	flag.StringVar(&uid, "user_id", uuid.Nil.String(), "owner uuid")
 	flag.StringVar(&eid, "event_id", uuid.Nil.String(), "event uuid")
-	flag.StringVar(&occursAt, "occurs_at", time.Now().Format(tsLayout),
+	flag.StringVar(&occursAt, "occurs_at", time.Time{}.Format(tsLayout),
 		"date and time when event occurs")
-	flag.StringVar(&duras, "duration", "24h", "event duration (sec, min, hours)")
+	flag.StringVar(&duras, "duration", "0", "event duration (sec, min, hours)")
 	flag.StringVar(&subject, "subject", "", "event subject (title)")
 	flag.StringVar(&body, "body", "", "event body (description)")
 	flag.StringVar(&location, "location", "", "event location (where)")
@@ -80,6 +84,7 @@ func main() {
 	}
 
 	req := &api.EventRequest{
+		ID:       eid,
 		OccursAt: occurs,
 		Subject:  subject,
 		Body:     body,
@@ -101,12 +106,24 @@ func main() {
 			break
 		}
 		resp, err = client.CreateEvent(ctx, req)
+	case "update_event":
+		if eid == "" || eid == uuid.Nil.String() {
+			needUsage = true
+			break
+		}
+		resp, err = client.UpdateEvent(ctx, req)
 	case "get_event":
 		if eid == "" || eid == uuid.Nil.String() {
 			needUsage = true
 			break
 		}
 		resp, err = client.GetEvent(ctx, eId)
+	case "del_event":
+		if eid == "" || eid == uuid.Nil.String() {
+			needUsage = true
+			break
+		}
+		resp, err = client.DeleteEvent(ctx, eId)
 	case "get_user_events":
 		if uid == "" || uid == uuid.Nil.String() {
 			needUsage = true
