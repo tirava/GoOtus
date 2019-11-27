@@ -28,7 +28,7 @@ const (
 	EventsTable  = "events"
 )
 
-// DBPostgres is the base struct for using map db.
+// DBPostgres is the base struct for using postgres db.
 type DBPostgres struct {
 	db     *sqlx.DB
 	logger loggers.Logger
@@ -294,6 +294,6 @@ func (db *DBPostgres) GetAllEventsDBDays(ctx context.Context, filter models.Even
 	db.logger.WithFields(loggers.Fields{
 		DayField:   filter.OccursAt.String(),
 		DeltaField: filter.Duration,
-	}).Info("All events [%d] for day(s) got from map DB", len(events))
+	}).Info("All events [%d] for day(s) got from postgres DB", len(events))
 	return events
 }
