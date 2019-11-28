@@ -15,6 +15,7 @@ require (
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/shopspring/decimal v0.0.0-20191009025716-f1972eb1d1f5 // indirect
 	github.com/sirupsen/logrus v1.4.2
+	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf // indirect
 	golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c // indirect
 	google.golang.org/appengine v1.6.5 // indirect

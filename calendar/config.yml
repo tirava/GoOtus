@@ -20,3 +20,6 @@ grpc_listen:
 
 # dsn for db - no default, need to set here
 dsn: postgres://testuser:123456@Klim.go:5432/calendar
+
+# rabbit connection - no default, need to set here
+rabbit: amqp://testuser:123456@Klim.go:5672/

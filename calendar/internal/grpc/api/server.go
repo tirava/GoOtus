@@ -34,13 +34,12 @@ func NewCalendarServer(cal calendar.Calendar) *CalendarServer {
 }
 
 // StartGRPCServer is registers and runs the server.
-func (cs *CalendarServer) StartGRPCServer(addr string) {
+func (cs *CalendarServer) StartGRPCServer(addr string) error {
 
 	srv := grpc.NewServer()
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		cs.logger.Error(err.Error())
-		os.Exit(1)
+		return err
 	}
 
 	RegisterCalendarServiceServer(srv, cs)
@@ -55,8 +54,9 @@ func (cs *CalendarServer) StartGRPCServer(addr string) {
 
 	cs.logger.Info("Starting gRPC server at: %s", addr)
 	if err := srv.Serve(lis); err != nil {
-		cs.logger.Error(err.Error())
-		os.Exit(1)
+		return err
 	}
 	cs.logger.Info("Shutdown gRPC server at: %s", addr)
+
+	return nil
 }

@@ -22,6 +22,7 @@ type Config struct {
 	ListenHTTP string `yaml:"http_listen"`
 	ListenGRPC string `yaml:"grpc_listen"`
 	DSN        string `yaml:"dsn"`
+	RabbitMQ   string `yaml:"rabbit"`
 }
 
 // NewConfig creates new config struct.
