@@ -4,6 +4,7 @@ create table events (
 	updatedat timestamp,
 	deletedat timestamp,
 	occursat timestamp,
+	alertbefore bigint,
 	subject text not null,
 	body text,
 	duration bigint,

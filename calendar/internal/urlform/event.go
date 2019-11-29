@@ -27,6 +27,7 @@ const (
 	FormDay      = "day"
 	FormWeek     = "week"
 	FormMonth    = "month"
+	FormAlert    = "alert"
 )
 
 // Values is the base www-url-form values type.
@@ -55,6 +56,11 @@ func (v Values) DecodeEvent() (models.Event, error) {
 		return event, err
 	}
 
+	before, err := time.ParseDuration(v[FormAlert])
+	if err != nil && v[FormAlert] != "" {
+		return event, err
+	}
+
 	if v[FormEventID] == "" {
 		userID, err := DecodeID(v[FormUserID])
 		if err != nil {
@@ -74,6 +80,7 @@ func (v Values) DecodeEvent() (models.Event, error) {
 	event.Location = v[FormLocation]
 	event.Duration = duration
 	event.OccursAt = occurs
+	event.AlertBefore = before
 
 	return event, nil
 }

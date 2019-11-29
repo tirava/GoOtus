@@ -42,13 +42,14 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 
 	event := models.NewEvent()
 	protoEvent := &Event{
-		Id:       event.ID.String(),
-		OccursAt: req.GetOccursAt(),
-		Subject:  req.GetSubject(),
-		Body:     req.GetBody(),
-		Duration: req.GetDuration(),
-		Location: req.GetLocation(),
-		UserID:   req.GetUserID(),
+		Id:          event.ID.String(),
+		OccursAt:    req.GetOccursAt(),
+		Subject:     req.GetSubject(),
+		Body:        req.GetBody(),
+		Duration:    req.GetDuration(),
+		Location:    req.GetLocation(),
+		UserID:      req.GetUserID(),
+		AlertBefore: req.GetAlertBefore(),
 	}
 
 	occursAt, err := ptypes.Timestamp(protoEvent.OccursAt)
@@ -72,6 +73,13 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 		}).Error("RESPONSE [CreateEvent]: %s", err)
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	before, err := ptypes.Duration(protoEvent.AlertBefore)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [CreateEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	event.OccursAt = occursAt
 	event.Subject = protoEvent.Subject
@@ -79,6 +87,7 @@ func (cs *CalendarServer) CreateEvent(ctx context.Context, req *EventRequest) (*
 	event.Duration = duration
 	event.Location = protoEvent.Location
 	event.UserID = uid
+	event.AlertBefore = before
 
 	if err := cs.calendar.AddEvent(ctx, event); err != nil {
 		cs.logger.WithFields(loggers.Fields{
@@ -159,15 +168,16 @@ func (cs *CalendarServer) GetEvent(ctx context.Context, id *ID) (*EventResponse,
 	}
 
 	protoEvent := &Event{
-		Id:        event.ID.String(),
-		CreatedAt: createdAt,
-		UpdatedAt: updatedAt,
-		OccursAt:  occursAt,
-		Subject:   event.Subject,
-		Body:      event.Body,
-		Duration:  ptypes.DurationProto(event.Duration),
-		Location:  event.Location,
-		UserID:    event.UserID.String(),
+		Id:          event.ID.String(),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
+		OccursAt:    occursAt,
+		Subject:     event.Subject,
+		Body:        event.Body,
+		Duration:    ptypes.DurationProto(event.Duration),
+		Location:    event.Location,
+		UserID:      event.UserID.String(),
+		AlertBefore: ptypes.DurationProto(event.AlertBefore),
 	}
 
 	cs.logger.WithFields(loggers.Fields{
@@ -271,12 +281,13 @@ func (cs *CalendarServer) UpdateEvent(ctx context.Context, req *EventRequest) (*
 	}).Info("REQUEST [UpdateEvent]")
 
 	protoEvent := &Event{
-		Id:       req.GetID(),
-		OccursAt: req.GetOccursAt(),
-		Subject:  req.GetSubject(),
-		Body:     req.GetBody(),
-		Duration: req.GetDuration(),
-		Location: req.GetLocation(),
+		Id:          req.GetID(),
+		OccursAt:    req.GetOccursAt(),
+		Subject:     req.GetSubject(),
+		Body:        req.GetBody(),
+		Duration:    req.GetDuration(),
+		Location:    req.GetLocation(),
+		AlertBefore: req.GetAlertBefore(),
 	}
 
 	id, err := uuid.Parse(req.GetID())
@@ -300,14 +311,22 @@ func (cs *CalendarServer) UpdateEvent(ctx context.Context, req *EventRequest) (*
 		}).Error("RESPONSE [UpdateEvent]: %s", err)
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	before, err := ptypes.Duration(protoEvent.AlertBefore)
+	if err != nil {
+		cs.logger.WithFields(loggers.Fields{
+			CodeField: codes.InvalidArgument,
+		}).Error("RESPONSE [UpdateEvent]: %s", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	event := models.Event{
-		ID:       id,
-		OccursAt: occursAt,
-		Subject:  protoEvent.Subject,
-		Body:     protoEvent.Body,
-		Duration: duration,
-		Location: protoEvent.Location,
+		ID:          id,
+		OccursAt:    occursAt,
+		Subject:     protoEvent.Subject,
+		Body:        protoEvent.Body,
+		Duration:    duration,
+		Location:    protoEvent.Location,
+		AlertBefore: before,
 	}
 
 	eventNew, err := cs.calendar.UpdateEventFromEvent(ctx, event)
@@ -387,15 +406,16 @@ func (cs *CalendarServer) events2ProtoEvents(events []models.Event) []*Event {
 			cs.logger.Error("[GetUserEvents] error convert event occurs to proto: %s", err)
 		}
 		protoEvent := &Event{
-			Id:        event.ID.String(),
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
-			OccursAt:  occursAt,
-			Subject:   event.Subject,
-			Body:      event.Body,
-			Duration:  ptypes.DurationProto(event.Duration),
-			Location:  event.Location,
-			UserID:    event.UserID.String(),
+			Id:          event.ID.String(),
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
+			OccursAt:    occursAt,
+			Subject:     event.Subject,
+			Body:        event.Body,
+			Duration:    ptypes.DurationProto(event.Duration),
+			Location:    event.Location,
+			UserID:      event.UserID.String(),
+			AlertBefore: ptypes.DurationProto(event.AlertBefore),
 		}
 		protoEvents = append(protoEvents, protoEvent)
 	}

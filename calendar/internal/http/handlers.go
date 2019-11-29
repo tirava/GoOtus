@@ -319,6 +319,7 @@ func (h handler) parseURLFormValues(w http.ResponseWriter, r *http.Request) (mod
 	values[urlform.FormLocation] = r.FormValue(urlform.FormLocation)
 	values[urlform.FormDuration] = r.FormValue(urlform.FormDuration)
 	values[urlform.FormUserID] = r.FormValue(urlform.FormUserID)
+	values[urlform.FormAlert] = r.FormValue(urlform.FormAlert)
 
 	event, err := values.DecodeEvent()
 	if err != nil {

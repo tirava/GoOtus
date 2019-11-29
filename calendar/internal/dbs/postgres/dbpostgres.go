@@ -64,8 +64,8 @@ func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgres, error) {
 // AddEventDB adds event to postgres db.
 func (db *DBPostgres) AddEventDB(ctx context.Context, event models.Event) error {
 	query := fmt.Sprintf(`insert into %s 
-		(id, createdat, updatedat, deletedat, occursat, subject, body, duration, location, userid) 
-		values(:id, :createdat, :updatedat, :deletedat, :occursat, :subject, :body, :duration, :location, :userid)`,
+		(id, createdat, updatedat, deletedat, occursat, alertbefore, subject, body, duration, location, userid) 
+		values(:id, :createdat, :updatedat, :deletedat, :occursat, :alertbefore, :subject, :body, :duration, :location, :userid)`,
 		EventsTable)
 	result, err := db.db.NamedExecContext(ctx, query, event)
 	if err != nil {
@@ -125,17 +125,18 @@ func (db *DBPostgres) DelEventDB(ctx context.Context, id uuid.UUID) error {
 // EditEventDB updates one event.
 func (db *DBPostgres) EditEventDB(ctx context.Context, event models.Event) error {
 	eventNew := models.Event{
-		ID:        event.ID,
-		UpdatedAt: time.Now(),
-		OccursAt:  event.OccursAt,
-		Subject:   event.Subject,
-		Body:      event.Body,
-		Duration:  event.Duration,
-		Location:  event.Location,
-		UserID:    event.UserID,
+		ID:          event.ID,
+		UpdatedAt:   time.Now(),
+		OccursAt:    event.OccursAt,
+		Subject:     event.Subject,
+		Body:        event.Body,
+		Duration:    event.Duration,
+		Location:    event.Location,
+		UserID:      event.UserID,
+		AlertBefore: event.AlertBefore,
 	}
 	query := fmt.Sprintf(`update %s 
-		set updatedat=:updatedat, occursat=:occursat, 
+		set updatedat=:updatedat, occursat=:occursat, alertbefore=:alertbefore,
 		subject=:subject, body=:body, duration=:duration, 
 		location=:location where id=:id and deletedat =:deletedat`,
 		EventsTable)
@@ -154,7 +155,6 @@ func (db *DBPostgres) EditEventDB(ctx context.Context, event models.Event) error
 	if ra != 1 {
 		db.logger.Error("[EditEventDB][RowsAffected]: no affected")
 		return errors.ErrEventNotFound
-		//return fmt.Errorf("event not updated in db: no rows affected")
 	}
 
 	db.logger.WithFields(loggers.Fields{

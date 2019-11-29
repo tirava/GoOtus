@@ -11,6 +11,9 @@ import (
 	"flag"
 	"github.com/evakom/calendar/tools"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -25,17 +28,26 @@ func main() {
 	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
 
 	sender, err := newSender(db, conf.RabbitMQ)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// job
+	//err = sender.publish("111", "222")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	go func() {
+
+	}()
+
+	shutdown := make(chan os.Signal)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+
+	sender.logger.Warn("Signal received: %s", <-shutdown)
 
 	if err := sender.close(); err != nil {
 		log.Println("Error close RabbitMQ:", err)
 	}
-
 	if err := db.CloseDB(); err != nil {
 		log.Println("Error close DB:", err)
 	}

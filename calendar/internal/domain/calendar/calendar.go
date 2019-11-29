@@ -111,6 +111,9 @@ func (c Calendar) UpdateEventFromEvent(ctx context.Context, event models.Event) 
 	if event.OccursAt != timeNil {
 		e.OccursAt = event.OccursAt
 	}
+	if event.AlertBefore != 0 {
+		e.AlertBefore = event.AlertBefore
+	}
 
 	if err := c.UpdateEvent(ctx, e); err != nil {
 		return e, err

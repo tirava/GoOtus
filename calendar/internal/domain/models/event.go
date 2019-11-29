@@ -14,16 +14,17 @@ import (
 
 // Event is the base event struct.
 type Event struct {
-	ID        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
-	OccursAt  time.Time
-	Subject   string
-	Body      string
-	Duration  time.Duration
-	Location  string
-	UserID    uuid.UUID
+	ID          uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   time.Time
+	OccursAt    time.Time
+	Subject     string
+	Body        string
+	Duration    time.Duration
+	Location    string
+	UserID      uuid.UUID
+	AlertBefore time.Duration
 }
 
 // NewEvent returns new example event.

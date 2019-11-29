@@ -37,6 +37,7 @@ var (
 	body     string
 	location string
 	startDay string
+	alert    string
 )
 
 func init() {
@@ -48,7 +49,7 @@ func init() {
 			"[-occurs_at 'date time'] [-duration duration] "+
 			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
 		fmt.Printf("Update event:         %s -method update_event -event_id uuid "+
-			"[-occurs_at 'date time'] [-duration duration] "+
+			"[-occurs_at 'date time'] [-duration duration] [-alert_before duration]"+
 			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
 		fmt.Printf("Get event:            %s -method get_event -event_id uuid\n", fileName)
 		fmt.Printf("Delete event:         %s -method del_event -event_id uuid\n", fileName)
@@ -65,12 +66,13 @@ func init() {
 	flag.StringVar(&eid, "event_id", "", "event uuid")
 	flag.StringVar(&occursAt, "occurs_at", time.Time{}.Format(tsLayout),
 		"date and time when event occurs")
-	flag.StringVar(&duras, "duration", "0", "event duration (sec, min, hours)")
+	flag.StringVar(&duras, "duration", "1h", "event duration (sec, min, hours)")
 	flag.StringVar(&subject, "subject", "", "event subject (title)")
 	flag.StringVar(&body, "body", "", "event body (description)")
 	flag.StringVar(&location, "location", "", "event location (where)")
 	flag.StringVar(&startDay, "start_day", time.Now().Format(dayLayout),
 		"start date when events will occur")
+	flag.StringVar(&alert, "alert_before", "15m", "duration before event alerts (sec, min, hours)")
 }
 
 func main() {
@@ -90,19 +92,24 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	before, err := parseDuration(alert)
+	if err != nil {
+		log.Fatal(err)
+	}
 	start, err := parseDateTime(startDay, dayLayout)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	req := &api.EventRequest{
-		ID:       eid,
-		OccursAt: occurs,
-		Subject:  subject,
-		Body:     body,
-		Location: location,
-		Duration: durat,
-		UserID:   uid,
+		ID:          eid,
+		OccursAt:    occurs,
+		Subject:     subject,
+		Body:        body,
+		Location:    location,
+		Duration:    durat,
+		UserID:      uid,
+		AlertBefore: before,
 	}
 
 	eID := &api.ID{Id: eid}

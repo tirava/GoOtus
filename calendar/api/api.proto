@@ -13,19 +13,10 @@ message Event {
     google.protobuf.Timestamp occurs_at = 5;
     string subject = 6;
     string body = 7;
-    message alertBefore {
-        enum BeforeType {
-            UNKNOWN = 0;
-            DAYS = 1;
-            HOURS = 2;
-            MINUTES = 3;
-        }
-        BeforeType type = 1;
-        int64 before = 2;
-    }
     google.protobuf.Duration duration = 8;
     string location = 9;
     string userID = 10;
+    google.protobuf.Duration alert_before = 11;
 }
 
 message User {
@@ -52,6 +43,7 @@ message EventRequest {
     google.protobuf.Duration duration = 5;
     string userID = 6;
     string ID = 7;
+    google.protobuf.Duration alert_before = 8;
 }
 
 message EventResponse {

@@ -43,8 +43,35 @@ func (s *sender) close() error {
 	errCh := s.ch.Close()
 	errConn := s.conn.Close()
 	if errCh != nil || errConn != nil {
-		return fmt.Errorf("error close rabbit MQ: %s, %s", errCh, errConn)
+		return fmt.Errorf("error close rabbit MQ: channel - %s, conn - %s", errCh, errConn)
 	}
 	s.logger.Info("Closed rabbit MQ")
+	return nil
+}
+
+func (s *sender) publish(qName, body string) error {
+	q, err := s.ch.QueueDeclare(
+		qName, // name
+		false, // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return err
+	}
+
+	if err = s.ch.Publish(
+		"",     // exchange
+		q.Name, // routing key
+		false,  // mandatory
+		false,  // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(body),
+		}); err != nil {
+		return err
+	}
 	return nil
 }
