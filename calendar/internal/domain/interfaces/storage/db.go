@@ -11,6 +11,7 @@ import (
 	"context"
 	"github.com/evakom/calendar/internal/domain/models"
 	"github.com/google/uuid"
+	"time"
 )
 
 // DB is thw main interface for any DBs
@@ -22,5 +23,7 @@ type DB interface {
 	GetAllEventsDB(context.Context, uuid.UUID) []models.Event
 	CleanEventsDB(context.Context, uuid.UUID) error
 	GetAllEventsDBDays(context.Context, models.Event) []models.Event
+	GetAlertedEventsDB(context.Context, time.Time) []models.Event
+	GetUserDB(context.Context, uuid.UUID) (models.User, error)
 	CloseDB() error
 }

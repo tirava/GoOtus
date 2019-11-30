@@ -170,3 +170,13 @@ func (db *DBMapEvents) CloseDB() error {
 	db.logger.Info("Closed map DB")
 	return nil
 }
+
+// GetAlertedEventsDB returns events need to alert.
+func (db *DBMapEvents) GetAlertedEventsDB(context.Context, time.Time) []models.Event {
+	return make([]models.Event, 0)
+}
+
+// GetUserDB returns user by id.
+func (db *DBMapEvents) GetUserDB(ctx context.Context, id uuid.UUID) (models.User, error) {
+	return models.User{ID: id}, nil
+}

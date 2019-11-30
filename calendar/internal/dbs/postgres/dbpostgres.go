@@ -25,7 +25,9 @@ const (
 	UserIDField  = "user_id"
 	DayField     = "day"
 	DeltaField   = "delta"
+	AlertField   = "alert_time"
 	EventsTable  = "events"
+	UsersTable   = "users"
 )
 
 // DBPostgres is the base struct for using postgres db.
@@ -64,8 +66,8 @@ func NewPostgresDB(ctx context.Context, dsn string) (*DBPostgres, error) {
 // AddEventDB adds event to postgres db.
 func (db *DBPostgres) AddEventDB(ctx context.Context, event models.Event) error {
 	query := fmt.Sprintf(`insert into %s 
-		(id, createdat, updatedat, deletedat, occursat, alertbefore, subject, body, duration, location, userid) 
-		values(:id, :createdat, :updatedat, :deletedat, :occursat, :alertbefore, :subject, :body, :duration, :location, :userid)`,
+		(id, createdat, updatedat, deletedat, occursat, alertevery, subject, body, duration, location, userid) 
+		values(:id, :createdat, :updatedat, :deletedat, :occursat, :alertevery, :subject, :body, :duration, :location, :userid)`,
 		EventsTable)
 	result, err := db.db.NamedExecContext(ctx, query, event)
 	if err != nil {
@@ -125,18 +127,18 @@ func (db *DBPostgres) DelEventDB(ctx context.Context, id uuid.UUID) error {
 // EditEventDB updates one event.
 func (db *DBPostgres) EditEventDB(ctx context.Context, event models.Event) error {
 	eventNew := models.Event{
-		ID:          event.ID,
-		UpdatedAt:   time.Now(),
-		OccursAt:    event.OccursAt,
-		Subject:     event.Subject,
-		Body:        event.Body,
-		Duration:    event.Duration,
-		Location:    event.Location,
-		UserID:      event.UserID,
-		AlertBefore: event.AlertBefore,
+		ID:         event.ID,
+		UpdatedAt:  time.Now(),
+		OccursAt:   event.OccursAt,
+		Subject:    event.Subject,
+		Body:       event.Body,
+		Duration:   event.Duration,
+		Location:   event.Location,
+		UserID:     event.UserID,
+		AlertEvery: event.AlertEvery,
 	}
 	query := fmt.Sprintf(`update %s 
-		set updatedat=:updatedat, occursat=:occursat, alertbefore=:alertbefore,
+		set updatedat=:updatedat, occursat=:occursat, alertevery=:alertevery,
 		subject=:subject, body=:body, duration=:duration, 
 		location=:location where id=:id and deletedat =:deletedat`,
 		EventsTable)
@@ -295,5 +297,69 @@ func (db *DBPostgres) GetAllEventsDBDays(ctx context.Context, filter models.Even
 		DayField:   filter.OccursAt.String(),
 		DeltaField: filter.Duration,
 	}).Info("All events [%d] for day(s) got from postgres DB", len(events))
+	return events
+}
+
+// GetUserDB returns user by id.
+func (db *DBPostgres) GetUserDB(ctx context.Context, id uuid.UUID) (models.User, error) {
+	user := models.User{ID: id}
+	query := fmt.Sprintf("select * from %s where id=:id", UsersTable)
+
+	rows, err := db.db.NamedQueryContext(ctx, query, user)
+	if err != nil {
+		db.logger.Error("[GetUserDB][NamedQueryContext]: %s", err)
+		return user, fmt.Errorf("error execute get user from DB")
+	}
+
+	if !rows.Next() {
+		return user, errors.ErrUserNotFound
+	}
+	if err := rows.StructScan(&user); err != nil {
+		db.logger.Error("[GetUserDB][StructScan]: %s", err)
+		return user, fmt.Errorf("error scan DB row to user")
+	}
+
+	db.logger.WithFields(loggers.Fields{
+		UserIDField: user.ID.String(),
+	}).Info("User got from postgres DB")
+	db.logger.Debug("User body got from postgres DB: %+v", user)
+
+	if err := rows.Close(); err != nil {
+		db.logger.Error("[GetUserDB] error close rows: %s", err)
+	}
+	return user, nil
+}
+
+// GetAlertedEventsDB returns events need to alert.
+func (db *DBPostgres) GetAlertedEventsDB(ctx context.Context, alert time.Time) []models.Event {
+	events := make([]models.Event, 0)
+	event := models.Event{}
+	event.OccursAt = alert
+
+	query := fmt.Sprintf(`select * from %s where 
+		occursat<=:occursat and deletedat=:deletedat`,
+		EventsTable)
+
+	rows, err := db.db.NamedQueryContext(ctx, query, event)
+	if err != nil {
+		db.logger.Error("[GetAlertedEventsDB][NamedQueryContext]: %s", err)
+		return events
+	}
+
+	for rows.Next() {
+		if err := rows.StructScan(&event); err != nil {
+			db.logger.Error("[GetAlertedEventsDB][StructScan]: %s", err)
+			continue
+		}
+		events = append(events, event)
+	}
+
+	db.logger.WithFields(loggers.Fields{
+		AlertField: alert,
+	}).Info("All alerted events [%d] got from postgres DB", len(events))
+
+	if err := rows.Close(); err != nil {
+		db.logger.Error("[GetAlertedEventsDB] error close rows: %s", err)
+	}
 	return events
 }

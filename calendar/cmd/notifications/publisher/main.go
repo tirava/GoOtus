@@ -1,5 +1,5 @@
 /*
- * HomeWork-14: RabbitMQ receiver
+ * HomeWork-14: RabbitMQ sender
  * Created on 28.11.2019 22:20
  * Copyright (c) 2019 - Eugene Klimov
  */
@@ -11,6 +11,7 @@ import (
 	"flag"
 	"github.com/evakom/calendar/tools"
 	"log"
+	"time"
 )
 
 func main() {
@@ -19,19 +20,24 @@ func main() {
 
 	conf := tools.InitConfig(*configFile)
 
+	timeout, err := time.ParseDuration(conf.PubTimeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	logFile := tools.InitLogger(conf)
 	defer logFile.Close()
 
 	db := tools.InitDB(context.TODO(), conf.DBType, conf.DSN)
 
-	sender, err := newSender(db, conf.RabbitMQ)
+	publisher, err := newPublisher(db, conf.RabbitMQ, timeout)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	sender.start()
+	publisher.start()
 
-	if err := sender.close(); err != nil {
+	if err := publisher.close(); err != nil {
 		log.Println("Error close RabbitMQ:", err)
 	}
 	if err := db.CloseDB(); err != nil {

@@ -49,7 +49,7 @@ func init() {
 			"[-occurs_at 'date time'] [-duration duration] "+
 			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
 		fmt.Printf("Update event:         %s -method update_event -event_id uuid "+
-			"[-occurs_at 'date time'] [-duration duration] [-alert_before duration]"+
+			"[-occurs_at 'date time'] [-duration duration] [-alert_every duration]"+
 			"[-subject 'subject'] [-body 'body'] [-location 'location']\n", fileName)
 		fmt.Printf("Get event:            %s -method get_event -event_id uuid\n", fileName)
 		fmt.Printf("Delete event:         %s -method del_event -event_id uuid\n", fileName)
@@ -72,7 +72,7 @@ func init() {
 	flag.StringVar(&location, "location", "", "event location (where)")
 	flag.StringVar(&startDay, "start_day", time.Now().Format(dayLayout),
 		"start date when events will occur")
-	flag.StringVar(&alert, "alert_before", "15m", "duration before event alerts (sec, min, hours)")
+	flag.StringVar(&alert, "alert_every", "15m", "event alerts every (sec, min, hours)")
 }
 
 func main() {
@@ -92,7 +92,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	before, err := parseDuration(alert)
+	every, err := parseDuration(alert)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -102,14 +102,14 @@ func main() {
 	}
 
 	req := &api.EventRequest{
-		ID:          eid,
-		OccursAt:    occurs,
-		Subject:     subject,
-		Body:        body,
-		Location:    location,
-		Duration:    durat,
-		UserID:      uid,
-		AlertBefore: before,
+		ID:         eid,
+		OccursAt:   occurs,
+		Subject:    subject,
+		Body:       body,
+		Location:   location,
+		Duration:   durat,
+		UserID:     uid,
+		AlertEvery: every,
 	}
 
 	eID := &api.ID{Id: eid}

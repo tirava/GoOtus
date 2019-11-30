@@ -56,7 +56,7 @@ func (v Values) DecodeEvent() (models.Event, error) {
 		return event, err
 	}
 
-	before, err := time.ParseDuration(v[FormAlert])
+	every, err := time.ParseDuration(v[FormAlert])
 	if err != nil && v[FormAlert] != "" {
 		return event, err
 	}
@@ -80,7 +80,7 @@ func (v Values) DecodeEvent() (models.Event, error) {
 	event.Location = v[FormLocation]
 	event.Duration = duration
 	event.OccursAt = occurs
-	event.AlertBefore = before
+	event.AlertEvery = every
 
 	return event, nil
 }

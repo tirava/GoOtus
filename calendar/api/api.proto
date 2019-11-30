@@ -16,15 +16,14 @@ message Event {
     google.protobuf.Duration duration = 8;
     string location = 9;
     string userID = 10;
-    google.protobuf.Duration alert_before = 11;
+    google.protobuf.Duration alert_every = 11;
 }
 
 message User {
     string id = 1;
     string name = 2;
-    repeated string email = 3;
-    repeated string mobile = 4;
-    google.protobuf.Timestamp birthday = 5;
+    string email = 3;
+    string mobile = 4;
 }
 
 message ID {
@@ -43,7 +42,7 @@ message EventRequest {
     google.protobuf.Duration duration = 5;
     string userID = 6;
     string ID = 7;
-    google.protobuf.Duration alert_before = 8;
+    google.protobuf.Duration alert_every = 8;
 }
 
 message EventResponse {

@@ -23,6 +23,7 @@ type Config struct {
 	ListenGRPC string `yaml:"grpc_listen"`
 	DSN        string `yaml:"dsn"`
 	RabbitMQ   string `yaml:"rabbit"`
+	PubTimeout string `yaml:"pub_timeout"`
 }
 
 // NewConfig creates new config struct.
@@ -57,6 +58,9 @@ func (c *Config) readParameters() error {
 	}
 	if c.ListenGRPC == "" {
 		c.ListenGRPC = "localhost:50051"
+	}
+	if c.PubTimeout == "" {
+		c.PubTimeout = "1s"
 	}
 	return nil
 }
