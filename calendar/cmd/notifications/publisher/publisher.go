@@ -115,7 +115,7 @@ func (p *publisher) start() {
 }
 
 func (p *publisher) worker() {
-	alerts := make(map[uuid.UUID]int64)
+	alerts := make(map[uuid.UUID]time.Time)
 OUTER:
 	for {
 		select {
@@ -140,7 +140,7 @@ OUTER:
 				}
 
 				if at, ok := alerts[event.ID]; ok {
-					if at+event.AlertEvery.Nanoseconds() > time.Now().UnixNano() {
+					if at.Add(event.AlertEvery).After(time.Now()) {
 						p.logger.WithFields(loggers.Fields{
 							eventIDField:     event.ID.String(),
 							eventOccursField: event.OccursAt,
@@ -156,7 +156,7 @@ OUTER:
 					}).Error(err.Error())
 					continue
 				}
-				alerts[event.ID] = time.Now().UnixNano()
+				alerts[event.ID] = time.Now()
 
 				p.logger.WithFields(loggers.Fields{
 					eventIDField:     event.ID.String(),

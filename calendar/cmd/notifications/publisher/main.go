@@ -25,6 +25,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if timeout < 100*time.Millisecond {
+		timeout = 100 * time.Millisecond
+	}
+
 	logFile := tools.InitLogger(conf)
 	defer logFile.Close()
 
