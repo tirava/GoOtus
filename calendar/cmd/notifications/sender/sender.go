@@ -17,6 +17,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 )
 
@@ -33,6 +34,7 @@ type sender struct {
 	conn   *amqp.Connection
 	db     storage.DB
 	ch     *amqp.Channel
+	wg     sync.WaitGroup
 	ctx    context.Context
 	cancel context.CancelFunc
 	logger loggers.Logger
@@ -81,6 +83,7 @@ func (s *sender) start() {
 
 	s.logger.Warn("Signal received: %s", <-shutdown)
 	s.cancel()
+	s.wg.Wait()
 }
 
 func (s *sender) consume() error {
@@ -118,6 +121,7 @@ func (s *sender) consume() error {
 			case msg := <-messages:
 				s.logger.Info("Received message from queue")
 				s.logger.Debug("Message body: %s", msg.Body)
+				s.wg.Add(1)
 				go s.parseAndSend(msg)
 			}
 		}
@@ -128,6 +132,7 @@ func (s *sender) consume() error {
 }
 
 func (s *sender) parseAndSend(msg amqp.Delivery) {
+	defer s.wg.Done()
 
 	event := models.Event{}
 	if err := json.Unmarshal(msg.Body, &event); err != nil {
