@@ -26,7 +26,10 @@ const (
 	eventIDField     = "event_id"
 	eventOccursField = "occurs_at"
 	eventAlertField  = "alert_every"
+	eventExpireDate  = "expire_date"
 )
+
+const eventExpireDateAfter = 365 * 24 * time.Hour
 
 type publisher struct {
 	conn    *amqp.Connection
@@ -135,7 +138,23 @@ OUTER:
 						eventIDField:     event.ID.String(),
 						eventOccursField: event.OccursAt,
 						eventAlertField:  event.AlertEvery,
-					}).Warn("Alerted skipped: every time <= 0")
+					}).Warn("Alert skipped: every time <= 0")
+					continue
+				}
+
+				if event.OccursAt.Add(eventExpireDateAfter).Before(time.Now()) {
+					if err := p.db.DelEventDB(p.ctx, event.ID); err != nil {
+						p.logger.WithFields(loggers.Fields{
+							eventIDField: event.ID.String(),
+						}).Error(err.Error())
+						continue
+					}
+					delete(alerts, event.ID)
+					p.logger.WithFields(loggers.Fields{
+						eventIDField:     event.ID.String(),
+						eventOccursField: event.OccursAt,
+						eventExpireDate:  eventExpireDateAfter,
+					}).Warn("Event deleted: occurs time obsolete")
 					continue
 				}
 
@@ -145,7 +164,7 @@ OUTER:
 							eventIDField:     event.ID.String(),
 							eventOccursField: event.OccursAt,
 							eventAlertField:  event.AlertEvery,
-						}).Warn("Alerted skipped: delta every time < now()")
+						}).Warn("Alert skipped: delta every time < now()")
 						continue
 					}
 				}
