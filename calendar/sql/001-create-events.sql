@@ -1,4 +1,4 @@
-create table events (
+create table if not exists events (
 	id UUID primary key,
 	createdat timestamp not null,
 	updatedat timestamp,
@@ -10,4 +10,4 @@ create table events (
 	duration bigint,
 	location text,
 	userid UUID not null
-)
+);
