@@ -12,17 +12,17 @@ log_level:
 
 # ip:port for listening http
 # default - localhost:8080
-http_listen:
+http_listen: :8080
 
 # ip:port for listening gRPC
 # default - localhost:50051
-grpc_listen:
+grpc_listen: :50051
 
 # dsn for db - no default, need to set here
-dsn: postgres://calendar:123456@localhost:5432/calendar
+dsn: postgres://calendar:123456@postgres-alpine:5432/calendar
 
 # rabbit connection - no default, need to set here
-rabbit: amqp://calendar:123456@localhost:5672/
+rabbit: amqp://calendar:123456@rabbit-alpine:5672/
 
 # scheduler scan db timeout - default is 1s
 pub_timeout: 5s

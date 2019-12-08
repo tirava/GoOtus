@@ -1,9 +1,26 @@
 version: '3'
 services:
+
+  calendar-http-server:
+    build:
+      context: .
+      dockerfile: deployments/docker/http_server/Dockerfile
+    container_name: calendar-http-alpine
+    restart: always
+    image: calendar-http-server:latest
+    depends_on:
+      - calendar-db
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    networks:
+      - calendar
+
   calendar-db:
     container_name: postgres-alpine
     restart: always
-    image: postgres:9.6.16-alpine
+    image: postgres:alpine
     volumes:
       - ./sql:/docker-entrypoint-initdb.d
     environment:
@@ -15,11 +32,13 @@ services:
       - 5432
     ports:
       - 5432:5432
+    networks:
+      - calendar
 
   calendar-queue:
     container_name: rabbit-alpine
     restart: always
-    image: rabbitmq:3.7-management-alpine
+    image: rabbitmq:management-alpine
     environment:
       RABBITMQ_DEFAULT_USER: calendar
       RABBITMQ_DEFAULT_PASS: 123456
@@ -29,3 +48,8 @@ services:
     ports:
       - 15672:15672
       - 5672:5672
+    networks:
+      - calendar
+
+networks:
+  calendar:
