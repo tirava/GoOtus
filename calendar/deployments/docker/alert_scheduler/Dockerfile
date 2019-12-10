@@ -1,0 +1,8 @@
+FROM alpine:latest
+LABEL "Author"="Eugene Klimov"
+RUN apk add --no-cache coreutils
+RUN mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
+WORKDIR /app
+COPY alert_scheduler /app
+COPY config.yml /app
+ENTRYPOINT /app/alert_scheduler

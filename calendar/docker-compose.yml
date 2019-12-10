@@ -17,6 +17,48 @@ services:
     networks:
       - calendar
 
+  calendar-grpc-server:
+    build:
+      context: .
+      dockerfile: deployments/docker/grpc_server/Dockerfile
+    container_name: calendar-grpc-alpine
+    restart: always
+    image: calendar-grpc-server:latest
+    depends_on:
+      - calendar-db
+    expose:
+      - 8888
+    ports:
+      - 8888:8888
+    networks:
+      - calendar
+
+  calendar-alert-scheduler:
+    build:
+      context: .
+      dockerfile: deployments/docker/alert_scheduler/Dockerfile
+    container_name: calendar-alert-scheduler
+    restart: always
+    image: calendar-alert-scheduler:latest
+    depends_on:
+      - calendar-db
+      - calendar-queue
+    networks:
+      - calendar
+
+  calendar-alert-sender:
+    build:
+      context: .
+      dockerfile: deployments/docker/alert_sender/Dockerfile
+    container_name: calendar-alert-sender
+    restart: always
+    image: calendar-alert-sender:latest
+    depends_on:
+      - calendar-db
+      - calendar-queue
+    networks:
+      - calendar
+
   calendar-db:
     container_name: postgres-alpine
     restart: always

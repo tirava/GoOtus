@@ -4,7 +4,7 @@ db_type: postgres
 
 # path to log file
 # default - calendar.log in the current dir
-log_file: /dev/stdout
+log_file: /dev/stderr
 
 # loglevel - none | error |  warn | info | debug
 # default - info
@@ -16,7 +16,7 @@ http_listen: :8080
 
 # ip:port for listening gRPC
 # default - localhost:50051
-grpc_listen: :50051
+grpc_listen: :8888
 
 # dsn for db - no default, need to set here
 dsn: postgres://calendar:123456@postgres-alpine:5432/calendar
