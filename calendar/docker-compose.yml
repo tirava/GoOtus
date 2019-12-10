@@ -7,7 +7,7 @@ services:
       dockerfile: deployments/docker/http_server/Dockerfile
     container_name: calendar-http-alpine
     restart: always
-    image: calendar-http-server:latest
+    image: calendar-http-server
     depends_on:
       - calendar-db
     expose:
@@ -23,7 +23,7 @@ services:
       dockerfile: deployments/docker/grpc_server/Dockerfile
     container_name: calendar-grpc-alpine
     restart: always
-    image: calendar-grpc-server:latest
+    image: calendar-grpc-server
     depends_on:
       - calendar-db
     expose:
@@ -39,7 +39,7 @@ services:
       dockerfile: deployments/docker/alert_scheduler/Dockerfile
     container_name: calendar-alert-scheduler
     restart: always
-    image: calendar-alert-scheduler:latest
+    image: calendar-alert-scheduler
     depends_on:
       - calendar-db
       - calendar-queue
@@ -52,7 +52,7 @@ services:
       dockerfile: deployments/docker/alert_sender/Dockerfile
     container_name: calendar-alert-sender
     restart: always
-    image: calendar-alert-sender:latest
+    image: calendar-alert-sender
     depends_on:
       - calendar-db
       - calendar-queue
@@ -75,7 +75,9 @@ services:
     ports:
       - 5432:5432
     networks:
-      - calendar
+      calendar:
+        aliases:
+          - db
 
   calendar-queue:
     container_name: rabbit-alpine
@@ -91,7 +93,9 @@ services:
       - 15672:15672
       - 5672:5672
     networks:
-      - calendar
+      calendar:
+        aliases:
+          - queue
 
 networks:
   calendar:
