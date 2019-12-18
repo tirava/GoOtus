@@ -1,0 +1,104 @@
+version: '3'
+services:
+
+  calendar-integration-tests:
+    build:
+      context: .
+      dockerfile: integration_tests/Dockerfile
+    container_name: calendar-integration-tests
+    restart: always
+    image: calendar-integration-tests
+    depends_on:
+      - calendar-alert-scheduler
+      - calendar-grpc-server
+    networks:
+      - calendar_tests
+
+  ## For debug only
+  #  calendar-http-server:
+  #    build:
+  #      context: .
+  #      dockerfile: deployments/docker/http_server/Dockerfile
+  #    container_name: calendar-http-alpine
+  #    restart: always
+  #    image: calendar-http-server
+  #    depends_on:
+  #      - calendar-db
+  #    expose:
+  #      - 8080
+  #    ports:
+  #      - 8081:8080
+  #    networks:
+  #      - calendar_tests
+
+  calendar-grpc-server:
+    build:
+      context: .
+      dockerfile: deployments/docker/grpc_server/Dockerfile
+    container_name: calendar-grpc-alpine
+    restart: always
+    image: calendar-grpc-server
+    depends_on:
+      - calendar-db
+    expose:
+      - 8888
+    ports:
+      - 8889:8888
+    networks:
+      calendar_tests:
+        aliases:
+          - grpc
+
+  calendar-alert-scheduler:
+    build:
+      context: .
+      dockerfile: deployments/docker/alert_scheduler/Dockerfile
+    container_name: calendar-alert-scheduler
+    restart: always
+    image: calendar-alert-scheduler
+    depends_on:
+      - calendar-db
+      - calendar-queue
+    networks:
+      - calendar_tests
+
+  calendar-db:
+    container_name: postgres-alpine
+    restart: always
+    image: postgres:alpine
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: calendar
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DATABASE: calendar
+      LANG: ru_RU.utf8
+    expose:
+      - 5432
+    ports:
+      - 5433:5432
+    networks:
+      calendar_tests:
+        aliases:
+          - db
+
+  calendar-queue:
+    container_name: rabbit-alpine
+    restart: always
+    image: rabbitmq:management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: calendar
+      RABBITMQ_DEFAULT_PASS: 123456
+    expose:
+      - 15672
+      - 5672
+    ports:
+      - 15673:15672
+      - 5673:5672
+    networks:
+      calendar_tests:
+        aliases:
+          - queue
+
+networks:
+  calendar_tests:
