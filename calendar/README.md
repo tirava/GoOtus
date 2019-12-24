@@ -1,6 +1,6 @@
 # Сalendar
 
-## Запуск микросервисов календаря через Docker-compose
+## Запуск микросервисов календаря (+prometheus) через Docker-compose
 ***make up***
 
 ## Запуск тестов микросервисов календаря через Docker-compose

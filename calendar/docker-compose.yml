@@ -1,6 +1,40 @@
 version: '3'
 services:
 
+  calendar-prometheus:
+    container_name: calendar-prometheus
+    image: prom/prometheus
+    volumes:
+      - ./deployments/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    #depends_on:
+      #- calendar-http-server
+      #- calendar-alert-sender
+    expose:
+      - 9090
+    ports:
+      - 9090:9090
+    networks:
+      - calendar
+
+  postgresql-exporter:
+    container_name: calendar-db-exporter
+    image: wrouesnel/postgres_exporter
+    volumes:
+      - ./deployments/docker/prometheus/queries.yml:/etc/prometheus/queries.yml
+    depends_on:
+      - calendar-db
+    expose:
+      - 9187
+    ports:
+      - 9187:9187
+    networks:
+      calendar:
+        aliases:
+          - db-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgres://calendar:123456@db:5432/calendar?sslmode=disable
+      - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/prometheus/queries.yml
+
   calendar-http-server:
     build:
       context: .
@@ -56,8 +90,14 @@ services:
     depends_on:
       - calendar-db
       - calendar-queue
+    expose:
+      - 9102
+    ports:
+      - 9102:9102
     networks:
-      - calendar
+      calendar:
+        aliases:
+          - sender
 
   calendar-db:
     container_name: postgres-alpine

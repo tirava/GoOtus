@@ -10,15 +10,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/evakom/calendar/internal/domain/interfaces/storage"
-	"github.com/evakom/calendar/internal/domain/models"
-	"github.com/evakom/calendar/internal/loggers"
-	"github.com/streadway/amqp"
 	"log"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/evakom/calendar/internal/domain/interfaces/storage"
+	"github.com/evakom/calendar/internal/domain/models"
+	"github.com/evakom/calendar/internal/loggers"
+	"github.com/streadway/amqp"
 )
 
 const (
@@ -38,6 +39,9 @@ type sender struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	logger loggers.Logger
+	promet *prometMonitor
+	sync.RWMutex
+	totalMessages float64
 }
 
 func newSender(db storage.DB, dsn string) (*sender, error) {
@@ -125,7 +129,7 @@ func (s *sender) consume() error {
 				go s.parseAndSend(msg)
 			}
 		}
-		s.logger.Info("Consume worker ended")
+		s.logger.Info("Sender worker ended")
 	}()
 
 	return nil
@@ -155,11 +159,22 @@ func (s *sender) parseAndSend(msg amqp.Delivery) {
 		s.logger.WithFields(loggers.Fields{
 			eventIDField: event.ID.String(),
 			userIDField:  event.UserID,
-		}).Error("Error sending alert to user: %s", err)
+		}).Error("Error while sending alert to user: %s", err)
 	}
 }
 
 func (s *sender) sendAlert(user models.User, event models.Event) error {
+
+	// TODO - move to end after debuging
+	if s.promet == nil {
+		return fmt.Errorf("prometheus exporter not found for count sent alerts")
+	}
+	s.Lock()
+	s.totalMessages++
+	s.Unlock()
+	s.promet.ch <- s.totalMessages
+	s.logger.Info("Sent statistics to prometheus exporter")
+	//
 
 	if err := sendEmail(
 		fromEmail,

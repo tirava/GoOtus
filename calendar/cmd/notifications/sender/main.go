@@ -9,8 +9,9 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/evakom/calendar/tools"
 	"log"
+
+	"github.com/evakom/calendar/tools"
 )
 
 func main() {
@@ -29,6 +30,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	promet := newPrometheus(":9102")
+	sender.promet = promet
+	promet.start()
+
 	sender.start()
 
 	if err := sender.close(); err != nil {
@@ -37,4 +42,6 @@ func main() {
 	if err := db.CloseDB(); err != nil {
 		log.Println("Error close DB:", err)
 	}
+
+	promet.stop()
 }
