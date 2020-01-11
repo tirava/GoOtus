@@ -1,0 +1,41 @@
+stages:
+  - linters_and_tests
+  - build
+  - deploy
+
+cache:
+  key: "$CI_PROJECT_NAME"
+  untracked: true
+  paths:
+    - "$GOPATH/pkg/mod"
+
+golangci-lint:
+  stage: linters_and_tests
+  image: golangci/golangci-lint
+  script:
+    - ./build/ci/run_linters.sh
+
+unit-test:
+  stage: linters_and_tests
+  image: golang:1.13
+  script:
+    - go get -u github.com/jstemmer/go-junit-report
+    - go test -v 2>&1 | go-junit-report > report.xml
+  artifacts:
+    reports:
+      junit: report.xml
+
+buildapp:
+  stage: build
+  image: golang:1.13
+  script:
+    - go build -o app .
+  artifacts:
+    paths:
+      - app
+
+deploy:
+  stage: deploy
+  script:
+    - echo "I'm deploy"
+  when: manual
