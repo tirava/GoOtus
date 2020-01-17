@@ -1,0 +1,21 @@
+# dbtype - inmemory | postgres
+# default - inmemory
+# db_type: postgres
+
+# path to log file
+# default - calendar.log in the current dir
+# log_file: /dev/stderr
+
+# loglevel - none | error |  warn | info | debug
+# default - info
+log_level:
+
+# ip:port for listening http
+# default - localhost:8080
+http_listen: :8080
+
+# dsn for db - no default, need to set here
+# dsn: postgres://calendar:123456@db:5432/calendar
+
+# rabbit connection - no default, need to set here
+# rabbit: amqp://calendar:123456@queue:5672/

@@ -1,0 +1,77 @@
+version: '3'
+services:
+
+  image-previewer-http-server:
+    build:
+      context: .
+      dockerfile: deployments/docker/image_previewer/Dockerfile
+    container_name: image-previewer-http-server
+    restart: always
+    command: make run
+    image: image-previewer-http-server
+#    depends_on:
+#      - image-previewer-db
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    networks:
+      image-previewer:
+        aliases:
+          - http-server
+
+  #  image-previewer-prometheus:
+  #    container_name: image-previewer-prometheus
+  #    image: prom/prometheus
+  #    volumes:
+  #      - ./deployments/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #      #depends_on:
+  #      #- image-previewer-http-server
+  #      #- image-previewer-alert-sender
+  #    expose:
+  #      - 9090
+  #    ports:
+  #      - 9090:9090
+  #    networks:
+  #      - image-previewer
+
+#  image-previewer-db:
+#    container_name: postgres-alpine
+#    restart: always
+#    image: postgres:alpine
+#    volumes:
+#      - ./sql:/docker-entrypoint-initdb.d
+#    environment:
+#      POSTGRES_USER: image-previewer
+#      POSTGRES_PASSWORD: 123456
+#      POSTGRES_DATABASE: image-previewer
+#      LANG: ru_RU.utf8
+#    expose:
+#      - 5432
+#    ports:
+#      - 5432:5432
+#    networks:
+#      image-previewer:
+#        aliases:
+#          - db
+
+#  image-previewer-queue:
+#    container_name: rabbit-alpine
+#    restart: always
+#    image: rabbitmq:management-alpine
+#    environment:
+#      RABBITMQ_DEFAULT_USER: image-previewer
+#      RABBITMQ_DEFAULT_PASS: 123456
+#    expose:
+#      - 15672
+#      - 5672
+#    ports:
+#      - 15672:15672
+#      - 5672:5672
+#    networks:
+#      image-previewer:
+#        aliases:
+#          - queue
+
+networks:
+  image-previewer:
