@@ -1,11 +1,11 @@
-.PHONY: run build docker-build docker-run up down restart test
-
-run:
-	go run ./cmd/.
+.PHONY: build run docker-build docker-run up down restart test
 
 build:
-	go build -o app/image-previewer cmd/*.go
+	go build -o app/image-previewer cmd/image-previewer/*.go
 #	go build -o grpc_server cmd/grpc_server/main.go
+
+run: build
+	./app/image-previewer
 
 docker-build:
 	docker build -t image-previewer-http-server -f ./deployments/docker/image_previewer/Dockerfile .

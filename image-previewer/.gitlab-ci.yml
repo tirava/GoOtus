@@ -33,10 +33,10 @@ buildapp:
   stage: build
   image: golang:1.13
   script:
-    - go build -o image-previewer .
+    - make build
   artifacts:
     paths:
-      - image-previewer
+      - ./app/image-previewer
 
 deploy:
   stage: deploy
