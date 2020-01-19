@@ -17,6 +17,8 @@ const (
 	MitchellNetravali
 	Lanczos2
 	Lanczos3
+	ApproxBiLinear // xdraw only
+	CatmullRom     // xdraw only
 )
 
 // ResizeOptions is the base resize options.

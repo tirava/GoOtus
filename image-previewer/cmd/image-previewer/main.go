@@ -7,67 +7,101 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"image"
 	"image/jpeg"
+	"image/png"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
+
+	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/preview"
 
 	"github.com/google/uuid"
 )
 
-const to = 50
+const (
+	to   = 50
+	fail = 1
+)
 
 func main() {
-	fmt.Println("Hello, Image Cut!!!")
-	fmt.Println(getUUID())
+	fileName := filepath.Base(os.Args[0])
+	flag.Usage = func() {
+		fmt.Printf("Use config file: %s -config=configFile\n"+
+			"or instead you may use env variable PREVIEWER_CONFIG_PATH\n\n", fileName)
+		fmt.Printf("Preview image tool w/o starting http server:\n"+
+			"%s [-config=configFile] -preview -width=x -height=y -file=imageFile\n", fileName)
+		flag.PrintDefaults()
+	}
 
-	// nolint
-	//resizeJPG(1024, 252)
-	//resizeJPG(333, 666)
-	//resizeJPG(256, 126)
-	//resizeJPG(500, 500)
-	resizeJPG(2000, 1000)
+	//configFile := flag.String("config", "config.yml", "path to config file")
+	previewMode := flag.Bool("preview", false, "use preview tool w/o starting http server")
+	imageFile := flag.String("file", "", "path to image file")
+	width := flag.Int("width", 0, "preview width")
+	height := flag.Int("height", 0, "preview height")
+	flag.Parse()
 
-	fmt.Println("Sleep 50 seconds...")
-	time.Sleep(to * time.Second)
+	if !*previewMode {
+		fmt.Println("Hello, Image Cut!!!")
+		fmt.Println(getUUID())
+		fmt.Println("Sleep 50 seconds...")
+		time.Sleep(to * time.Second)
+		os.Exit(0)
+	}
+
+	resizeImage(*width, *height, *imageFile)
 }
 
 func getUUID() uuid.UUID {
 	return uuid.New()
 }
 
-func resizeJPG(w, h int) {
-	p, err := preview.NewPreview("nfnt_crop")
+func resizeImage(w, h int, fileName string) {
+	p, err := preview.NewPreview("xdraw")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	file, err := os.Open("examples/_gopher_original_1024x504.jpg")
+	file, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	img, err := jpeg.Decode(file)
+	img, ext, err := image.Decode(file)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	_ = file.Close()
 
-	r := p.Preview(w, h, img)
+	r := p.Preview(w, h, img, entities.ResizeOptions{})
 
-	out, err := os.Create("examples/test_resized.jpg")
+	outFile := fmt.Sprintf("%s_resized_%dx%d.%s", fileName, w, h, ext)
+	out, err := os.Create(outFile)
+
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer out.Close()
 
-	if err := jpeg.Encode(out, r, nil); err != nil {
+	switch ext {
+	case "jpeg":
+		err = jpeg.Encode(out, r, nil)
+	case "png":
+		err = png.Encode(out, r)
+	default:
+		fmt.Println("Unknown file type:", ext)
+		os.Exit(fail)
+	}
+
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Resized successfully.")
+	fmt.Println("Resized successfully:", outFile)
 }

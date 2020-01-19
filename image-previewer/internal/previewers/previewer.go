@@ -10,6 +10,8 @@ package previewers
 import (
 	"errors"
 
+	"gitlab.com/tirava/image-previewer/internal/previewers/xdraw"
+
 	nfntcrop "gitlab.com/tirava/image-previewer/internal/previewers/nfnt_crop"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/preview"
@@ -20,7 +22,8 @@ func NewPreviewer(implementer string) (preview.Previewer, error) {
 	switch implementer {
 	case "nfnt_crop":
 		return nfntcrop.NewNfNtCrop()
-	case "other":
+	case "xdraw":
+		return xdraw.NewXDraw()
 	}
 
 	return nil, errors.New("incorrect implementer name")

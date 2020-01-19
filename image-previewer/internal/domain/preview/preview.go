@@ -32,18 +32,25 @@ func NewPreview(name string) (Preview, error) {
 	return Preview{Previewer: p}, nil
 }
 
-func (p Preview) Preview(width, height int, img image.Image) image.Image {
+// Preview returns preview result image.
+func (p Preview) Preview(width, height int, img image.Image, opts entities.ResizeOptions) image.Image {
+	if width < 0 || height < 0 || (width == 0 && height == 0) {
+		return img
+	}
+
 	wr, hr := 0, 0
 	x, y := 0, 0
 
-	if width/img.Bounds().Max.X > height/img.Bounds().Max.Y {
+	wb := float64(width) / float64(img.Bounds().Max.X)
+	hb := float64(height) / float64(img.Bounds().Max.Y)
+
+	if wb > hb {
 		wr = width
 	} else {
 		hr = height
 	}
 
-	pr := p.Previewer.Resize(wr, hr, img,
-		entities.ResizeOptions{Interpolation: entities.MitchellNetravali})
+	pr := p.Previewer.Resize(wr, hr, img, opts)
 
 	if width > height {
 		y = (pr.Bounds().Max.Y - height) / anchorBaseDivImage
