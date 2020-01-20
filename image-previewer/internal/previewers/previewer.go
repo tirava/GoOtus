@@ -26,5 +26,5 @@ func NewPreviewer(implementer string) (preview.Previewer, error) {
 		return xdraw.NewXDraw()
 	}
 
-	return nil, errors.New("incorrect implementer name")
+	return nil, errors.New("incorrect preview implementer name")
 }

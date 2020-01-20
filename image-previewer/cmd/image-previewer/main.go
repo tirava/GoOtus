@@ -17,6 +17,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"gitlab.com/tirava/image-previewer/internal/models"
+
+	"gitlab.com/tirava/image-previewer/internal/configs"
+
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/preview"
@@ -32,19 +36,26 @@ const (
 func main() {
 	fileName := filepath.Base(os.Args[0])
 	flag.Usage = func() {
-		fmt.Printf("Use config file: %s -config=configFile\n"+
+		fmt.Printf("Use config file: %s -config=configFile|inmemory\n"+
 			"or instead you may use env variable PREVIEWER_CONFIG_PATH\n\n", fileName)
 		fmt.Printf("Preview image tool w/o starting http server:\n"+
 			"%s [-config=configFile] -preview -width=x -height=y -file=imageFile\n", fileName)
 		flag.PrintDefaults()
 	}
 
-	//configFile := flag.String("config", "config.yml", "path to config file")
+	config := flag.String("config", "config.yml", "path to yaml config file or 'inmemory'")
 	previewMode := flag.Bool("preview", false, "use preview tool w/o starting http server")
 	imageFile := flag.String("file", "", "path to image file")
 	width := flag.Int("width", 0, "preview width")
 	height := flag.Int("height", 0, "preview height")
 	flag.Parse()
+
+	cfg, err := configs.NewConfig(*config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(cfg.GetConfig())
 
 	if !*previewMode {
 		fmt.Println("Hello, Image Cut!!!")
@@ -54,15 +65,15 @@ func main() {
 		os.Exit(0)
 	}
 
-	resizeImage(*width, *height, *imageFile)
+	resizeImage(*width, *height, *imageFile, cfg.GetConfig())
 }
 
 func getUUID() uuid.UUID {
 	return uuid.New()
 }
 
-func resizeImage(w, h int, fileName string) {
-	p, err := preview.NewPreview("xdraw")
+func resizeImage(w, h int, fileName string, cfg models.Config) {
+	p, err := preview.NewPreview(cfg.Previewer)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,7 +90,9 @@ func resizeImage(w, h int, fileName string) {
 
 	_ = file.Close()
 
-	r := p.Preview(w, h, img, entities.ResizeOptions{})
+	r := p.Preview(w, h, img, entities.ResizeOptions{
+		Interpolation: cfg.Interpolation,
+	})
 
 	outFile := fmt.Sprintf("%s_resized_%dx%d.%s", fileName, w, h, ext)
 	out, err := os.Create(outFile)
@@ -100,7 +113,7 @@ func resizeImage(w, h int, fileName string) {
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error encode image:", err)
 	}
 
 	fmt.Println("Resized successfully:", outFile)

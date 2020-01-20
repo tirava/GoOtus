@@ -1,21 +1,24 @@
-# dbtype - inmemory | postgres
-# default - inmemory
-# db_type: postgres
-
 # path to log file
 # default - calendar.log in the current dir
-# log_file: /dev/stderr
+log_file: /dev/stderr
 
 # loglevel - none | error |  warn | info | debug
 # default - info
-log_level:
+log_level: debug
 
 # ip:port for listening http
 # default - localhost:8080
 http_listen: :8080
 
-# dsn for db - no default, need to set here
-# dsn: postgres://calendar:123456@db:5432/calendar
+# previewer algorithm - xdraw | nfnt_crop
+# default - xdraw
+previewer: nfnt_crop
 
-# rabbit connection - no default, need to set here
-# rabbit: amqp://calendar:123456@queue:5672/
+# interpolation for resizing
+# 0 - NearestNeighbor
+# 1 - Bilinear
+# 2 - Bicubic, 3 - MitchellNetravali, 4 - Lanczos2, 5 - Lanczos3 (all is for nfnt_crop only)
+# 6 - ApproxBiLinear (xdraw only)
+# 7 - CatmullRom     (xdraw only)
+# default - 0
+interpolation: 1

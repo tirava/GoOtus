@@ -7,11 +7,12 @@
 // Package entities implements various options models.
 package entities
 
-type interpolation int
+// Interpolation type for reviewers.
+type Interpolation int
 
 // Constants for interpolation method.
 const (
-	NearestNeighbor interpolation = iota
+	NearestNeighbor Interpolation = iota
 	Bilinear
 	Bicubic
 	MitchellNetravali
@@ -23,5 +24,5 @@ const (
 
 // ResizeOptions is the base resize options.
 type ResizeOptions struct {
-	Interpolation interpolation
+	Interpolation Interpolation
 }

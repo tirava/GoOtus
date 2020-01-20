@@ -34,7 +34,7 @@ func NewPreview(name string) (Preview, error) {
 
 // Preview returns preview result image.
 func (p Preview) Preview(width, height int, img image.Image, opts entities.ResizeOptions) image.Image {
-	if width < 0 || height < 0 || (width == 0 && height == 0) {
+	if width <= 0 || height <= 0 {
 		return img
 	}
 
