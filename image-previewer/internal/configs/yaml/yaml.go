@@ -35,8 +35,7 @@ func (y ConfigYaml) GetConfig() models.Config {
 }
 
 // SetConfig sets new yaml config struct.
-func (ConfigYaml) SetConfig(conf models.Config) error {
-	return nil
+func (ConfigYaml) SetConfig(conf models.Config) {
 }
 
 // ReadParameters reads config from yaml file.
@@ -53,6 +52,10 @@ func (y *ConfigYaml) readParameters() error {
 	}
 
 	defConfig := y.GetDefaults()
+
+	if y.Config.Logger == "" {
+		y.Config.Logger = defConfig.Logger
+	}
 
 	if y.Config.LogFile == "" {
 		y.Config.LogFile = defConfig.LogFile

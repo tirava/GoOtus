@@ -21,6 +21,7 @@ func NewConfig(config string) (ConfigInMemory, error) {
 		models.Config{}.GetDefaults(),
 	}
 	m.Source = config
+	m.LogFile = "/dev/stderr"
 
 	return m, nil
 }
@@ -31,6 +32,5 @@ func (m ConfigInMemory) GetConfig() models.Config {
 }
 
 // SetConfig sets config struct.
-func (ConfigInMemory) SetConfig(conf models.Config) error {
-	return nil
+func (ConfigInMemory) SetConfig(conf models.Config) {
 }

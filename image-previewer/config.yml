@@ -1,10 +1,14 @@
+# logger - logstd | logrus
+# default - logstd
+logger: logrus
+
 # path to log file
 # default - calendar.log in the current dir
 log_file: /dev/stderr
 
 # loglevel - none | error |  warn | info | debug
 # default - info
-log_level: debug
+log_level: #debug
 
 # ip:port for listening http
 # default - localhost:8080

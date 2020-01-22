@@ -17,14 +17,8 @@ import (
 	"gitlab.com/tirava/image-previewer/internal/configs/yaml"
 )
 
-// Configer is the main interface for configs.
-type Configer interface {
-	GetConfig() models.Config
-	SetConfig(config models.Config) error
-}
-
 // NewConfig returns config implementer.
-func NewConfig(implementer string) (Configer, error) {
+func NewConfig(implementer string) (models.Configer, error) {
 	switch {
 	case implementer == "inmemory":
 		return inmemory.NewConfig(implementer)

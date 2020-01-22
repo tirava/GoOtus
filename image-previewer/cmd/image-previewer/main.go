@@ -15,7 +15,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
+
+	"gitlab.com/tirava/image-previewer/internal/http"
+	"gitlab.com/tirava/image-previewer/internal/loggers"
 
 	"gitlab.com/tirava/image-previewer/internal/models"
 
@@ -24,14 +26,9 @@ import (
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/preview"
-
-	"github.com/google/uuid"
 )
 
-const (
-	to   = 50
-	fail = 1
-)
+const fail = 1
 
 func main() {
 	fileName := filepath.Base(os.Args[0])
@@ -55,29 +52,32 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(cfg.GetConfig())
+	conf := cfg.GetConfig()
 
-	if !*previewMode {
-		fmt.Println("Hello, Image Cut!!!")
-		fmt.Println(getUUID())
-		fmt.Println("Sleep 50 seconds...")
-		time.Sleep(to * time.Second)
-		os.Exit(0)
+	logFile, err := os.OpenFile(conf.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Error open log file '%s', error: %s", conf.LogFile, err)
 	}
 
-	resizeImage(*width, *height, *imageFile, cfg.GetConfig())
-}
-
-func getUUID() uuid.UUID {
-	return uuid.New()
-}
-
-func resizeImage(w, h int, fileName string, cfg models.Config) {
-	p, err := preview.NewPreview(cfg.Previewer)
+	lg, err := loggers.NewLogger(conf.Logger, conf.LogLevel, logFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	prev, err := preview.NewPreview(conf.Previewer)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if !*previewMode {
+		http.StartHTTPServer(conf.ListenHTTP, prev, lg)
+		os.Exit(0)
+	}
+
+	resizeImage(*width, *height, *imageFile, prev, conf)
+}
+
+func resizeImage(w, h int, fileName string, prev preview.Preview, cfg models.Config) {
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
@@ -89,8 +89,7 @@ func resizeImage(w, h int, fileName string, cfg models.Config) {
 	}
 
 	_ = file.Close()
-
-	r := p.Preview(w, h, img, entities.ResizeOptions{
+	r := prev.Preview(w, h, img, entities.ResizeOptions{
 		Interpolation: cfg.Interpolation,
 	})
 
