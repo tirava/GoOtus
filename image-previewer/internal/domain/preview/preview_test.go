@@ -73,7 +73,7 @@ func TestPreview(t *testing.T) {
 		var img image.Image
 
 		switch ext {
-		case ".jpg":
+		case ".jpg", ".jpeg":
 			img, err = jpeg.Decode(file)
 		case ".png":
 			img, err = png.Decode(file)

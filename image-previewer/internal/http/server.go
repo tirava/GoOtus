@@ -15,6 +15,8 @@ import (
 	"syscall"
 	"time"
 
+	"gitlab.com/tirava/image-previewer/internal/domain/entities"
+
 	"gitlab.com/tirava/image-previewer/internal/domain/preview"
 	"gitlab.com/tirava/image-previewer/internal/models"
 )
@@ -27,8 +29,9 @@ const (
 )
 
 // StartHTTPServer inits routing and starts web listener.
-func StartHTTPServer(listenHTTP string, preview preview.Preview, logger models.Loggerer) {
-	handlers := newHandlers(preview, logger)
+func StartHTTPServer(logger models.Loggerer, listenHTTP string,
+	preview preview.Preview, opts entities.ResizeOptions) {
+	handlers := newHandlers(logger, preview, opts)
 	srv := &http.Server{
 		Addr:           listenHTTP,
 		Handler:        handlers.prepareRoutes(),

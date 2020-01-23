@@ -1,5 +1,5 @@
-[![pipeline status](https://gitlab.com/tirava/imagecut/badges/master/pipeline.svg)](https://gitlab.com/tirava/imagecut/commits/master)
-[![coverage report](https://gitlab.com/tirava/imagecut/badges/master/coverage.svg)](https://gitlab.com/tirava/imagecut/commits/master)
+[![pipeline status](https://gitlab.com/tirava/image-previewer/badges/master/pipeline.svg)](https://gitlab.com/tirava/image-previewer/commits/master)
+[![coverage report](https://gitlab.com/tirava/image-previewer/badges/master/coverage.svg)](https://gitlab.com/tirava/image-previewer/commits/master)
 
 ## Запуск / остановка микросервиса через Docker-compose
 `make up` / `make down`

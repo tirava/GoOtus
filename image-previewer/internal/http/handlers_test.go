@@ -7,27 +7,43 @@
 package http
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"gitlab.com/tirava/image-previewer/internal/domain/entities"
+
+	"gitlab.com/tirava/image-previewer/internal/configs"
+	"gitlab.com/tirava/image-previewer/internal/domain/preview"
+	"gitlab.com/tirava/image-previewer/internal/loggers"
 )
 
-// nolint
 const fileConfigPath = "../../config.yml"
 
-// nolint
-var handlers *handler
-
-// nolint
-func init() {
-	//conf := tools.InitConfig(fileConfigPath)
-	//loggers.NewLogger("none", nil)
-	//cal := calendar.NewCalendar(db)
-	//handlers = newHandlers(cal)
-}
-
 func TestGetHello(t *testing.T) {
+	var handlers *handler
+
+	cfg, err := configs.NewConfig(fileConfigPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	conf := cfg.GetConfig()
+	lg, err := loggers.NewLogger(conf.Logger, "none", ioutil.Discard)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	prev, err := preview.NewPreview(conf.Previewer)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	handlers = newHandlers(lg, prev, entities.ResizeOptions{})
+
 	req := httptest.NewRequest("GET", "/", nil)
 
 	query := req.URL.Query()

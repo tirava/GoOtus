@@ -10,8 +10,10 @@ import (
 	"context"
 	"net/http"
 	"os"
-	"path"
+	"regexp"
 	"time"
+
+	"github.com/prometheus/common/log"
 
 	"gitlab.com/tirava/image-previewer/internal/models"
 
@@ -33,7 +35,7 @@ func (h handler) prepareRoutes() http.Handler {
 	siteMux := http.NewServeMux()
 
 	h.addPath("GET /hello/*", h.helloHandler)
-	h.addPath("GET /preview/*", h.previewHandler)
+	h.addPath("GET /preview(/.*)", h.previewHandler)
 
 	siteHandler := h.pathMiddleware(siteMux)
 	siteHandler = h.loggerMiddleware(siteHandler)
@@ -52,28 +54,31 @@ func (h handler) prepareRoutes() http.Handler {
 			h.logger.Errorf(err.Error())
 			os.Exit(fail)
 		}
-
+		// need safely shutdown?
 		h.logger.Infof("Shutdown HTTP prometheus exporter at: %s", prometPort)
 	}()
 
 	return hPromet
 }
 
-func (h handler) addPath(path string, handler http.HandlerFunc) {
-	h.handlers[path] = handler
+func (h handler) addPath(regex string, handler http.HandlerFunc) {
+	h.handlers[regex] = handler
+	cache, err := regexp.Compile(regex)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	h.cacheHandlers[regex] = cache
 }
 
 func (h handler) pathMiddleware(http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		check := r.Method + " " + r.URL.Path
 		for pattern, handlerFunc := range h.handlers {
-			if ok, err := path.Match(pattern, check); ok && err == nil {
+			if h.cacheHandlers[pattern].MatchString(check) {
 				handlerFunc(w, r)
 				return
-			} else if err != nil {
-				h.logger.Errorf("error match router path: %s", err)
-				http.Error(w, http.StatusText(http.StatusInternalServerError),
-					http.StatusInternalServerError)
 			}
 		}
 		h.logger.WithFields(models.LoggerFields{

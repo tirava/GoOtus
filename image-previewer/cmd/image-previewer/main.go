@@ -19,8 +19,6 @@ import (
 	"gitlab.com/tirava/image-previewer/internal/http"
 	"gitlab.com/tirava/image-previewer/internal/loggers"
 
-	"gitlab.com/tirava/image-previewer/internal/models"
-
 	"gitlab.com/tirava/image-previewer/internal/configs"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
@@ -69,15 +67,20 @@ func main() {
 		log.Fatal(err)
 	}
 
+	opts := entities.ResizeOptions{
+		Interpolation: conf.Interpolation,
+	}
+
 	if !*previewMode {
-		http.StartHTTPServer(conf.ListenHTTP, prev, lg)
+		log.Println("Logger started at mode:", conf.LogLevel)
+		http.StartHTTPServer(lg, conf.ListenHTTP, prev, opts)
 		os.Exit(0)
 	}
 
-	resizeImage(*width, *height, *imageFile, prev, conf)
+	resizeImage(*width, *height, *imageFile, prev, opts)
 }
 
-func resizeImage(w, h int, fileName string, prev preview.Preview, cfg models.Config) {
+func resizeImage(w, h int, fileName string, prev preview.Preview, opts entities.ResizeOptions) {
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
@@ -89,9 +92,7 @@ func resizeImage(w, h int, fileName string, prev preview.Preview, cfg models.Con
 	}
 
 	_ = file.Close()
-	r := prev.Preview(w, h, img, entities.ResizeOptions{
-		Interpolation: cfg.Interpolation,
-	})
+	r := prev.Preview(w, h, img, opts)
 
 	outFile := fmt.Sprintf("%s_resized_%dx%d.%s", fileName, w, h, ext)
 	out, err := os.Create(outFile)
