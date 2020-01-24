@@ -46,10 +46,11 @@ type handler struct {
 	preview       preview.Preview
 	opts          entities.ResizeOptions
 	logger        models.Loggerer
+	noHeaders     []string
 	error         Error
 }
 
-func newHandlers(logger models.Loggerer,
+func newHandlers(logger models.Loggerer, noHeaders []string,
 	preview preview.Preview, opts entities.ResizeOptions) *handler {
 	return &handler{
 		handlers:      make(map[string]http.HandlerFunc),
@@ -57,6 +58,7 @@ func newHandlers(logger models.Loggerer,
 		preview:       preview,
 		opts:          opts,
 		logger:        logger,
+		noHeaders:     noHeaders,
 		error:         newError(logger),
 	}
 }
@@ -113,22 +115,12 @@ func (h handler) previewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	source := path[4]
-	extDot := strings.LastIndex(source, ".")
 
-	if extDot == -1 {
-		errSend := errors.New("unknown image extension")
-		h.errorHelper(w, r, http.StatusBadRequest, errors.New(""), errSend, "unknown image extension %s",
-			"make sure the request image with extension (jpeg, jpg or png)")
-
-		return
-	}
-
-	ext := source[extDot:]
-	img, err := getSourceImage(source, ext)
+	img, ext, err := h.getSourceImage(r, source)
 
 	if err != nil {
 		errSend := fmt.Errorf("invalid image source: %w", err)
-		h.errorHelper(w, r, http.StatusNoContent, err, errSend, "invalid image source: %s",
+		h.errorHelper(w, r, http.StatusNotFound, err, errSend, "invalid image source: %s",
 			"make sure the request contains valid image source url")
 
 		return
@@ -157,10 +149,10 @@ func (h handler) writeImage(w http.ResponseWriter, img image.Image, imgType stri
 	contType := ""
 
 	switch imgType {
-	case ".jpg", ".jpeg":
+	case "jpg", "jpeg":
 		contType = "image/jpeg"
 		err = jpeg.Encode(buffer, img, nil)
-	case ".png":
+	case "png":
 		contType = "image/png"
 		err = png.Encode(buffer, img)
 	default:
@@ -181,7 +173,7 @@ func (h handler) writeImage(w http.ResponseWriter, img image.Image, imgType stri
 	return nil
 }
 
-func getSourceImage(url, imgType string) (image.Image, error) {
+func (h handler) getSourceImage(r *http.Request, url string) (image.Image, string, error) {
 	var err error
 
 	var img image.Image
@@ -191,24 +183,29 @@ func getSourceImage(url, imgType string) (image.Image, error) {
 		prefix = "https://"
 	}
 
-	response, err := http.Get(fmt.Sprintf("%s%s", prefix, url))
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", prefix, url), nil)
+
 	if err != nil {
-		return nil, fmt.Errorf("unable to get image from source: %w", err)
+		return img, "", fmt.Errorf("unable create new request: %w", err)
+	}
+
+	response, err := client.Do(proxyHeaders(r, req, h.noHeaders))
+
+	if err != nil {
+		return img, "", fmt.Errorf("unable to get image from source: %w", err)
 	}
 	defer response.Body.Close()
 
-	switch imgType {
-	case ".jpg", ".jpeg":
-		img, err = jpeg.Decode(response.Body)
-	case ".png":
-		img, err = png.Decode(response.Body)
-	default:
-		return img, errors.New("bad image extension")
+	if response.StatusCode != http.StatusOK {
+		return img, "", fmt.Errorf("remote server returns bad status: %d", response.StatusCode)
 	}
+
+	img, ext, err := image.Decode(response.Body)
 
 	if err != nil {
-		return img, fmt.Errorf("unable to decode image: %w", err)
+		return img, ext, fmt.Errorf("unable to decode image: %w", err)
 	}
 
-	return img, nil
+	return img, ext, nil
 }

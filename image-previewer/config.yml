@@ -11,8 +11,8 @@ log_file: /dev/stderr
 log_level: #debug
 
 # ip:port for listening http
-# default - localhost:8080
-http_listen: :8080
+# default - :8080
+http_listen:
 
 # previewer algorithm - xdraw | nfnt_crop
 # default - xdraw
@@ -26,3 +26,8 @@ previewer: nfnt_crop
 # 7 - CatmullRom     (xdraw only)
 # default - 0
 interpolation: 1
+
+# skip proxy below headers (every header on new line with starting -, any case)
+# default - no skip any
+no_proxy_headers:
+  - user-agent

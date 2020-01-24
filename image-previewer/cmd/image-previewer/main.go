@@ -73,7 +73,7 @@ func main() {
 
 	if !*previewMode {
 		log.Println("Logger started at mode:", conf.LogLevel)
-		http.StartHTTPServer(lg, conf.ListenHTTP, prev, opts)
+		http.StartHTTPServer(lg, conf.ListenHTTP, conf.NoProxyHeaders, prev, opts)
 		os.Exit(0)
 	}
 

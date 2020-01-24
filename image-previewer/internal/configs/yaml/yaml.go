@@ -9,6 +9,8 @@ package yaml
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
+	"strings"
 
 	"gitlab.com/tirava/image-previewer/internal/models"
 
@@ -53,25 +55,31 @@ func (y *ConfigYaml) readParameters() error {
 
 	defConfig := y.GetDefaults()
 
-	if y.Config.Logger == "" {
-		y.Config.Logger = defConfig.Logger
+	if y.Logger == "" {
+		y.Logger = defConfig.Logger
 	}
 
-	if y.Config.LogFile == "" {
-		y.Config.LogFile = defConfig.LogFile
+	if y.LogFile == "" {
+		y.LogFile = defConfig.LogFile
 	}
 
-	if y.Config.LogLevel == "" {
-		y.Config.LogLevel = defConfig.LogLevel
+	if y.LogLevel == "" {
+		y.LogLevel = defConfig.LogLevel
 	}
 
-	if y.Config.ListenHTTP == "" {
-		y.Config.ListenHTTP = defConfig.ListenHTTP
+	if y.ListenHTTP == "" {
+		y.ListenHTTP = defConfig.ListenHTTP
 	}
 
-	if y.Config.Previewer == "" {
-		y.Config.Previewer = defConfig.Previewer
+	if y.Previewer == "" {
+		y.Previewer = defConfig.Previewer
 	}
+
+	for i, s := range y.NoProxyHeaders {
+		y.NoProxyHeaders[i] = strings.ToLower(s)
+	}
+
+	sort.Strings(y.NoProxyHeaders)
 
 	return nil
 }

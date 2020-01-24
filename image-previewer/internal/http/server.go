@@ -29,9 +29,9 @@ const (
 )
 
 // StartHTTPServer inits routing and starts web listener.
-func StartHTTPServer(logger models.Loggerer, listenHTTP string,
+func StartHTTPServer(logger models.Loggerer, listenHTTP string, noHeaders []string,
 	preview preview.Preview, opts entities.ResizeOptions) {
-	handlers := newHandlers(logger, preview, opts)
+	handlers := newHandlers(logger, noHeaders, preview, opts)
 	srv := &http.Server{
 		Addr:           listenHTTP,
 		Handler:        handlers.prepareRoutes(),
