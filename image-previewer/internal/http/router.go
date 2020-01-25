@@ -25,8 +25,6 @@ import (
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 )
 
-const prometPort = ":9180"
-
 type contextKey string
 
 const contextKeyRequestID contextKey = "requestID"
@@ -47,15 +45,15 @@ func (h handler) prepareRoutes() http.Handler {
 	hPromet := prometMdlw.Handler("", siteHandler)
 
 	go func() {
-		h.logger.Infof("Starting HTTP prometheus exporter at: %s", prometPort)
-		err := http.ListenAndServe(prometPort, promhttp.Handler())
+		h.logger.Infof("Starting HTTP prometheus exporter at: %s", h.prometPort)
+		err := http.ListenAndServe(h.prometPort, promhttp.Handler())
 
 		if err != nil && err != http.ErrServerClosed {
 			h.logger.Errorf(err.Error())
 			os.Exit(fail)
 		}
 		// need safely shutdown?
-		h.logger.Infof("Shutdown HTTP prometheus exporter at: %s", prometPort)
+		h.logger.Infof("Shutdown HTTP prometheus exporter at: %s", h.prometPort)
 	}()
 
 	return hPromet

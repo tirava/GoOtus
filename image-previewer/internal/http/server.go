@@ -29,11 +29,11 @@ const (
 )
 
 // StartHTTPServer inits routing and starts web listener.
-func StartHTTPServer(logger models.Loggerer, listenHTTP string, noHeaders []string,
+func StartHTTPServer(logger models.Loggerer, conf models.Config,
 	preview preview.Preview, opts entities.ResizeOptions) {
-	handlers := newHandlers(logger, noHeaders, preview, opts)
+	handlers := newHandlers(logger, conf, preview, opts)
 	srv := &http.Server{
-		Addr:           listenHTTP,
+		Addr:           conf.ListenHTTP,
 		Handler:        handlers.prepareRoutes(),
 		ReadTimeout:    readTimeout,
 		WriteTimeout:   writeTimeout,
@@ -55,12 +55,12 @@ func StartHTTPServer(logger models.Loggerer, listenHTTP string, noHeaders []stri
 		}
 	}()
 
-	handlers.logger.Infof("Starting HTTP server at: %s", listenHTTP)
+	handlers.logger.Infof("Starting HTTP server at: %s", conf.ListenHTTP)
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		handlers.logger.Errorf(err.Error())
 		os.Exit(fail)
 	}
 
-	handlers.logger.Infof("Shutdown HTTP server at: %s", listenHTTP)
+	handlers.logger.Infof("Shutdown HTTP server at: %s", conf.ListenHTTP)
 }

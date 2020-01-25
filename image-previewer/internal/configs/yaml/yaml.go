@@ -71,6 +71,10 @@ func (y *ConfigYaml) readParameters() error {
 		y.ListenHTTP = defConfig.ListenHTTP
 	}
 
+	if y.ListenPrometheus == "" {
+		y.ListenPrometheus = defConfig.ListenPrometheus
+	}
+
 	if y.Previewer == "" {
 		y.Previewer = defConfig.Previewer
 	}

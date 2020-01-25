@@ -97,7 +97,7 @@ func TestGetHello(t *testing.T) {
 
 	lg, prev := initConfLogger()
 
-	handlers = newHandlers(lg, []string{}, prev, entities.ResizeOptions{})
+	handlers = newHandlers(lg, models.Config{}, prev, entities.ResizeOptions{})
 
 	req := httptest.NewRequest("GET", "/", nil)
 
@@ -149,7 +149,7 @@ func TestPreviewHandler(t *testing.T) {
 
 	lg, prev := initConfLogger()
 
-	handlers = newHandlers(lg, []string{}, prev, entities.ResizeOptions{})
+	handlers = newHandlers(lg, models.Config{}, prev, entities.ResizeOptions{})
 	handler := http.HandlerFunc(handlers.previewHandler)
 
 	for _, test := range testCases {

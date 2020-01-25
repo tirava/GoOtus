@@ -47,10 +47,11 @@ type handler struct {
 	opts          entities.ResizeOptions
 	logger        models.Loggerer
 	noHeaders     []string
+	prometPort    string
 	error         Error
 }
 
-func newHandlers(logger models.Loggerer, noHeaders []string,
+func newHandlers(logger models.Loggerer, conf models.Config,
 	preview preview.Preview, opts entities.ResizeOptions) *handler {
 	return &handler{
 		handlers:      make(map[string]http.HandlerFunc),
@@ -58,7 +59,8 @@ func newHandlers(logger models.Loggerer, noHeaders []string,
 		preview:       preview,
 		opts:          opts,
 		logger:        logger,
-		noHeaders:     noHeaders,
+		noHeaders:     conf.NoProxyHeaders,
+		prometPort:    conf.ListenPrometheus,
 		error:         newError(logger),
 	}
 }

@@ -14,6 +14,10 @@ log_level: #debug
 # default - :8080
 http_listen:
 
+# ip:port for listening prometheus recorder
+# default - :9180
+prometheus_listen:
+
 # previewer algorithm - xdraw | nfnt_crop
 # default - xdraw
 previewer: nfnt_crop
