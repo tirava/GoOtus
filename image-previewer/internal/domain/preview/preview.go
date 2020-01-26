@@ -10,6 +10,17 @@ package preview
 import (
 	"image"
 
+	"gitlab.com/tirava/image-previewer/internal/storages"
+
+	"gitlab.com/tirava/image-previewer/internal/caches"
+
+	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/cache"
+	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/storage"
+
+	"gitlab.com/tirava/image-previewer/internal/encoders"
+
+	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/encode"
+
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/preview"
 	"gitlab.com/tirava/image-previewer/internal/previewers"
@@ -19,17 +30,40 @@ const anchorBaseDivImage = 2 // 2 - center
 
 // Preview is the main Preview struct.
 type Preview struct {
-	Previewer preview.Previewer
+	Previewer       preview.Previewer
+	ImageURLEncoder encode.Hasher
+	Cacher          cache.Cacher
+	Storager        storage.Storager
 }
 
 // NewPreview inits main Preview fields.
-func NewPreview(name string) (Preview, error) {
-	p, err := previewers.NewPreviewer(name)
+func NewPreview(prevImpl, encImpl, cacheImpl, storImpl string) (Preview, error) {
+	prev, err := previewers.NewPreviewer(prevImpl)
 	if err != nil {
 		return Preview{}, err
 	}
 
-	return Preview{Previewer: p}, nil
+	enc, err := encoders.NewImageURLEncoder(encImpl)
+	if err != nil {
+		return Preview{}, err
+	}
+
+	stor, err := storages.NewStorager(storImpl)
+	if err != nil {
+		return Preview{}, err
+	}
+
+	cash, err := caches.NewCacher(cacheImpl, stor)
+	if err != nil {
+		return Preview{}, err
+	}
+
+	return Preview{
+		Previewer:       prev,
+		ImageURLEncoder: enc,
+		Cacher:          cash,
+		Storager:        stor,
+	}, nil
 }
 
 // Preview returns preview result image.
@@ -61,4 +95,26 @@ func (p Preview) Preview(width, height int, img image.Image, opts entities.Resiz
 	pr = p.Previewer.Crop(width, height, image.Point{X: x, Y: y}, pr)
 
 	return pr
+}
+
+// IsItemInCache returns image if it in the cache.
+func (p Preview) IsItemInCache(url string) (entities.CacheItem, bool, error) {
+	hash, err := p.ImageURLEncoder.Encode(url)
+	if err != nil {
+		return entities.CacheItem{}, false, err
+	}
+
+	item, ok, err := p.Cacher.Get(hash)
+	if !ok {
+		return entities.CacheItem{
+			Hash: hash,
+		}, false, err
+	}
+
+	return item, true, nil
+}
+
+// AddItemIntoCache adds image into cache.
+func (p Preview) AddItemIntoCache(item entities.CacheItem) error {
+	return p.Cacher.Add(item)
 }

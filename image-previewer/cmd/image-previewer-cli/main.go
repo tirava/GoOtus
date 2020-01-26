@@ -60,7 +60,8 @@ func main() {
 
 	conf := cfg.GetConfig()
 
-	prev, err := preview.NewPreview(conf.Previewer)
+	prev, err := preview.NewPreview(
+		conf.Previewer, conf.ImageURLEncoder, conf.Cacher, conf.Storager)
 	if err != nil {
 		log.Fatal(err)
 	}

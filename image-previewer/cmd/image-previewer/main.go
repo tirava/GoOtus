@@ -59,7 +59,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	prev, err := preview.NewPreview(conf.Previewer)
+	prev, err := preview.NewPreview(
+		conf.Previewer, conf.ImageURLEncoder, conf.Cacher, conf.Storager)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,6 +79,7 @@ func main() {
 		log.Println("Previewer:", conf.Previewer)
 		log.Println("Interpolation:", "NearestNeighbor")
 		log.Println("NoProxyHeaders:", conf.NoProxyHeaders)
+		log.Println("ImageURLEncoder:", conf.ImageURLEncoder)
 	}
 
 	log.Println("Logger started at mode:", conf.LogLevel)

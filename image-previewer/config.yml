@@ -8,7 +8,7 @@ log_file: /dev/stderr
 
 # loglevel - none | error |  warn | info | debug
 # default - info
-log_level: #debug
+log_level: debug
 
 # ip:port for listening http
 # default - :8080
@@ -35,3 +35,19 @@ interpolation: 1
 # default - no skip any
 no_proxy_headers:
   - user-agent
+
+# image url encoder algorithm - md5 | sha1 | sha256
+# default - md5
+img_url_encoder:
+
+# cache algorithm - lru | lru2q | nolimit (w/o deleting old items)
+# default - lru
+cache: nolimit
+
+# storage system - disk | inmemory
+# default - disk
+storage: inmemory
+
+# path to storage for disk system
+# default - 'cache' dir in the current path
+storage_path:

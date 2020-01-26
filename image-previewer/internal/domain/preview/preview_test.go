@@ -57,7 +57,7 @@ var testCases = []struct {
 func TestPreview(t *testing.T) {
 	for _, test := range testCases {
 		ext := filepath.Ext(test.originalImage)
-		prev, err := NewPreview(test.previewer)
+		prev, err := NewPreview(test.previewer, "md5", "nolimit", "inmemory")
 
 		if err != nil {
 			t.Fatal(err)
@@ -131,13 +131,13 @@ func benchRGBA(b *testing.B, prev Preview, opts entities.ResizeOptions) {
 }
 
 func Benchmark_XDraw_Nearest_RGBA(b *testing.B) {
-	prev, _ := NewPreview("xdraw")
+	prev, _ := NewPreview("xdraw", "md5", "nolimit", "inmemory")
 
 	benchRGBA(b, prev, entities.ResizeOptions{})
 }
 
 func Benchmark_Nfnt_Nearest_RGBA(b *testing.B) {
-	prev, _ := NewPreview("nfnt_crop")
+	prev, _ := NewPreview("nfnt_crop", "md5", "nolimit", "inmemory")
 
 	benchRGBA(b, prev, entities.ResizeOptions{})
 }

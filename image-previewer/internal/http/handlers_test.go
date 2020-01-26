@@ -84,7 +84,8 @@ func initConfLogger() (models.Loggerer, preview.Preview) {
 		log.Fatal(err)
 	}
 
-	prev, err := preview.NewPreview(conf.Previewer)
+	prev, err := preview.NewPreview(
+		conf.Previewer, conf.ImageURLEncoder, conf.Cacher, conf.Storager)
 	if err != nil {
 		log.Fatal(err)
 	}

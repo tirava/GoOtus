@@ -79,6 +79,22 @@ func (y *ConfigYaml) readParameters() error {
 		y.Previewer = defConfig.Previewer
 	}
 
+	if y.ImageURLEncoder == "" {
+		y.ImageURLEncoder = defConfig.ImageURLEncoder
+	}
+
+	if y.Cacher == "" {
+		y.Cacher = defConfig.Cacher
+	}
+
+	if y.Storager == "" {
+		y.Storager = defConfig.Storager
+	}
+
+	if y.StoragePath == "" {
+		y.StoragePath = defConfig.StoragePath
+	}
+
 	for i, s := range y.NoProxyHeaders {
 		y.NoProxyHeaders[i] = strings.ToLower(s)
 	}

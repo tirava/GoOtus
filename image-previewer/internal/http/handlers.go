@@ -37,6 +37,7 @@ const (
 	QueryField          = "query"
 	CodeField           = "response_code"
 	RespTimeField       = "response_time"
+	HashField           = "hash"
 	minRequestLenParams = 5
 )
 
@@ -180,6 +181,11 @@ func (h handler) getSourceImage(r *http.Request, url string) (image.Image, strin
 
 	var img image.Image
 
+	cached, ok := h.isItemInCache(r, url)
+	if ok {
+		return cached.Image, cached.ImgType, nil
+	}
+
 	prefix := ""
 	if !strings.HasPrefix(url, "http") {
 		prefix = "https://"
@@ -203,11 +209,55 @@ func (h handler) getSourceImage(r *http.Request, url string) (image.Image, strin
 		return img, "", fmt.Errorf("remote server returns bad status: %d", response.StatusCode)
 	}
 
+	h.logger.WithFields(models.LoggerFields{
+		URLField:   url,
+		ReqIDField: getRequestID(r.Context()),
+	}).Debugf("got image from source")
+
 	img, ext, err := image.Decode(response.Body)
 
 	if err != nil {
 		return img, ext, fmt.Errorf("unable to decode image: %w", err)
 	}
 
+	item := entities.CacheItem{
+		Image:   img,
+		ImgType: ext,
+		Hash:    cached.Hash,
+	}
+	if err := h.preview.AddItemIntoCache(item); err != nil {
+		h.logger.Errorf("error while save image into cache: %s", err)
+	} else {
+		h.logger.WithFields(models.LoggerFields{
+			URLField:   url,
+			ReqIDField: getRequestID(r.Context()),
+		}).Debugf("saved image into cache")
+	}
+
 	return img, ext, nil
+}
+
+func (h handler) isItemInCache(r *http.Request, url string) (entities.CacheItem, bool) {
+	cached, ok, err := h.preview.IsItemInCache(url)
+	if err != nil {
+		h.logger.Errorf("error while check image in cache: %s", err)
+		return cached, false
+	}
+
+	if !ok {
+		h.logger.WithFields(models.LoggerFields{
+			URLField:   url,
+			ReqIDField: getRequestID(r.Context()),
+		}).Debugf("image not found in cache")
+
+		return cached, false
+	}
+
+	h.logger.WithFields(models.LoggerFields{
+		URLField:   url,
+		HashField:  cached.Hash,
+		ReqIDField: getRequestID(r.Context()),
+	}).Infof("found image in cache")
+
+	return cached, true
 }

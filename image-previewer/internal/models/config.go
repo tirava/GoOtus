@@ -26,6 +26,10 @@ type Config struct {
 	Previewer        string                 `yaml:"previewer"`
 	Interpolation    entities.Interpolation `yaml:"interpolation"`
 	NoProxyHeaders   []string               `yaml:"no_proxy_headers"`
+	ImageURLEncoder  string                 `yaml:"img_url_encoder"`
+	Cacher           string                 `yaml:"cache"`
+	Storager         string                 `yaml:"storage"`
+	StoragePath      string                 `yaml:"storage_path"`
 }
 
 // GetDefaults returns default config fields.
@@ -37,5 +41,9 @@ func (c Config) GetDefaults() Config {
 		ListenHTTP:       ":8080",
 		ListenPrometheus: ":9180",
 		Previewer:        "xdraw",
+		ImageURLEncoder:  "md5",
+		Cacher:           "lru",
+		Storager:         "disk",
+		StoragePath:      "cache",
 	}
 }
