@@ -11,9 +11,11 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -49,6 +51,7 @@ type handler struct {
 	logger        models.Loggerer
 	noHeaders     []string
 	prometPort    string
+	storPath      string
 	error         Error
 }
 
@@ -62,6 +65,7 @@ func newHandlers(logger models.Loggerer, conf models.Config,
 		logger:        logger,
 		noHeaders:     conf.NoProxyHeaders,
 		prometPort:    conf.ListenPrometheus,
+		storPath:      conf.StoragePath,
 		error:         newError(logger),
 	}
 }
@@ -134,7 +138,7 @@ func (h handler) previewHandler(w http.ResponseWriter, r *http.Request) {
 	if err := h.writeImage(w, previewed, ext); err != nil {
 		errSend := fmt.Errorf("invalid image type: %w", err)
 		h.errorHelper(w, r, http.StatusInternalServerError, err, errSend, "invalid image type: %s",
-			"make sure the request valid image type (jpeg or png)")
+			"make sure the request valid image type (jpeg, png or gif)")
 
 		return
 	}
@@ -158,6 +162,9 @@ func (h handler) writeImage(w http.ResponseWriter, img image.Image, imgType stri
 	case "png":
 		contType = "image/png"
 		err = png.Encode(buffer, img)
+	case "gif":
+		contType = "image/gif"
+		err = gif.Encode(buffer, img, nil)
 	default:
 		return errors.New(imgType)
 	}
@@ -214,24 +221,43 @@ func (h handler) getSourceImage(r *http.Request, url string) (image.Image, strin
 		ReqIDField: getRequestID(r.Context()),
 	}).Debugf("got image from source")
 
-	img, ext, err := image.Decode(response.Body)
+	raw, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return img, "", fmt.Errorf("error while read all data into reader: %w", err)
+	}
 
+	return h.decodeAndCacheImage(r, raw, url, cached.Hash)
+}
+
+func (h handler) decodeAndCacheImage(
+	r *http.Request, raw []byte, url, hash string) (image.Image, string, error) {
+	br := bytes.NewReader(raw)
+
+	img, ext, err := image.Decode(br)
 	if err != nil {
 		return img, ext, fmt.Errorf("unable to decode image: %w", err)
 	}
 
 	item := entities.CacheItem{
-		Image:   img,
-		ImgType: ext,
-		Hash:    cached.Hash,
+		Image:    img,
+		ImgType:  ext,
+		Hash:     hash,
+		StorPath: h.storPath,
+		RawBytes: raw,
 	}
-	if err := h.preview.AddItemIntoCache(item); err != nil {
+	if ok, err := h.preview.AddItemIntoCache(item); err != nil {
 		h.logger.Errorf("error while save image into cache: %s", err)
 	} else {
+		s := ""
+		if ok {
+			s = "image already in cache storage, not saved"
+		} else {
+			s = "saved image into cache"
+		}
 		h.logger.WithFields(models.LoggerFields{
 			URLField:   url,
 			ReqIDField: getRequestID(r.Context()),
-		}).Debugf("saved image into cache")
+		}).Debugf(s)
 	}
 
 	return img, ext, nil
@@ -257,7 +283,7 @@ func (h handler) isItemInCache(r *http.Request, url string) (entities.CacheItem,
 		URLField:   url,
 		HashField:  cached.Hash,
 		ReqIDField: getRequestID(r.Context()),
-	}).Infof("found image in cache")
+	}).Infof("image found in cache")
 
 	return cached, true
 }

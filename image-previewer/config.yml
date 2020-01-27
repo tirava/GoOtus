@@ -46,7 +46,7 @@ cache: nolimit
 
 # storage system - disk | inmemory
 # default - disk
-storage: inmemory
+storage: #inmemory
 
 # path to storage for disk system
 # default - 'cache' dir in the current path

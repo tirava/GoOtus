@@ -13,14 +13,16 @@ import (
 	"os"
 	"path/filepath"
 
+	"gitlab.com/tirava/image-previewer/internal/helpers"
+
+	"gitlab.com/tirava/image-previewer/internal/models"
+
 	"gitlab.com/tirava/image-previewer/internal/http"
 	"gitlab.com/tirava/image-previewer/internal/loggers"
 
 	"gitlab.com/tirava/image-previewer/internal/configs"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
-
-	"gitlab.com/tirava/image-previewer/internal/domain/preview"
 )
 
 const previewConfigPath = "PREVIEWER_CONFIG_PATH"
@@ -53,14 +55,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error open log file '%s', error: %s", conf.LogFile, err)
 	}
+	defer logFile.Close()
 
 	lg, err := loggers.NewLogger(conf.Logger, conf.LogLevel, logFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	prev, err := preview.NewPreview(
-		conf.Previewer, conf.ImageURLEncoder, conf.Cacher, conf.Storager)
+	prev, err := helpers.InitPreview(
+		conf.Previewer, conf.ImageURLEncoder, conf.Cacher, conf.Storager, conf.StoragePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,19 +73,28 @@ func main() {
 	}
 
 	if *config == "inmemory" {
-		log.Println("InMemory config:")
-		log.Println("Logger:", conf.Logger)
-		log.Println("LogFile:", conf.LogFile)
-		log.Println("LogLevel:", conf.LogLevel)
-		log.Println("ListenHTTP:", conf.ListenHTTP)
-		log.Println("ListenPrometheus:", conf.ListenPrometheus)
-		log.Println("Previewer:", conf.Previewer)
-		log.Println("Interpolation:", "NearestNeighbor")
-		log.Println("NoProxyHeaders:", conf.NoProxyHeaders)
-		log.Println("ImageURLEncoder:", conf.ImageURLEncoder)
+		printConfig(conf)
 	}
 
 	log.Println("Logger started at mode:", conf.LogLevel)
 	http.StartHTTPServer(lg, conf, prev, opts)
+
+	if err := prev.Close(); err != nil {
+		log.Fatal("error close previewer:", err)
+	}
+
 	os.Exit(0)
+}
+
+func printConfig(conf models.Config) {
+	log.Println("InMemory config:")
+	log.Println("Logger:", conf.Logger)
+	log.Println("LogFile:", conf.LogFile)
+	log.Println("LogLevel:", conf.LogLevel)
+	log.Println("ListenHTTP:", conf.ListenHTTP)
+	log.Println("ListenPrometheus:", conf.ListenPrometheus)
+	log.Println("Previewer:", conf.Previewer)
+	log.Println("Interpolation:", "NearestNeighbor")
+	log.Println("NoProxyHeaders:", conf.NoProxyHeaders)
+	log.Println("ImageURLEncoder:", conf.ImageURLEncoder)
 }

@@ -10,20 +10,13 @@ package preview
 import (
 	"image"
 
-	"gitlab.com/tirava/image-previewer/internal/storages"
-
-	"gitlab.com/tirava/image-previewer/internal/caches"
-
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/cache"
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/storage"
-
-	"gitlab.com/tirava/image-previewer/internal/encoders"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/encode"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/preview"
-	"gitlab.com/tirava/image-previewer/internal/previewers"
 )
 
 const anchorBaseDivImage = 2 // 2 - center
@@ -37,32 +30,17 @@ type Preview struct {
 }
 
 // NewPreview inits main Preview fields.
-func NewPreview(prevImpl, encImpl, cacheImpl, storImpl string) (Preview, error) {
-	prev, err := previewers.NewPreviewer(prevImpl)
-	if err != nil {
-		return Preview{}, err
-	}
-
-	enc, err := encoders.NewImageURLEncoder(encImpl)
-	if err != nil {
-		return Preview{}, err
-	}
-
-	stor, err := storages.NewStorager(storImpl)
-	if err != nil {
-		return Preview{}, err
-	}
-
-	cash, err := caches.NewCacher(cacheImpl, stor)
-	if err != nil {
-		return Preview{}, err
-	}
-
+func NewPreview(
+	prevImpl preview.Previewer,
+	encImpl encode.Hasher,
+	cacheImpl cache.Cacher,
+	storImpl storage.Storager,
+) (Preview, error) {
 	return Preview{
-		Previewer:       prev,
-		ImageURLEncoder: enc,
-		Cacher:          cash,
-		Storager:        stor,
+		Previewer:       prevImpl,
+		ImageURLEncoder: encImpl,
+		Cacher:          cacheImpl,
+		Storager:        storImpl,
 	}, nil
 }
 
@@ -115,6 +93,11 @@ func (p Preview) IsItemInCache(url string) (entities.CacheItem, bool, error) {
 }
 
 // AddItemIntoCache adds image into cache.
-func (p Preview) AddItemIntoCache(item entities.CacheItem) error {
+func (p Preview) AddItemIntoCache(item entities.CacheItem) (bool, error) {
 	return p.Cacher.Add(item)
+}
+
+// Close closes any open handlers.
+func (p Preview) Close() error {
+	return p.Storager.Close()
 }

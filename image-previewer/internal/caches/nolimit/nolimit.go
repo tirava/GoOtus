@@ -8,12 +8,15 @@
 package nolimit
 
 import (
+	"sync"
+
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/storage"
 )
 
 // NoLimit is the base nolimit type.
 type NoLimit struct {
+	sync.RWMutex
 	cache   map[string]struct{}
 	storage storage.Storager
 }
@@ -27,16 +30,25 @@ func NewCache(storage storage.Storager) (*NoLimit, error) {
 }
 
 // Add adds item into cache.
-func (nl NoLimit) Add(item entities.CacheItem) error {
+func (nl *NoLimit) Add(item entities.CacheItem) (bool, error) {
+	nl.RWMutex.Lock()
+	defer nl.RWMutex.Unlock()
 	nl.cache[item.Hash] = struct{}{}
 
 	return nl.storage.Save(item)
 }
 
 // Get got item from cache.
-func (nl NoLimit) Get(hash string) (entities.CacheItem, bool, error) {
+func (nl *NoLimit) Get(hash string) (entities.CacheItem, bool, error) {
 	if _, ok := nl.cache[hash]; !ok {
-		return entities.CacheItem{}, false, nil
+		if ok, _ := nl.storage.IsItemExist(hash); ok {
+			item := entities.CacheItem{Hash: hash}
+			if _, err := nl.Add(item); err != nil {
+				return entities.CacheItem{}, false, err
+			}
+		} else {
+			return entities.CacheItem{}, false, nil
+		}
 	}
 
 	item, err := nl.storage.Load(hash)

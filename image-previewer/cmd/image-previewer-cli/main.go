@@ -10,11 +10,14 @@ import (
 	"flag"
 	"fmt"
 	"image"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"log"
 	"os"
 	"path/filepath"
+
+	"gitlab.com/tirava/image-previewer/internal/helpers"
 
 	"gitlab.com/tirava/image-previewer/internal/configs"
 
@@ -60,8 +63,8 @@ func main() {
 
 	conf := cfg.GetConfig()
 
-	prev, err := preview.NewPreview(
-		conf.Previewer, conf.ImageURLEncoder, conf.Cacher, conf.Storager)
+	prev, err := helpers.InitPreview(
+		conf.Previewer, conf.ImageURLEncoder, "nolimit", "inmemory", "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -108,6 +111,8 @@ func resizeImage(w, h int, fileName string, prev preview.Preview, opts entities.
 		err = jpeg.Encode(out, r, nil)
 	case "png":
 		err = png.Encode(out, r)
+	case "gif":
+		err = gif.Encode(out, r, nil)
 	default:
 		return fmt.Errorf("unknown file type: %s", ext)
 	}

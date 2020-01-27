@@ -7,8 +7,8 @@
 package http
 
 import (
+	"crypto/rand"
 	"image"
-	"image/gif"
 	"image/jpeg"
 	"io/ioutil"
 	"log"
@@ -16,6 +16,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"gitlab.com/tirava/image-previewer/internal/helpers"
 
 	"gitlab.com/tirava/image-previewer/internal/models"
 
@@ -66,8 +68,8 @@ var testCases = []struct {
 	{
 		"bad image type",
 		"/preview/300/200/",
-		"/image.gif",
-		http.StatusInternalServerError,
+		"/image.tiff",
+		http.StatusNotFound,
 	},
 }
 
@@ -84,8 +86,8 @@ func initConfLogger() (models.Loggerer, preview.Preview) {
 		log.Fatal(err)
 	}
 
-	prev, err := preview.NewPreview(
-		conf.Previewer, conf.ImageURLEncoder, conf.Cacher, conf.Storager)
+	prev, err := helpers.InitPreview(
+		conf.Previewer, conf.ImageURLEncoder, "nolimit", "inmemory", "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -127,15 +129,17 @@ func TestGetHello(t *testing.T) {
 
 func TestPreviewHandler(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/image.jpg" && r.URL.Path != "/image.gif" {
+		if r.URL.Path != "/image.jpg" && r.URL.Path != "/image.tiff" {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		im := image.NewRGBA(image.Rect(0, 0, imageWidth, imageHeight))
-		if r.URL.Path == "/image.gif" {
-			_ = gif.Encode(w, im, nil)
+		if r.URL.Path == "/image.tiff" {
+			buf := make([]byte, 4)
+			_, _ = rand.Read(buf)
+			_, _ = w.Write(buf)
 			return
 		}
+		im := image.NewRGBA(image.Rect(0, 0, imageWidth, imageHeight))
 		_ = jpeg.Encode(w, im, nil)
 	}))
 	defer ts.Close()

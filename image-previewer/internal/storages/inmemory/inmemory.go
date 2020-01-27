@@ -9,12 +9,14 @@ package inmemory
 
 import (
 	"fmt"
+	"sync"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 )
 
 // InMemory is the base inmemory type.
 type InMemory struct {
+	sync.RWMutex
 	storage map[string]entities.CacheItem
 }
 
@@ -26,14 +28,20 @@ func NewStorage() (*InMemory, error) {
 }
 
 // Save saves item in the storage.
-func (im InMemory) Save(item entities.CacheItem) error {
+func (im *InMemory) Save(item entities.CacheItem) (bool, error) {
+	if ok, _ := im.IsItemExist(item.Hash); ok {
+		return true, nil
+	}
+
+	im.RWMutex.Lock()
+	defer im.RWMutex.Unlock()
 	im.storage[item.Hash] = item
 
-	return nil
+	return false, nil
 }
 
 // Load loads item from the storage.
-func (im InMemory) Load(hash string) (entities.CacheItem, error) {
+func (im *InMemory) Load(hash string) (entities.CacheItem, error) {
 	item, ok := im.storage[hash]
 	if !ok {
 		return entities.CacheItem{}, fmt.Errorf("item not found in storage: %s", hash)
@@ -43,6 +51,24 @@ func (im InMemory) Load(hash string) (entities.CacheItem, error) {
 }
 
 // Delete deletes item in the storage.
-func (im InMemory) Delete(hash string) error {
+func (im *InMemory) Delete(hash string) error {
+	im.RWMutex.Lock()
+	defer im.RWMutex.Unlock()
+	delete(im.storage, hash)
+
 	return nil
+}
+
+// Close closes storage.
+func (im *InMemory) Close() error {
+	return nil
+}
+
+// IsItemExist checks if item in the storage.
+func (im *InMemory) IsItemExist(hash string) (bool, string) {
+	if _, ok := im.storage[hash]; ok {
+		return true, ""
+	}
+
+	return false, ""
 }

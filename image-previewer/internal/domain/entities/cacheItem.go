@@ -6,11 +6,15 @@
 
 package entities
 
-import "image"
+import (
+	"image"
+)
 
 // CacheItem is the base cache item.
 type CacheItem struct {
-	Image   image.Image
-	ImgType string
-	Hash    string
+	Image    image.Image
+	ImgType  string
+	Hash     string
+	StorPath string
+	RawBytes []byte
 }

@@ -8,11 +8,17 @@ package preview
 
 import (
 	"image"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"gitlab.com/tirava/image-previewer/internal/caches"
+	"gitlab.com/tirava/image-previewer/internal/encoders"
+	"gitlab.com/tirava/image-previewer/internal/previewers"
+	"gitlab.com/tirava/image-previewer/internal/storages"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 )
@@ -57,7 +63,7 @@ var testCases = []struct {
 func TestPreview(t *testing.T) {
 	for _, test := range testCases {
 		ext := filepath.Ext(test.originalImage)
-		prev, err := NewPreview(test.previewer, "md5", "nolimit", "inmemory")
+		prev, err := initPreview(test.previewer, "md5", "nolimit", "inmemory", "")
 
 		if err != nil {
 			t.Fatal(err)
@@ -77,6 +83,8 @@ func TestPreview(t *testing.T) {
 			img, err = jpeg.Decode(file)
 		case ".png":
 			img, err = png.Decode(file)
+		case ".gif":
+			img, err = gif.Decode(file)
 		}
 
 		if err != nil {
@@ -131,13 +139,37 @@ func benchRGBA(b *testing.B, prev Preview, opts entities.ResizeOptions) {
 }
 
 func Benchmark_XDraw_Nearest_RGBA(b *testing.B) {
-	prev, _ := NewPreview("xdraw", "md5", "nolimit", "inmemory")
+	prev, _ := initPreview("xdraw", "md5", "nolimit", "inmemory", "")
 
 	benchRGBA(b, prev, entities.ResizeOptions{})
 }
 
 func Benchmark_Nfnt_Nearest_RGBA(b *testing.B) {
-	prev, _ := NewPreview("nfnt_crop", "md5", "nolimit", "inmemory")
+	prev, _ := initPreview("nfnt_crop", "md5", "nolimit", "inmemory", "")
 
 	benchRGBA(b, prev, entities.ResizeOptions{})
+}
+
+func initPreview(prevImpl, encImpl, cacheImpl, storImpl, storPath string) (Preview, error) {
+	prev, err := previewers.NewPreviewer(prevImpl)
+	if err != nil {
+		return Preview{}, err
+	}
+
+	enc, err := encoders.NewImageURLEncoder(encImpl)
+	if err != nil {
+		return Preview{}, err
+	}
+
+	stor, err := storages.NewStorager(storImpl, storPath)
+	if err != nil {
+		return Preview{}, err
+	}
+
+	cash, err := caches.NewCacher(cacheImpl, stor)
+	if err != nil {
+		return Preview{}, err
+	}
+
+	return NewPreview(prev, enc, cash, stor)
 }
