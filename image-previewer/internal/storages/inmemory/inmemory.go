@@ -35,6 +35,8 @@ func (im *InMemory) Save(item entities.CacheItem) (bool, error) {
 
 	im.RWMutex.Lock()
 	defer im.RWMutex.Unlock()
+
+	item.RawBytes = nil // no need raw bytes for memory storage
 	im.storage[item.Hash] = item
 
 	return false, nil
@@ -51,10 +53,10 @@ func (im *InMemory) Load(hash string) (entities.CacheItem, error) {
 }
 
 // Delete deletes item in the storage.
-func (im *InMemory) Delete(hash string) error {
+func (im *InMemory) Delete(item entities.CacheItem) error {
 	im.RWMutex.Lock()
 	defer im.RWMutex.Unlock()
-	delete(im.storage, hash)
+	delete(im.storage, item.Hash)
 
 	return nil
 }

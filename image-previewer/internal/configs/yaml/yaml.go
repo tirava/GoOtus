@@ -40,7 +40,7 @@ func (y ConfigYaml) GetConfig() models.Config {
 func (ConfigYaml) SetConfig(conf models.Config) {
 }
 
-// ReadParameters reads config from yaml file.
+// nolint )
 func (y *ConfigYaml) readParameters() error {
 	yamlFile, err := ioutil.ReadFile(y.Source)
 	if err != nil {
@@ -58,41 +58,35 @@ func (y *ConfigYaml) readParameters() error {
 	if y.Logger == "" {
 		y.Logger = defConfig.Logger
 	}
-
 	if y.LogFile == "" {
 		y.LogFile = defConfig.LogFile
 	}
-
 	if y.LogLevel == "" {
 		y.LogLevel = defConfig.LogLevel
 	}
-
 	if y.ListenHTTP == "" {
 		y.ListenHTTP = defConfig.ListenHTTP
 	}
-
 	if y.ListenPrometheus == "" {
 		y.ListenPrometheus = defConfig.ListenPrometheus
 	}
-
 	if y.Previewer == "" {
 		y.Previewer = defConfig.Previewer
 	}
-
 	if y.ImageURLEncoder == "" {
 		y.ImageURLEncoder = defConfig.ImageURLEncoder
 	}
-
 	if y.Cacher == "" {
 		y.Cacher = defConfig.Cacher
 	}
-
 	if y.Storager == "" {
 		y.Storager = defConfig.Storager
 	}
-
 	if y.StoragePath == "" {
 		y.StoragePath = defConfig.StoragePath
+	}
+	if y.MaxCacheItems == 0 {
+		y.MaxCacheItems = defConfig.MaxCacheItems
 	}
 
 	for i, s := range y.NoProxyHeaders {

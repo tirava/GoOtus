@@ -10,6 +10,8 @@ package caches
 import (
 	"errors"
 
+	"gitlab.com/tirava/image-previewer/internal/caches/lru"
+
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/storage"
 
 	"gitlab.com/tirava/image-previewer/internal/caches/nolimit"
@@ -17,12 +19,10 @@ import (
 )
 
 // NewCacher returns cache implementer.
-func NewCacher(implementer string, storage storage.Storager) (cache.Cacher, error) {
+func NewCacher(implementer string, storage storage.Storager, maxItems int) (cache.Cacher, error) {
 	switch implementer {
 	case "lru":
-		//return lru.NewCache()
-	case "lru2q":
-		//return lru2q.NewCache()
+		return lru.NewCache(storage, maxItems)
 	case "nolimit":
 		return nolimit.NewCache(storage)
 	}

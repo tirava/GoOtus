@@ -13,7 +13,7 @@ import "gitlab.com/tirava/image-previewer/internal/domain/entities"
 type Storager interface {
 	Save(item entities.CacheItem) (bool, error)
 	Load(hash string) (entities.CacheItem, error)
-	Delete(hash string) error
+	Delete(item entities.CacheItem) error
 	Close() error
 	IsItemExist(hash string) (bool, string)
 }

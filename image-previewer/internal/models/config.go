@@ -9,6 +9,8 @@ package models
 
 import "gitlab.com/tirava/image-previewer/internal/domain/entities"
 
+const maxCacheItems = 128
+
 // Configer is the main interface for configs.
 type Configer interface {
 	GetConfig() Config
@@ -28,6 +30,7 @@ type Config struct {
 	NoProxyHeaders   []string               `yaml:"no_proxy_headers"`
 	ImageURLEncoder  string                 `yaml:"img_url_encoder"`
 	Cacher           string                 `yaml:"cache"`
+	MaxCacheItems    int                    `yaml:"max_cache_items"`
 	Storager         string                 `yaml:"storage"`
 	StoragePath      string                 `yaml:"storage_path"`
 }
@@ -43,6 +46,7 @@ func (c Config) GetDefaults() Config {
 		Previewer:        "xdraw",
 		ImageURLEncoder:  "md5",
 		Cacher:           "lru",
+		MaxCacheItems:    maxCacheItems,
 		Storager:         "disk",
 		StoragePath:      "cache",
 	}

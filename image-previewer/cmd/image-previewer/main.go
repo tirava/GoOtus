@@ -63,7 +63,8 @@ func main() {
 	}
 
 	prev, err := helpers.InitPreview(
-		conf.Previewer, conf.ImageURLEncoder, conf.Cacher, conf.Storager, conf.StoragePath)
+		conf.Previewer, conf.ImageURLEncoder, conf.Cacher,
+		conf.Storager, conf.StoragePath, conf.MaxCacheItems)
 	if err != nil {
 		log.Fatal(err)
 	}

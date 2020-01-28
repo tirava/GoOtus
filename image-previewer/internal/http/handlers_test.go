@@ -87,7 +87,7 @@ func initConfLogger() (models.Loggerer, preview.Preview) {
 	}
 
 	prev, err := helpers.InitPreview(
-		conf.Previewer, conf.ImageURLEncoder, "nolimit", "inmemory", "")
+		conf.Previewer, conf.ImageURLEncoder, "nolimit", "inmemory", "", 0)
 	if err != nil {
 		log.Fatal(err)
 	}

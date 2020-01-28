@@ -63,7 +63,7 @@ var testCases = []struct {
 func TestPreview(t *testing.T) {
 	for _, test := range testCases {
 		ext := filepath.Ext(test.originalImage)
-		prev, err := initPreview(test.previewer, "md5", "nolimit", "inmemory", "")
+		prev, err := initPreview(test.previewer, "md5", "nolimit", "inmemory", "", 0)
 
 		if err != nil {
 			t.Fatal(err)
@@ -139,18 +139,19 @@ func benchRGBA(b *testing.B, prev Preview, opts entities.ResizeOptions) {
 }
 
 func Benchmark_XDraw_Nearest_RGBA(b *testing.B) {
-	prev, _ := initPreview("xdraw", "md5", "nolimit", "inmemory", "")
+	prev, _ := initPreview("xdraw", "md5", "nolimit", "inmemory", "", 0)
 
 	benchRGBA(b, prev, entities.ResizeOptions{})
 }
 
 func Benchmark_Nfnt_Nearest_RGBA(b *testing.B) {
-	prev, _ := initPreview("nfnt_crop", "md5", "nolimit", "inmemory", "")
+	prev, _ := initPreview("nfnt_crop", "md5", "nolimit", "inmemory", "", 0)
 
 	benchRGBA(b, prev, entities.ResizeOptions{})
 }
 
-func initPreview(prevImpl, encImpl, cacheImpl, storImpl, storPath string) (Preview, error) {
+func initPreview(prevImpl, encImpl, cacheImpl, storImpl, storPath string,
+	maxItems int) (Preview, error) {
 	prev, err := previewers.NewPreviewer(prevImpl)
 	if err != nil {
 		return Preview{}, err
@@ -166,7 +167,7 @@ func initPreview(prevImpl, encImpl, cacheImpl, storImpl, storPath string) (Previ
 		return Preview{}, err
 	}
 
-	cash, err := caches.NewCacher(cacheImpl, stor)
+	cash, err := caches.NewCacher(cacheImpl, stor, maxItems)
 	if err != nil {
 		return Preview{}, err
 	}

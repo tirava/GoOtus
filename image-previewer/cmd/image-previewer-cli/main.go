@@ -64,7 +64,7 @@ func main() {
 	conf := cfg.GetConfig()
 
 	prev, err := helpers.InitPreview(
-		conf.Previewer, conf.ImageURLEncoder, "nolimit", "inmemory", "")
+		conf.Previewer, conf.ImageURLEncoder, "nolimit", "inmemory", "", 0)
 	if err != nil {
 		log.Fatal(err)
 	}

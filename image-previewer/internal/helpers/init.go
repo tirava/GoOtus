@@ -16,7 +16,8 @@ import (
 )
 
 // InitPreview returns Preview with implementors
-func InitPreview(prevImpl, encImpl, cacheImpl, storImpl, storPath string) (preview.Preview, error) {
+func InitPreview(prevImpl, encImpl, cacheImpl, storImpl, storPath string,
+	maxItems int) (preview.Preview, error) {
 	prev, err := previewers.NewPreviewer(prevImpl)
 	if err != nil {
 		return preview.Preview{}, err
@@ -32,7 +33,7 @@ func InitPreview(prevImpl, encImpl, cacheImpl, storImpl, storPath string) (previ
 		return preview.Preview{}, err
 	}
 
-	cash, err := caches.NewCacher(cacheImpl, stor)
+	cash, err := caches.NewCacher(cacheImpl, stor, maxItems)
 	if err != nil {
 		return preview.Preview{}, err
 	}

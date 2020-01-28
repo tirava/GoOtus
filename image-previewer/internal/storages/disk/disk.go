@@ -28,10 +28,17 @@ type Disk struct {
 
 // NewStorage returns new storage struct.
 func NewStorage(storPath string) (*Disk, error) {
-	return &Disk{
+	ns := &Disk{
 		storPath: storPath,
 		imgTypes: []string{"jpeg", "png", "gif"},
-	}, nil
+	}
+
+	if err := os.MkdirAll(storPath, 0711); err != nil {
+		return ns, fmt.Errorf("unable to create cache dir '%s': %w",
+			storPath, err)
+	}
+
+	return ns, nil
 }
 
 // Save saves item in the storage.
@@ -60,7 +67,7 @@ func (d *Disk) Save(item entities.CacheItem) (bool, error) {
 func (d *Disk) Load(hash string) (entities.CacheItem, error) {
 	ok, fileName := false, ""
 	if ok, fileName = d.IsItemExist(hash); !ok {
-		return entities.CacheItem{}, fmt.Errorf("cache item not found: %s", hash)
+		return entities.CacheItem{}, fmt.Errorf("cache item not found while loading: %s", hash)
 	}
 
 	file, err := os.Open(fileName)
@@ -97,7 +104,17 @@ func (d *Disk) Load(hash string) (entities.CacheItem, error) {
 }
 
 // Delete deletes item in the storage.
-func (d *Disk) Delete(hash string) error {
+func (d *Disk) Delete(item entities.CacheItem) error {
+	ok, fileName := false, ""
+
+	if ok, fileName = d.IsItemExist(item.Hash); !ok {
+		return fmt.Errorf("cache item not found while delete: %s", item.Hash)
+	}
+
+	if err := os.Remove(fileName); err != nil {
+		return fmt.Errorf("can't delete cache item file '%s': %w", fileName, err)
+	}
+
 	return nil
 }
 
@@ -126,13 +143,3 @@ func (d *Disk) buildFileName(hash, ext string) string {
 
 	return filepath.Join(d.storPath, sb.String())
 }
-
-//func (d *Disk) buildStorPath(path string) error {
-//	d.storPath = path
-//	if err := os.MkdirAll(d.storPath, 0711); err != nil {
-//		return fmt.Errorf("unable to create cache dir '%s': %w",
-//			d.storPath, err)
-//	}
-//
-//	return nil
-//}
