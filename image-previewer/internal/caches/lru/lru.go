@@ -37,17 +37,16 @@ func NewCache(storage storage.Storager, maxItems int) (*LRU, error) {
 
 // Add adds item into cache.
 func (l *LRU) Add(item entities.CacheItem) (bool, error) {
-	l.RWMutex.Lock()
-	defer l.RWMutex.Unlock()
-
 	if len(l.cache) >= l.maxItems {
 		if err := l.deleteLastItem(); err != nil {
 			return false, err
 		}
 	}
 
+	l.RWMutex.Lock()
 	l.list.PushFront(&item)
 	l.cache[item.Hash] = l.list.Front()
+	l.RWMutex.Unlock()
 
 	return l.storage.Save(item)
 }
@@ -96,27 +95,13 @@ func (l *LRU) deleteLastItem() error {
 	data := l.list.Back().Value.(*entities.CacheItem)
 
 	l.RWMutex.Lock()
-	defer l.RWMutex.Unlock()
 	l.list.Remove(l.list.Back())
-
 	delete(l.cache, data.Hash)
+	l.RWMutex.Unlock()
 
 	if err := l.storage.Delete(*data); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// nolint
-func (l *LRU) debugList() string {
-	s, i := "", 0
-	for e := l.list.Front(); e != nil; e = e.Next() {
-		i++
-
-		data := e.Value.(*entities.CacheItem)
-		s += fmt.Sprintf("%d: %s\n", i, data.Hash)
-	}
-
-	return s
 }

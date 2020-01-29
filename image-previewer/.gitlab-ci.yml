@@ -38,6 +38,7 @@ buildapp:
   artifacts:
     paths:
       - ./app/image-previewer
+      - ./app/image-previewer-cli
 
 deploy:
   stage: deploy

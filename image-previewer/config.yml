@@ -2,8 +2,8 @@
 # default - logstd
 logger: logrus
 
-# path to log file
-# default - calendar.log in the current dir
+# path to and name for log file
+# default - previewer.log in the current dir
 log_file: /dev/stderr
 
 # loglevel - none | error |  warn | info | debug

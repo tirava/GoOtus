@@ -60,50 +60,55 @@ var testCases = []struct {
 	},
 }
 
+// nolint
 func TestPreview(t *testing.T) {
 	for _, test := range testCases {
-		ext := filepath.Ext(test.originalImage)
 		prev, err := initPreview(test.previewer, "md5", "nolimit", "inmemory", "", 0)
-
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		fileName := filepath.Join("../", "../", "../", "examples", test.originalImage)
-		file, err := os.Open(fileName)
+		test := test
+		t.Run(test.description, func(t *testing.T) {
+			t.Parallel()
+			ext := filepath.Ext(test.originalImage)
 
-		if err != nil {
-			t.Fatal(err)
-		}
+			fileName := filepath.Join("../", "../", "../", "examples", test.originalImage)
+			file, err := os.Open(fileName)
 
-		var img image.Image
-
-		switch ext {
-		case ".jpg", ".jpeg":
-			img, err = jpeg.Decode(file)
-		case ".png":
-			img, err = png.Decode(file)
-		case ".gif":
-			img, err = gif.Decode(file)
-		}
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		for _, pr := range test.previews {
-			r := prev.Preview(pr[0], pr[1], img, entities.ResizeOptions{})
-
-			w := r.Bounds().Max.X - r.Bounds().Min.X
-			h := r.Bounds().Max.Y - r.Bounds().Min.Y
-
-			if w != pr[0] || h != pr[1] {
-				t.Errorf("'%s' preview bounds expected - %dx%d\nbut resized to - %dx%d\n",
-					test.originalImage, pr[0], pr[1], w, h)
+			if err != nil {
+				t.Fatal(err)
 			}
-		}
 
-		file.Close()
+			var img image.Image
+
+			switch ext {
+			case ".jpg", ".jpeg":
+				img, err = jpeg.Decode(file)
+			case ".png":
+				img, err = png.Decode(file)
+			case ".gif":
+				img, err = gif.Decode(file)
+			}
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			for _, pr := range test.previews {
+				r := prev.Preview(pr[0], pr[1], img, entities.ResizeOptions{})
+
+				w := r.Bounds().Max.X - r.Bounds().Min.X
+				h := r.Bounds().Max.Y - r.Bounds().Min.Y
+
+				if w != pr[0] || h != pr[1] {
+					t.Errorf("'%s' preview bounds expected - %dx%d\nbut resized to - %dx%d\n",
+						test.originalImage, pr[0], pr[1], w, h)
+				}
+			}
+
+			file.Close()
+		})
 	}
 }
 

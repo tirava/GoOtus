@@ -256,6 +256,7 @@ func (h handler) decodeAndCacheImage(
 		}
 		h.logger.WithFields(models.LoggerFields{
 			URLField:   url,
+			HashField:  hash,
 			ReqIDField: getRequestID(r.Context()),
 		}).Debugf(s)
 	}
