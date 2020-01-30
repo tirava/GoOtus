@@ -42,7 +42,7 @@ img_url_encoder:
 
 # cache algorithm - lru | nolimit (w/o deleting old items)
 # default - lru
-cache: #nolimit
+cache:
 
 # max cache items
 # default - 128
@@ -50,7 +50,7 @@ max_cache_items: 4
 
 # storage system - disk | inmemory
 # default - disk
-storage: #inmemory
+storage:
 
 # path to storage for disk system
 # default - 'cache' dir in the current path - will be created if not exists

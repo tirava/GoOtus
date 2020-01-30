@@ -15,6 +15,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"gitlab.com/tirava/image-previewer/internal/models"
+
 	"gitlab.com/tirava/image-previewer/internal/caches"
 	"gitlab.com/tirava/image-previewer/internal/encoders"
 	"gitlab.com/tirava/image-previewer/internal/previewers"
@@ -63,7 +65,14 @@ var testCases = []struct {
 // nolint
 func TestPreview(t *testing.T) {
 	for _, test := range testCases {
-		prev, err := initPreview(test.previewer, "md5", "nolimit", "inmemory", "", 0)
+		conf := models.Config{
+			Previewer:       test.previewer,
+			ImageURLEncoder: "md5",
+			Cacher:          "nolimit",
+			MaxCacheItems:   0,
+			Storager:        "inmemory",
+		}
+		prev, err := initPreview(conf)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -119,7 +128,7 @@ const (
 	benchHeight = 200
 )
 
-func benchRGBA(b *testing.B, prev Preview, opts entities.ResizeOptions) {
+func benchRGBA(b *testing.B, prev *Preview, opts entities.ResizeOptions) {
 	m := image.NewRGBA(image.Rect(0, 0, benchMaxX, benchMaxY))
 
 	for y := m.Rect.Min.Y; y < m.Rect.Max.Y; y++ {
@@ -144,37 +153,50 @@ func benchRGBA(b *testing.B, prev Preview, opts entities.ResizeOptions) {
 }
 
 func Benchmark_XDraw_Nearest_RGBA(b *testing.B) {
-	prev, _ := initPreview("xdraw", "md5", "nolimit", "inmemory", "", 0)
+	conf := models.Config{
+		Previewer:       "xdraw",
+		ImageURLEncoder: "md5",
+		Cacher:          "nolimit",
+		MaxCacheItems:   0,
+		Storager:        "inmemory",
+	}
+	prev, _ := initPreview(conf)
 
 	benchRGBA(b, prev, entities.ResizeOptions{})
 }
 
 func Benchmark_Nfnt_Nearest_RGBA(b *testing.B) {
-	prev, _ := initPreview("nfnt_crop", "md5", "nolimit", "inmemory", "", 0)
+	conf := models.Config{
+		Previewer:       "nfnt_crop",
+		ImageURLEncoder: "md5",
+		Cacher:          "nolimit",
+		MaxCacheItems:   0,
+		Storager:        "inmemory",
+	}
+	prev, _ := initPreview(conf)
 
 	benchRGBA(b, prev, entities.ResizeOptions{})
 }
 
-func initPreview(prevImpl, encImpl, cacheImpl, storImpl, storPath string,
-	maxItems int) (Preview, error) {
-	prev, err := previewers.NewPreviewer(prevImpl)
+func initPreview(conf models.Config) (*Preview, error) {
+	prev, err := previewers.NewPreviewer(conf.Previewer)
 	if err != nil {
-		return Preview{}, err
+		return nil, err
 	}
 
-	enc, err := encoders.NewImageURLEncoder(encImpl)
+	enc, err := encoders.NewImageURLEncoder(conf.ImageURLEncoder)
 	if err != nil {
-		return Preview{}, err
+		return nil, err
 	}
 
-	stor, err := storages.NewStorager(storImpl, storPath)
+	stor, err := storages.NewStorager(conf.Storager, conf.StoragePath)
 	if err != nil {
-		return Preview{}, err
+		return nil, err
 	}
 
-	cash, err := caches.NewCacher(cacheImpl, stor, maxItems)
+	cash, err := caches.NewCacher(conf.Cacher, stor, conf.MaxCacheItems)
 	if err != nil {
-		return Preview{}, err
+		return nil, err
 	}
 
 	return NewPreview(prev, enc, cash, stor)

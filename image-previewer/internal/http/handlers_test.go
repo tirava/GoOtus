@@ -73,7 +73,7 @@ var testCases = []struct {
 	},
 }
 
-func initConfLogger() (models.Loggerer, preview.Preview) {
+func initConfLogger() (models.Loggerer, *preview.Preview) {
 	cfg, err := configs.NewConfig(fileConfigPath)
 	if err != nil {
 		log.Fatal(err)
@@ -86,8 +86,12 @@ func initConfLogger() (models.Loggerer, preview.Preview) {
 		log.Fatal(err)
 	}
 
-	prev, err := helpers.InitPreview(
-		conf.Previewer, conf.ImageURLEncoder, "nolimit", "inmemory", "", 0)
+	conf.Cacher = "nolimit"
+	conf.Storager = "inmemory"
+	conf.StoragePath = ""
+	conf.MaxCacheItems = 0
+	prev, err := helpers.InitPreview(conf)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,7 +104,7 @@ func TestGetHello(t *testing.T) {
 
 	lg, prev := initConfLogger()
 
-	handlers = newHandlers(lg, models.Config{}, prev, entities.ResizeOptions{})
+	handlers = newHandlers(lg, models.Config{}, *prev, entities.ResizeOptions{})
 
 	req := httptest.NewRequest("GET", "/", nil)
 
@@ -154,7 +158,7 @@ func TestPreviewHandler(t *testing.T) {
 
 	lg, prev := initConfLogger()
 
-	handlers = newHandlers(lg, models.Config{}, prev, entities.ResizeOptions{})
+	handlers = newHandlers(lg, models.Config{}, *prev, entities.ResizeOptions{})
 	handler := http.HandlerFunc(handlers.previewHandler)
 
 	for _, test := range testCases {

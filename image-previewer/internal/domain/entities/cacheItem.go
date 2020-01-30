@@ -15,6 +15,5 @@ type CacheItem struct {
 	Image    image.Image
 	ImgType  string
 	Hash     string
-	StorPath string
 	RawBytes []byte
 }

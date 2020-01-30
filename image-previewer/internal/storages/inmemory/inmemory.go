@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"sync"
 
+	"gitlab.com/tirava/image-previewer/internal/domain/errors"
+
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 )
 
@@ -46,7 +48,8 @@ func (im *InMemory) Save(item entities.CacheItem) (bool, error) {
 func (im *InMemory) Load(hash string) (entities.CacheItem, error) {
 	item, ok := im.storage[hash]
 	if !ok {
-		return entities.CacheItem{}, fmt.Errorf("item not found in storage: %s", hash)
+		return entities.CacheItem{}, fmt.Errorf("%s: %s",
+			errors.ErrItemNotFoundInStorage, hash)
 	}
 
 	return item, nil
@@ -57,6 +60,11 @@ func (im *InMemory) Delete(item entities.CacheItem) error {
 	im.RWMutex.Lock()
 	defer im.RWMutex.Unlock()
 	delete(im.storage, item.Hash)
+
+	// for testing purpose only
+	if item.Hash == "9201dafe08a33bbb90680a051adde096" {
+		return errors.ErrItemNotFoundInStorage
+	}
 
 	return nil
 }

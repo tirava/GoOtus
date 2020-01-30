@@ -62,9 +62,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	prev, err := helpers.InitPreview(
-		conf.Previewer, conf.ImageURLEncoder, conf.Cacher,
-		conf.Storager, conf.StoragePath, conf.MaxCacheItems)
+	prev, err := helpers.InitPreview(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,7 +76,7 @@ func main() {
 	}
 
 	log.Println("Logger started at mode:", conf.LogLevel)
-	http.StartHTTPServer(lg, conf, prev, opts)
+	http.StartHTTPServer(lg, conf, *prev, opts)
 
 	if err := prev.Close(); err != nil {
 		log.Fatal("error close previewer:", err)

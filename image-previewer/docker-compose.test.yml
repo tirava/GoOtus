@@ -1,0 +1,51 @@
+version: '3'
+services:
+
+  image-previewer-integration-tests:
+    build:
+      context: .
+      dockerfile: integration_tests/Dockerfile
+    container_name: image-previewer-integration-tests
+    restart: always
+    image: image-previewer-integration-tests
+    networks:
+      image-previewer:
+        aliases:
+          - http-client
+
+  image-previewer-http-server:
+    build:
+      context: .
+      dockerfile: deployments/docker/image_previewer/Dockerfile
+    container_name: image-previewer-http-server
+    restart: always
+    command: make run
+    image: image-previewer-http-server
+    expose:
+      - 8080
+      - 9180
+    ports:
+      - 8080:8080
+      - 9180:9180
+    networks:
+      image-previewer:
+        aliases:
+          - http-server
+
+  image-previewer-image-server:
+    container_name: image-previewer-image-server
+    restart: always
+    image: nginx:stable-alpine
+    volumes:
+      - ./examples:/usr/share/nginx/html:ro
+    expose:
+      - 80
+    ports:
+      - 80:80
+    networks:
+      image-previewer:
+        aliases:
+          - image-server
+
+networks:
+  image-previewer:

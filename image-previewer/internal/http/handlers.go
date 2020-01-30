@@ -84,7 +84,7 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	name := query.Get("name")
 
 	if name == "" {
-		name = "nobody"
+		name = "Previewer!"
 	}
 
 	h.logger.WithFields(models.LoggerFields{
@@ -92,7 +92,7 @@ func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 		ReqIDField: getRequestID(r.Context()),
 	}).Infof("RESPONSE")
 
-	s := "Hello, my name is " + name + "\n\n"
+	s := "Hello, my name is " + name
 
 	if _, err := io.WriteString(w, s); err != nil {
 		h.logger.Errorf("[hello] error write to response writer")
@@ -123,7 +123,7 @@ func (h handler) previewHandler(w http.ResponseWriter, r *http.Request) {
 
 	source := path[4]
 
-	img, ext, err := h.getSourceImage(r, source)
+	img, ext, err := h.getSourceImage(w, r, source)
 
 	if err != nil {
 		errSend := fmt.Errorf("invalid image source: %w", err)
@@ -183,19 +183,23 @@ func (h handler) writeImage(w http.ResponseWriter, img image.Image, imgType stri
 	return nil
 }
 
-func (h handler) getSourceImage(r *http.Request, url string) (image.Image, string, error) {
+func (h handler) getSourceImage(w http.ResponseWriter, r *http.Request, url string) (image.Image, string, error) {
 	var err error
 
 	var img image.Image
 
 	cached, ok := h.isItemInCache(r, url)
 	if ok {
+		w.Header().Set("From-Cache", "true")
+
 		return cached.Image, cached.ImgType, nil
 	}
 
+	w.Header().Set("From-Cache", "false")
+
 	prefix := ""
 	if !strings.HasPrefix(url, "http") {
-		prefix = "https://"
+		prefix = "http://"
 	}
 
 	client := &http.Client{}
@@ -242,7 +246,6 @@ func (h handler) decodeAndCacheImage(
 		Image:    img,
 		ImgType:  ext,
 		Hash:     hash,
-		StorPath: h.storPath,
 		RawBytes: raw,
 	}
 	if ok, err := h.preview.AddItemIntoCache(item); err != nil {

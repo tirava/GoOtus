@@ -35,8 +35,8 @@ func NewPreview(
 	encImpl encode.Hasher,
 	cacheImpl cache.Cacher,
 	storImpl storage.Storager,
-) (Preview, error) {
-	return Preview{
+) (*Preview, error) {
+	return &Preview{
 		Previewer:       prevImpl,
 		ImageURLEncoder: encImpl,
 		Cacher:          cacheImpl,

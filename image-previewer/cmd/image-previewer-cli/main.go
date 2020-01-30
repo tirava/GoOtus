@@ -62,9 +62,12 @@ func main() {
 	}
 
 	conf := cfg.GetConfig()
+	conf.Cacher = "nolimit"
+	conf.Storager = "inmemory"
+	conf.StoragePath = ""
+	conf.MaxCacheItems = 0
 
-	prev, err := helpers.InitPreview(
-		conf.Previewer, conf.ImageURLEncoder, "nolimit", "inmemory", "", 0)
+	prev, err := helpers.InitPreview(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,7 +82,7 @@ func main() {
 		fmt.Println("Interpolation:", "NearestNeighbor")
 	}
 
-	if err := resizeImage(*width, *height, *imageFile, prev, opts); err != nil {
+	if err := resizeImage(*width, *height, *imageFile, *prev, opts); err != nil {
 		log.Fatal(err)
 	}
 }

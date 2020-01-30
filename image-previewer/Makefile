@@ -1,4 +1,4 @@
-.PHONY: build run docker-build docker-run up down restart
+.PHONY: build run docker-build docker-run up down restart test
 
 build:
 	go build -o app/image-previewer cmd/image-previewer/*.go
@@ -21,3 +21,11 @@ down:
 
 restart: down up
 
+test:
+	set -e ;\
+    docker-compose -f docker-compose.test.yml up --build -d ;\
+    test_status_code=0 ;\
+    docker-compose -f docker-compose.test.yml run image-previewer-integration-tests ;\
+    go test ./integration_tests/... -v || test_status_code=$$? ;\
+    docker-compose -f docker-compose.test.yml down ;\
+    exit $$test_status_code ;\

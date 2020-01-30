@@ -29,6 +29,11 @@ func NewCache(storage storage.Storager) (*NoLimit, error) {
 	}, nil
 }
 
+// Clear clears all cache.
+func (nl *NoLimit) Clear() {
+	nl.cache = make(map[string]struct{})
+}
+
 // Add adds item into cache.
 func (nl *NoLimit) Add(item entities.CacheItem) (bool, error) {
 	nl.RWMutex.Lock()

@@ -9,7 +9,6 @@ package lru
 
 import (
 	"container/list"
-	"fmt"
 	"sync"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
@@ -33,6 +32,12 @@ func NewCache(storage storage.Storager, maxItems int) (*LRU, error) {
 		maxItems: maxItems,
 		storage:  storage,
 	}, nil
+}
+
+// Clear clears all cache.
+func (l *LRU) Clear() {
+	l.list = list.New()
+	l.cache = make(map[string]*list.Element)
 }
 
 // Add adds item into cache.
@@ -66,10 +71,7 @@ func (l *LRU) Get(hash string) (entities.CacheItem, bool, error) {
 
 	item, err := l.storage.Load(hash)
 	if err != nil {
-		if errr := l.list.Remove(l.cache[hash]); errr != nil {
-			return entities.CacheItem{}, false, fmt.Errorf("%w - %s", err, errr)
-		}
-
+		l.list.Remove(l.cache[hash])
 		delete(l.cache, hash)
 
 		return entities.CacheItem{}, false, err
