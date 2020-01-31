@@ -30,18 +30,27 @@ Feature: Image Previewer
     	And I receive error with text "invalid request preview size"
 
 	Scenario: Image not found
-    	When I send "GET" request to "http://http-server:8080/preview/" with data "300/200/image-server/_gopher_original_1024x504.tiff"
+    	When I send "GET" request to "http://http-server:8080/preview/" with data "200/300/image-server/_gopher_original_1024x504.tiff"
     	Then The response code should be 404
     	And I receive error with text "invalid image source"
 
     Scenario: 1st image preview (not from cache)
-        	When I send "GET" request to "http://http-server:8080/preview/" with data "300/200/image-server/_gopher_original_1024x504.jpg"
+        	When I send "GET" request to "http://http-server:8080/preview/" with data "300/200/image-server/_owl_original_1714x1207.jpg"
         	Then The response code should be 200
-        	# And I receive image with size "300x200"
+        	And I receive image with size "300x200"
         	And I received header "From-Cache" = "false"
 
     Scenario: 2nd image preview (from cache)
-        	When I send "GET" request to "http://http-server:8080/preview/" with data "400/300/image-server/_gopher_original_1024x504.jpg"
+        	When I send "GET" request to "http://http-server:8080/preview/" with data "400/300/image-server/_owl_original_1714x1207.jpg"
         	Then The response code should be 200
-        	# And I receive image with size "400x300"
+        	And I receive image with size "400x300"
         	And I received header "From-Cache" = "true"
+
+	Scenario: Invalid image type
+    	When I send "GET" request to "http://http-server:8080/preview/" with data "500/500/image-server/not_supported.png"
+    	Then The response code should be 500
+    	And I receive error with text "image: unknown format"
+
+	Scenario: Image server returns bad status
+    	When I send "GET" request to "http://http-server:8080/preview/" with data "100/100/image-server/dir_for_403/"
+    	Then The response code should be 403

@@ -23,9 +23,8 @@ restart: down up
 
 test:
 	set -e ;\
-    docker-compose -f docker-compose.test.yml up --build -d ;\
+    docker-compose -f docker-compose.test.yml up --no-start --build ;\
     test_status_code=0 ;\
-    docker-compose -f docker-compose.test.yml run image-previewer-integration-tests ;\
-    go test ./integration_tests/... -v || test_status_code=$$? ;\
+    docker-compose -f docker-compose.test.yml run image-previewer-integration-tests || test_status_code=$$? ;\
     docker-compose -f docker-compose.test.yml down ;\
     exit $$test_status_code ;\

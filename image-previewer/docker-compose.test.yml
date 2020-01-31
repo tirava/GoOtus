@@ -6,8 +6,13 @@ services:
       context: .
       dockerfile: integration_tests/Dockerfile
     container_name: image-previewer-integration-tests
-    restart: always
     image: image-previewer-integration-tests
+    environment:
+      - CGO_ENABLED=0
+    command: go test ./integration_tests/... -v
+    depends_on:
+      - image-previewer-http-server
+      - image-previewer-image-server
     networks:
       image-previewer:
         aliases:

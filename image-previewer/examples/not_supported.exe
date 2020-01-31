@@ -1,0 +1,12 @@
+// nolint
+//func (l *LRU) debugList() string {
+//	s, i := "", 0
+//	for e := l.list.Front(); e != nil; e = e.Next() {
+//		i++
+//
+//		data := e.Value.(*entities.CacheItem)
+//		s += fmt.Sprintf("%d: %s\n", i, data.Hash)
+//	}
+//
+//	return s
+//}

@@ -69,7 +69,7 @@ var testCases = []struct {
 		"bad image type",
 		"/preview/300/200/",
 		"/image.tiff",
-		http.StatusNotFound,
+		http.StatusInternalServerError,
 	},
 }
 

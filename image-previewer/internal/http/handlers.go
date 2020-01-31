@@ -123,11 +123,11 @@ func (h handler) previewHandler(w http.ResponseWriter, r *http.Request) {
 
 	source := path[4]
 
-	img, ext, err := h.getSourceImage(w, r, source)
+	img, ext, status, err := h.getSourceImage(w, r, source)
 
 	if err != nil {
 		errSend := fmt.Errorf("invalid image source: %w", err)
-		h.errorHelper(w, r, http.StatusNotFound, err, errSend, "invalid image source: %s",
+		h.errorHelper(w, r, status, err, errSend, "invalid image source: %s",
 			"make sure the request contains valid image source url")
 
 		return
@@ -135,8 +135,8 @@ func (h handler) previewHandler(w http.ResponseWriter, r *http.Request) {
 
 	previewed := h.preview.Preview(previewX, previewY, img, h.opts)
 
-	if err := h.writeImage(w, previewed, ext); err != nil {
-		errSend := fmt.Errorf("invalid image type: %w", err)
+	if err := h.writeImage(w, previewed, ext, status); err != nil {
+		errSend := fmt.Errorf("unknown image format or write error: %w", err)
 		h.errorHelper(w, r, http.StatusInternalServerError, err, errSend, "invalid image type: %s",
 			"make sure the request valid image type (jpeg, png or gif)")
 
@@ -144,12 +144,12 @@ func (h handler) previewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.WithFields(models.LoggerFields{
-		CodeField:  http.StatusOK,
+		CodeField:  status,
 		ReqIDField: getRequestID(r.Context()),
 	}).Infof("previewed successfully")
 }
 
-func (h handler) writeImage(w http.ResponseWriter, img image.Image, imgType string) error {
+func (h handler) writeImage(w http.ResponseWriter, img image.Image, imgType string, status int) error {
 	var err error
 
 	buffer := new(bytes.Buffer)
@@ -175,6 +175,7 @@ func (h handler) writeImage(w http.ResponseWriter, img image.Image, imgType stri
 
 	w.Header().Set("Content-Type", contType)
 	w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
+	w.WriteHeader(status)
 
 	if _, err := w.Write(buffer.Bytes()); err != nil {
 		return errors.New("unable to write image to response writer")
@@ -183,7 +184,7 @@ func (h handler) writeImage(w http.ResponseWriter, img image.Image, imgType stri
 	return nil
 }
 
-func (h handler) getSourceImage(w http.ResponseWriter, r *http.Request, url string) (image.Image, string, error) {
+func (h handler) getSourceImage(w http.ResponseWriter, r *http.Request, url string) (image.Image, string, int, error) {
 	var err error
 
 	var img image.Image
@@ -192,7 +193,7 @@ func (h handler) getSourceImage(w http.ResponseWriter, r *http.Request, url stri
 	if ok {
 		w.Header().Set("From-Cache", "true")
 
-		return cached.Image, cached.ImgType, nil
+		return cached.Image, cached.ImgType, http.StatusOK, nil
 	}
 
 	w.Header().Set("From-Cache", "false")
@@ -206,18 +207,19 @@ func (h handler) getSourceImage(w http.ResponseWriter, r *http.Request, url stri
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", prefix, url), nil)
 
 	if err != nil {
-		return img, "", fmt.Errorf("unable create new request: %w", err)
+		return img, "", http.StatusNotFound, fmt.Errorf("unable create new request: %w", err)
 	}
 
 	response, err := client.Do(proxyHeaders(r, req, h.noHeaders))
 
 	if err != nil {
-		return img, "", fmt.Errorf("unable to get image from source: %w", err)
+		return img, "", http.StatusNotFound, fmt.Errorf("unable to get image from source: %w", err)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return img, "", fmt.Errorf("remote server returns bad status: %d", response.StatusCode)
+		return img, "", response.StatusCode,
+			fmt.Errorf("remote server returns bad status: %d", response.StatusCode)
 	}
 
 	h.logger.WithFields(models.LoggerFields{
@@ -227,19 +229,21 @@ func (h handler) getSourceImage(w http.ResponseWriter, r *http.Request, url stri
 
 	raw, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return img, "", fmt.Errorf("error while read all data into reader: %w", err)
+		return img, "", http.StatusInternalServerError,
+			fmt.Errorf("error while read all data into reader: %w", err)
 	}
 
 	return h.decodeAndCacheImage(r, raw, url, cached.Hash)
 }
 
 func (h handler) decodeAndCacheImage(
-	r *http.Request, raw []byte, url, hash string) (image.Image, string, error) {
+	r *http.Request, raw []byte, url, hash string) (image.Image, string, int, error) {
 	br := bytes.NewReader(raw)
 
 	img, ext, err := image.Decode(br)
 	if err != nil {
-		return img, ext, fmt.Errorf("unable to decode image: %w", err)
+		return img, ext, http.StatusInternalServerError,
+			fmt.Errorf("unable to decode image: %w", err)
 	}
 
 	item := entities.CacheItem{
@@ -264,7 +268,7 @@ func (h handler) decodeAndCacheImage(
 		}).Debugf(s)
 	}
 
-	return img, ext, nil
+	return img, ext, http.StatusOK, nil
 }
 
 func (h handler) isItemInCache(r *http.Request, url string) (entities.CacheItem, bool) {
