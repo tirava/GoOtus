@@ -3,3 +3,4 @@ app/
 cache*/
 *_resized_*
 cover.*
+*.out

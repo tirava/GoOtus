@@ -51,6 +51,7 @@ type handler struct {
 	logger        models.Loggerer
 	noHeaders     []string
 	prometPort    string
+	pprofPort     string
 	storPath      string
 	error         Error
 }
@@ -65,6 +66,7 @@ func newHandlers(logger models.Loggerer, conf models.Config,
 		logger:        logger,
 		noHeaders:     conf.NoProxyHeaders,
 		prometPort:    conf.ListenPrometheus,
+		pprofPort:     conf.ListenPprof,
 		storPath:      conf.StoragePath,
 		error:         newError(logger),
 	}

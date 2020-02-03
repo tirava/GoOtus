@@ -52,6 +52,11 @@ func (im *InMemory) Load(hash string) (entities.CacheItem, error) {
 			errors.ErrItemNotFoundInStorage, hash)
 	}
 
+	// for testing purpose only
+	if hash == "49f351f3016db4e5f00dd2eb683f56b3" {
+		return entities.CacheItem{}, errors.ErrItemNotFoundInStorage
+	}
+
 	return item, nil
 }
 

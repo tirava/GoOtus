@@ -70,6 +70,9 @@ func (y *ConfigYaml) readParameters() error {
 	if y.ListenPrometheus == "" {
 		y.ListenPrometheus = defConfig.ListenPrometheus
 	}
+	if y.ListenPprof == "" {
+		y.ListenPprof = defConfig.ListenPprof
+	}
 	if y.Previewer == "" {
 		y.Previewer = defConfig.Previewer
 	}

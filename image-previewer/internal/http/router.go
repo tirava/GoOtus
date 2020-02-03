@@ -22,6 +22,9 @@ import (
 
 	"github.com/google/uuid"
 
+	// nolint
+	_ "net/http/pprof" // debug/pprof/
+
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 )
 
@@ -54,6 +57,19 @@ func (h handler) prepareRoutes() http.Handler {
 		}
 		// need safely shutdown?
 		h.logger.Infof("Shutdown HTTP prometheus exporter at: %s", h.prometPort)
+	}()
+
+	go func() {
+		h.logger.Infof("Starting HTTP pprof at: %s", h.pprofPort)
+
+		err := http.ListenAndServe(h.pprofPort, nil)
+
+		if err != nil && err != http.ErrServerClosed {
+			h.logger.Errorf(err.Error())
+			os.Exit(fail)
+		}
+
+		h.logger.Infof("Shutdown HTTP pprof at: %s", h.pprofPort)
 	}()
 
 	return hPromet

@@ -25,6 +25,7 @@ type Config struct {
 	LogLevel         string                 `yaml:"log_level"`
 	ListenHTTP       string                 `yaml:"http_listen"`
 	ListenPrometheus string                 `yaml:"prometheus_listen"`
+	ListenPprof      string                 `yaml:"pprof_listen"`
 	Previewer        string                 `yaml:"previewer"`
 	Interpolation    entities.Interpolation `yaml:"interpolation"`
 	NoProxyHeaders   []string               `yaml:"no_proxy_headers"`
@@ -43,6 +44,7 @@ func (c Config) GetDefaults() Config {
 		LogLevel:         "info",
 		ListenHTTP:       ":8080",
 		ListenPrometheus: ":9180",
+		ListenPprof:      ":8181",
 		Previewer:        "xdraw",
 		ImageURLEncoder:  "md5",
 		Cacher:           "lru",

@@ -45,7 +45,11 @@ func (nl *NoLimit) Add(item entities.CacheItem) (bool, error) {
 
 // Get got item from cache.
 func (nl *NoLimit) Get(hash string) (entities.CacheItem, bool, error) {
-	if _, ok := nl.cache[hash]; !ok {
+	nl.RWMutex.Lock()
+	_, ok := nl.cache[hash]
+	nl.RWMutex.Unlock()
+
+	if !ok {
 		if ok, _ := nl.storage.IsItemExist(hash); ok {
 			item := entities.CacheItem{Hash: hash}
 			if _, err := nl.Add(item); err != nil {

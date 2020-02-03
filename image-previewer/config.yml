@@ -8,7 +8,7 @@ log_file: /dev/stderr
 
 # loglevel - none | error |  warn | info | debug
 # default - info
-log_level:
+log_level: error
 
 # ip:port for listening http
 # default - :8080
@@ -17,6 +17,10 @@ http_listen:
 # ip:port for listening prometheus recorder
 # default - :9180
 prometheus_listen:
+
+# ip:port for listening pprof
+# default - :8181
+pprof_listen:
 
 # previewer algorithm - xdraw | nfnt_crop
 # default - xdraw
@@ -38,9 +42,9 @@ no_proxy_headers:
 
 # image url encoder algorithm - md5 | sha1 | sha256
 # default - md5
-img_url_encoder: sha256
+img_url_encoder:
 
-# cache algorithm - lru | nolimit (w/o deleting old items)
+# cache algorithm - lru | nolimit (w/o deleting old items an not caching in memory)
 # default - lru
 cache:
 

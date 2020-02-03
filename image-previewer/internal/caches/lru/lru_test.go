@@ -7,7 +7,6 @@
 package lru
 
 import (
-	"fmt"
 	"image"
 	"testing"
 
@@ -27,6 +26,7 @@ const (
 	md5FakeURL1      = "11111111111111111111111111111111"
 	md5FakeURL2      = "22222222222222222222222222222222"
 	md5DeleteFakeURL = "9201dafe08a33bbb90680a051adde096"
+	md5LoadFakeURL   = "49f351f3016db4e5f00dd2eb683f56b3"
 )
 
 type cacheActions func(*testing.T, *preview.Preview)
@@ -80,16 +80,15 @@ var testCases = []struct {
 		2,
 	},
 	{
-		"Item presented in cache but absent in storage",
+		"Item absent in cache, it in storage but error loading",
 		[]cacheActions{
 			addItemIntoCache(entities.CacheItem{
 				Image:   testImage,
 				ImgType: "gif",
-				Hash:    md5FakeURL,
+				Hash:    md5LoadFakeURL,
 			}, expResult{}),
-			deleteItemInCache(entities.CacheItem{Hash: md5FakeURL}, expResult{}),
-			isItemInCache(fakeURL, expResult{
-				err: fmt.Errorf("%s: %s", errors.ErrItemNotFoundInStorage, md5FakeURL)}),
+			clearCache(),
+			isItemInCache("*testing.T.Load", expResult{err: errors.ErrItemNotFoundInStorage}),
 		},
 		1,
 	},
@@ -176,6 +175,7 @@ func isItemInCache(url string, expected expResult) cacheActions {
 	}
 }
 
+// nolint
 func deleteItemInCache(item entities.CacheItem, expected expResult) cacheActions {
 	return func(t *testing.T, p *preview.Preview) {
 		err := p.Storager.Delete(item)
