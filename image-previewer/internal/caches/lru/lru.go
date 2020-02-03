@@ -53,12 +53,22 @@ func (l *LRU) Add(item entities.CacheItem) (bool, error) {
 	l.cache[item.Hash] = l.list.Front()
 	l.RWMutex.Unlock()
 
-	return l.storage.Save(item)
+	ok, err := l.storage.Save(item)
+
+	// no need raw bytes and image in the lru list
+	item.RawBytes = nil
+	item.Image = nil
+
+	return ok, err
 }
 
 // Get got item from cache.
 func (l *LRU) Get(hash string) (entities.CacheItem, bool, error) {
-	if _, ok := l.cache[hash]; !ok {
+	l.RWMutex.Lock()
+	_, ok := l.cache[hash]
+	l.RWMutex.Unlock()
+
+	if !ok {
 		if ok, _ := l.storage.IsItemExist(hash); ok {
 			item := entities.CacheItem{Hash: hash}
 			if _, err := l.Add(item); err != nil {
@@ -71,22 +81,36 @@ func (l *LRU) Get(hash string) (entities.CacheItem, bool, error) {
 
 	item, err := l.storage.Load(hash)
 	if err != nil {
-		l.list.Remove(l.cache[hash])
+		l.RWMutex.Lock()
+		if l.cache[hash] != nil {
+			l.list.Remove(l.cache[hash])
+		}
+
 		delete(l.cache, hash)
+
+		l.RWMutex.Unlock()
 
 		return entities.CacheItem{}, false, err
 	}
 
-	l.moveItemToHead(l.cache[hash])
+	l.RWMutex.Lock()
+	elem := l.cache[hash]
+	l.RWMutex.Unlock()
+	l.moveItemToHead(elem)
 
 	return item, true, nil
 }
 
 func (l *LRU) moveItemToHead(item *list.Element) {
-	data := item.Value.(*entities.CacheItem)
+	if item == nil {
+		return
+	}
 
 	l.RWMutex.Lock()
 	defer l.RWMutex.Unlock()
+
+	data := item.Value.(*entities.CacheItem)
+
 	l.list.Remove(item)
 
 	l.list.PushFront(data)
@@ -94,9 +118,9 @@ func (l *LRU) moveItemToHead(item *list.Element) {
 }
 
 func (l *LRU) deleteLastItem() error {
+	l.RWMutex.Lock()
 	data := l.list.Back().Value.(*entities.CacheItem)
 
-	l.RWMutex.Lock()
 	l.list.Remove(l.list.Back())
 	delete(l.cache, data.Hash)
 	l.RWMutex.Unlock()

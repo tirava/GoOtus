@@ -8,7 +8,7 @@ log_file: /dev/stderr
 
 # loglevel - none | error |  warn | info | debug
 # default - info
-log_level: debug
+log_level:
 
 # ip:port for listening http
 # default - :8080
@@ -20,7 +20,7 @@ prometheus_listen:
 
 # previewer algorithm - xdraw | nfnt_crop
 # default - xdraw
-previewer: nfnt_crop
+previewer:
 
 # interpolation for resizing
 # 0 - NearestNeighbor
@@ -29,7 +29,7 @@ previewer: nfnt_crop
 # 6 - ApproxBiLinear (xdraw only)
 # 7 - CatmullRom     (xdraw only)
 # default - 0
-interpolation: 1
+interpolation:
 
 # skip proxy below headers (every header on new line with starting -, any case)
 # default - no skip any
@@ -38,7 +38,7 @@ no_proxy_headers:
 
 # image url encoder algorithm - md5 | sha1 | sha256
 # default - md5
-img_url_encoder:
+img_url_encoder: sha256
 
 # cache algorithm - lru | nolimit (w/o deleting old items)
 # default - lru
@@ -46,7 +46,7 @@ cache:
 
 # max cache items
 # default - 128
-max_cache_items: 4
+max_cache_items: 74
 
 # storage system - disk | inmemory
 # default - disk
@@ -54,4 +54,4 @@ storage:
 
 # path to storage for disk system
 # default - 'cache' dir in the current path - will be created if not exists
-storage_path:
+storage_path: /media/ek/Backup/Temp/cache

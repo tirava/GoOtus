@@ -75,6 +75,7 @@ func (h handler) errorHelper(w http.ResponseWriter, r *http.Request, code int,
 	h.logger.WithFields(models.LoggerFields{
 		CodeField:  code,
 		ReqIDField: getRequestID(r.Context()),
+		URLField:   r.URL.Path,
 	}).Errorf(message, err)
 	h.error.send(w, code, errSend, description)
 }

@@ -1,3 +1,8 @@
+image: tmaier/docker-compose:latest
+
+services:
+  - docker:dind
+
 stages:
   - linters_and_tests
   - build
@@ -22,12 +27,10 @@ unit-test:
     reports:
       junit: report.xml
 
-#integration-test:
-#  stage: linters_and_tests
-#  image: docker/compose:alpine-1.25.3
-#  script:
-#    - apk add --no-cache make
-#    - make test
+integration-test:
+  stage: linters_and_tests
+  script:
+    - make test
 
 buildapp:
   stage: build
@@ -38,6 +41,7 @@ buildapp:
     paths:
       - ./app/image-previewer
       - ./app/image-previewer-cli
+      - ./app/load-test-client
 
 deploy:
   stage: deploy

@@ -13,6 +13,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/slok/go-http-metrics v0.6.0
 	golang.org/x/image v0.0.0-20200119044424-58c23975cae1
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.2.7
 )
