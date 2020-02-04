@@ -98,6 +98,7 @@ func (h handler) pathMiddleware(http.Handler) http.Handler {
 		h.logger.WithFields(models.LoggerFields{
 			CodeField:  http.StatusNotFound,
 			ReqIDField: getRequestID(r.Context()),
+			URLField:   r.URL.Path,
 		}).Errorf("RESPONSE")
 		http.NotFound(w, r)
 	})
@@ -130,6 +131,7 @@ func (h handler) loggerMiddleware(next http.Handler) http.Handler {
 		h.logger.WithFields(models.LoggerFields{
 			RespTimeField: time.Since(start),
 			ReqIDField:    getRequestID(ctx),
+			URLField:      r.URL.Path,
 		}).Infof("REQUEST END")
 	})
 }

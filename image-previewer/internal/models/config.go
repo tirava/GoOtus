@@ -7,7 +7,12 @@
 // Package models implements models.
 package models
 
-import "gitlab.com/tirava/image-previewer/internal/domain/entities"
+import (
+	"fmt"
+	"reflect"
+
+	"gitlab.com/tirava/image-previewer/internal/domain/entities"
+)
 
 const maxCacheItems = 128
 
@@ -36,20 +41,53 @@ type Config struct {
 	StoragePath      string                 `yaml:"storage_path"`
 }
 
+// ConfigDefaults is for default parameters.
+type ConfigDefaults map[string]interface{}
+
 // GetDefaults returns default config fields.
-func (c Config) GetDefaults() Config {
-	return Config{
-		Logger:           "logstd",
-		LogFile:          "previewer.log",
-		LogLevel:         "info",
-		ListenHTTP:       ":8080",
-		ListenPrometheus: ":9180",
-		ListenPprof:      ":8181",
-		Previewer:        "xdraw",
-		ImageURLEncoder:  "md5",
-		Cacher:           "lru",
-		MaxCacheItems:    maxCacheItems,
-		Storager:         "disk",
-		StoragePath:      "cache",
+func (c Config) GetDefaults() ConfigDefaults {
+	config := make(ConfigDefaults)
+	config["Source"] = ""
+	config["Logger"] = "logstd"
+	config["LogFile"] = "previewer.log"
+	config["LogLevel"] = "info"
+	config["ListenHTTP"] = ":8080"
+	config["ListenPrometheus"] = ":9180"
+	config["ListenPprof"] = ":8181"
+	config["Previewer"] = "xdraw"
+	config["ImageURLEncoder"] = "md5"
+	config["Cacher"] = "lru"
+	config["MaxCacheItems"] = int64(maxCacheItems)
+	config["Storager"] = "disk"
+	config["StoragePath"] = "cache"
+
+	return config
+}
+
+// FillConfig fills empty config's fields.
+func (c Config) FillConfig(inConfig Config) (Config, error) {
+	defConfig := c.GetDefaults()
+
+	v := reflect.ValueOf(inConfig)
+	vPtr := reflect.ValueOf(&inConfig)
+	configType := v.Type()
+
+	for i := 0; i < v.NumField(); i++ {
+		value := v.Field(i).Interface()
+		name := configType.Field(i).Name
+
+		if value == "" || value == 0 {
+			switch v := defConfig[name].(type) {
+			case string:
+				vPtr.Elem().FieldByName(name).SetString(defConfig[name].(string))
+			case int64:
+				vPtr.Elem().FieldByName(name).SetInt(defConfig[name].(int64))
+			default:
+				return inConfig, fmt.Errorf("unexpected type '%T' while parsing config parameter '%s'",
+					v, name)
+			}
+		}
 	}
+
+	return inConfig, nil
 }

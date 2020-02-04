@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"sort"
-	"strings"
 
 	"gitlab.com/tirava/image-previewer/internal/models"
 
@@ -40,76 +39,19 @@ func (y ConfigYaml) GetConfig() models.Config {
 func (ConfigYaml) SetConfig(conf models.Config) {
 }
 
-// nolint )
 func (y *ConfigYaml) readParameters() error {
 	yamlFile, err := ioutil.ReadFile(y.Source)
 	if err != nil {
 		return fmt.Errorf("error read config file: %w", err)
 	}
 
-	err = yaml.Unmarshal(yamlFile, &y.Config)
-
-	if err != nil {
+	if err := yaml.Unmarshal(yamlFile, &y.Config); err != nil {
 		return fmt.Errorf("error unmarshal config file: %w", err)
 	}
 
-	defConfig := y.GetDefaults()
-
-	if y.Logger == "" {
-		y.Logger = defConfig.Logger
-	}
-	if y.LogFile == "" {
-		y.LogFile = defConfig.LogFile
-	}
-	if y.LogLevel == "" {
-		y.LogLevel = defConfig.LogLevel
-	}
-	if y.ListenHTTP == "" {
-		y.ListenHTTP = defConfig.ListenHTTP
-	}
-	if y.ListenPrometheus == "" {
-		y.ListenPrometheus = defConfig.ListenPrometheus
-	}
-	if y.ListenPprof == "" {
-		y.ListenPprof = defConfig.ListenPprof
-	}
-	if y.Previewer == "" {
-		y.Previewer = defConfig.Previewer
-	}
-	if y.ImageURLEncoder == "" {
-		y.ImageURLEncoder = defConfig.ImageURLEncoder
-	}
-	if y.Cacher == "" {
-		y.Cacher = defConfig.Cacher
-	}
-	if y.Storager == "" {
-		y.Storager = defConfig.Storager
-	}
-	if y.StoragePath == "" {
-		y.StoragePath = defConfig.StoragePath
-	}
-	if y.MaxCacheItems == 0 {
-		y.MaxCacheItems = defConfig.MaxCacheItems
-	}
-
-	if y.ImageURLEncoder == "" {
-		y.ImageURLEncoder = defConfig.ImageURLEncoder
-	}
-
-	if y.Cacher == "" {
-		y.Cacher = defConfig.Cacher
-	}
-
-	if y.Storager == "" {
-		y.Storager = defConfig.Storager
-	}
-
-	if y.StoragePath == "" {
-		y.StoragePath = defConfig.StoragePath
-	}
-
-	for i, s := range y.NoProxyHeaders {
-		y.NoProxyHeaders[i] = strings.ToLower(s)
+	y.Config, err = y.FillConfig(y.Config)
+	if err != nil {
+		return err
 	}
 
 	sort.Strings(y.NoProxyHeaders)

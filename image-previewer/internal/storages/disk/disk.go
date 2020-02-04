@@ -65,8 +65,8 @@ func (d *Disk) Save(item entities.CacheItem) (bool, error) {
 
 // Load loads item from the storage.
 func (d *Disk) Load(hash string) (entities.CacheItem, error) {
-	ok, fileName := false, ""
-	if ok, fileName = d.IsItemExist(hash); !ok {
+	ok, fileName := d.IsItemExist(hash)
+	if !ok {
 		return entities.CacheItem{}, fmt.Errorf("cache item not found while loading: %s", hash)
 	}
 
@@ -105,9 +105,8 @@ func (d *Disk) Load(hash string) (entities.CacheItem, error) {
 
 // Delete deletes item in the storage.
 func (d *Disk) Delete(item entities.CacheItem) error {
-	ok, fileName := false, ""
-
-	if ok, fileName = d.IsItemExist(item.Hash); !ok {
+	ok, fileName := d.IsItemExist(item.Hash)
+	if !ok {
 		return fmt.Errorf("cache item not found while delete: %s", item.Hash)
 	}
 

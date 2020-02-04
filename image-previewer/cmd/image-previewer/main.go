@@ -92,6 +92,7 @@ func printConfig(conf models.Config) {
 	log.Println("LogLevel:", conf.LogLevel)
 	log.Println("ListenHTTP:", conf.ListenHTTP)
 	log.Println("ListenPrometheus:", conf.ListenPrometheus)
+	log.Println("ListenPprof:", conf.ListenPprof)
 	log.Println("Previewer:", conf.Previewer)
 	log.Println("Interpolation:", "NearestNeighbor")
 	log.Println("NoProxyHeaders:", conf.NoProxyHeaders)

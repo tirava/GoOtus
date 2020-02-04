@@ -17,9 +17,15 @@ type ConfigInMemory struct {
 
 // NewConfig returns new config struct.
 func NewConfig(config string) (ConfigInMemory, error) {
-	m := ConfigInMemory{
-		models.Config{}.GetDefaults(),
+	var err error
+
+	m := ConfigInMemory{}
+
+	m.Config, err = m.FillConfig(m.Config)
+	if err != nil {
+		return ConfigInMemory{}, err
 	}
+
 	m.Source = config
 	m.LogFile = "/dev/stderr"
 

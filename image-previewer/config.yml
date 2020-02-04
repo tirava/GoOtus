@@ -8,7 +8,7 @@ log_file: /dev/stderr
 
 # loglevel - none | error |  warn | info | debug
 # default - info
-log_level: error
+log_level: #error
 
 # ip:port for listening http
 # default - :8080
