@@ -12,7 +12,6 @@ golangci-lint:
   stage: linters_and_tests
   image: golangci/golangci-lint
   script:
-    - chmod +x ./build/ci/run_linters.sh
     - ./build/ci/run_linters.sh
 
 unit-test:

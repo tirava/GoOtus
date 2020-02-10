@@ -16,9 +16,10 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	fmt.Println("Wait 5s for services availability...")
+	// sleep is need for ready network interfaces (for Linux it to 5s but MacOS requires 10+s)
+	fmt.Println("Wait 10s for services availability...")
 	// nolint
-	time.Sleep(5 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	status := godog.RunWithOptions("integration", func(s *godog.Suite) {
 		FeatureContext(s)
