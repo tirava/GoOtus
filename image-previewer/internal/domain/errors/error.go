@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 28.01.2020 15:46
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package errors implements base preview errors.
 package errors
 

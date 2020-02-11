@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 19.01.2020 13:45
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package xdraw implements x/draw image resizer.
 // golang.org/x/image/draw
 package xdraw

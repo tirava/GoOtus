@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 26.01.2020 14:59
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package storage implements storage interface.
 package storage
 

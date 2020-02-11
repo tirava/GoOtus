@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 22.01.2020 21:11
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package http
 
 import (

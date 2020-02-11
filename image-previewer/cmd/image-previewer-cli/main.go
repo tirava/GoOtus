@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 10.01.2020 13:20
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package main
 
 import (
@@ -17,17 +11,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"gitlab.com/tirava/image-previewer/internal/helpers"
-
 	"gitlab.com/tirava/image-previewer/internal/configs"
-
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
-
 	"gitlab.com/tirava/image-previewer/internal/domain/preview"
+	"gitlab.com/tirava/image-previewer/internal/helpers"
 )
 
 const (
-	usage             = 2
 	previewConfigPath = "PREVIEWER_CONFIG_PATH"
 )
 
@@ -49,7 +39,8 @@ func main() {
 
 	if *width == 0 || *height == 0 || *imageFile == "" {
 		flag.Usage()
-		os.Exit(usage)
+		// nolint:gomnd
+		os.Exit(2)
 	}
 
 	if os.Getenv(previewConfigPath) != "" {

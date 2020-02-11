@@ -1,4 +1,3 @@
-// nolint
 //func (l *LRU) debugList() string {
 //	s, i := "", 0
 //	for e := l.list.Front(); e != nil; e = e.Next() {

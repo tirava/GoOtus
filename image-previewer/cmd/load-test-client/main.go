@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 02.02.2020 16:20
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package main
 
 import (
@@ -20,12 +14,10 @@ import (
 func main() {
 	fileName := filepath.Base(os.Args[0])
 	flag.Usage = func() {
-		fmt.Printf("Load test client for Preview image http server:\n"+
-			"Parameters:\n"+
+		fmt.Printf("Load test client for Preview image http server:\nParameters:\n"+
 			"%s -urllist=urlfile -http=http://address:port/preview "+
 			"-width=x -height=y -delay=x -cycles=x\n", fileName)
-		fmt.Printf("Example:\n"+
-			"%s -urllist=./examples/urlfile.txt "+
+		fmt.Printf("Example:\n%s -urllist=./examples/urlfile.txt "+
 			"-http=http://localhost:8080/preview "+
 			"-width=200 -height=100 -delay=100ms -cycles=10\n", fileName)
 		flag.PrintDefaults()
@@ -54,7 +46,7 @@ func main() {
 
 	if err := startLoadTest(*paramHTTPServer, urlList, *paramWidth, *paramHeight, delay, *paramCycles); err != nil {
 		log.Printf("Load test completed with errors:\n%s", err)
-		// nolint
+		// nolint:gomnd
 		os.Exit(1)
 	}
 

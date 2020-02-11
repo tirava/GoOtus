@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 10.01.2020 13:20
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package main
 
 import (
@@ -13,16 +7,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"gitlab.com/tirava/image-previewer/internal/configs"
+	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 	"gitlab.com/tirava/image-previewer/internal/helpers"
-
-	"gitlab.com/tirava/image-previewer/internal/models"
-
 	"gitlab.com/tirava/image-previewer/internal/http"
 	"gitlab.com/tirava/image-previewer/internal/loggers"
-
-	"gitlab.com/tirava/image-previewer/internal/configs"
-
-	"gitlab.com/tirava/image-previewer/internal/domain/entities"
+	"gitlab.com/tirava/image-previewer/internal/models"
 )
 
 const previewConfigPath = "PREVIEWER_CONFIG_PATH"
@@ -30,8 +20,7 @@ const previewConfigPath = "PREVIEWER_CONFIG_PATH"
 func main() {
 	fileName := filepath.Base(os.Args[0])
 	flag.Usage = func() {
-		fmt.Printf("Start http server:\n"+
-			"%s [-config=configFile|inmemory]\n"+
+		fmt.Printf("Start http server:\n%s [-config=configFile|inmemory]\n"+
 			"[PREVIEWER_CONFIG_PATH=configFile|inmemory] %s\n",
 			fileName, fileName)
 		flag.PrintDefaults()

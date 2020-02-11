@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 21.01.2020 17:19
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package preview
 
 import (
@@ -15,17 +9,15 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gitlab.com/tirava/image-previewer/internal/models"
-
 	"gitlab.com/tirava/image-previewer/internal/caches"
+	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 	"gitlab.com/tirava/image-previewer/internal/encoders"
+	"gitlab.com/tirava/image-previewer/internal/models"
 	"gitlab.com/tirava/image-previewer/internal/previewers"
 	"gitlab.com/tirava/image-previewer/internal/storages"
-
-	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 )
 
-// nolint
+// nolint:gochecknoglobals
 var testCases = []struct {
 	description   string
 	originalImage string
@@ -62,7 +54,7 @@ var testCases = []struct {
 	},
 }
 
-// nolint
+// nolint:wsl
 func TestPreview(t *testing.T) {
 	for _, test := range testCases {
 		conf := models.Config{

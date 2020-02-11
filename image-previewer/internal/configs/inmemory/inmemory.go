@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 20.01.2020 11:44
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package inmemory
 
 import (

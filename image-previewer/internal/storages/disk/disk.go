@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 27.01.2020 10:57
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package disk implements storage on disk.
 package disk
 

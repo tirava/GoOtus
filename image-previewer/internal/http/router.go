@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 22.01.2020 21:13
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package http
 
 import (
@@ -13,19 +7,16 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/prometheus/common/log"
-
 	"gitlab.com/tirava/image-previewer/internal/models"
 
+	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
+	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
 
-	"github.com/google/uuid"
-
-	// nolint
+	// nolint:gosec
 	_ "net/http/pprof" // debug/pprof/
-
-	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 )
 
 type contextKey string
@@ -49,27 +40,40 @@ func (h handler) prepareRoutes() http.Handler {
 
 	go func() {
 		h.logger.Infof("Starting HTTP prometheus exporter at: %s", h.prometPort)
+
+		// nolint:godox
+		// todo graceful shutdown
+		go func() {
+			<-h.shutdownOthers
+			h.logger.Infof("Shutdown HTTP prometheus exporter at: %s", h.prometPort)
+		}()
+
 		err := http.ListenAndServe(h.prometPort, promhttp.Handler())
 
 		if err != nil && err != http.ErrServerClosed {
 			h.logger.Errorf(err.Error())
-			os.Exit(fail)
+			// nolint:gomnd
+			os.Exit(1)
 		}
-		// need safely shutdown?
-		h.logger.Infof("Shutdown HTTP prometheus exporter at: %s", h.prometPort)
 	}()
 
 	go func() {
 		h.logger.Infof("Starting HTTP pprof at: %s", h.pprofPort)
 
+		// nolint:godox
+		// todo graceful shutdown
+		go func() {
+			<-h.shutdownOthers
+			h.logger.Infof("Shutdown HTTP pprof at: %s", h.pprofPort)
+		}()
+
 		err := http.ListenAndServe(h.pprofPort, nil)
 
 		if err != nil && err != http.ErrServerClosed {
 			h.logger.Errorf(err.Error())
-			os.Exit(fail)
+			// nolint:gomnd
+			os.Exit(1)
 		}
-
-		h.logger.Infof("Shutdown HTTP pprof at: %s", h.pprofPort)
 	}()
 
 	return hPromet

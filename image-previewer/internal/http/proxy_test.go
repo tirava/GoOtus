@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 24.01.2020 12:48
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package http
 
 import (
@@ -28,7 +22,7 @@ func TestProxyHeaders(t *testing.T) {
 		"X-111": {"111"},
 	}
 
-	req, err := http.NewRequest("GET", "http://www.klim.go", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://www.klim.go", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

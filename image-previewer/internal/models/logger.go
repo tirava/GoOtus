@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 20.01.2020 22:55
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package models
 
 // Loggerer is the main interface for loggers.

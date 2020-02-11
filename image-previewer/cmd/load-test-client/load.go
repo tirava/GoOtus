@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 02.02.2020 16:56
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package main
 
 import (
@@ -25,7 +19,7 @@ func startLoadTest(httpServer string, urlList []string, width, height int,
 		var eg errgroup.Group
 
 		for _, url := range urlList {
-			// nolint
+			// nolint:gomnd
 			if len(url) < 3 { // no fake strings
 				continue
 			}
@@ -37,7 +31,7 @@ func startLoadTest(httpServer string, urlList []string, width, height int,
 			eg.Go(func() error {
 				fullPath := path.Join(httpServer, strconv.Itoa(width), strconv.Itoa(height), url)
 				fullPath = strings.ReplaceAll(fullPath, ":/", "://")
-				// nolint
+				// nolint:gosec
 				resp, err := http.Get(fullPath)
 				if err != nil {
 					return err

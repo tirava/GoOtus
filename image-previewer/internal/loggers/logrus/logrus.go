@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 20.01.2020 22:59
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package logrus implements logrus logger.
 package logrus
 

@@ -1,30 +1,23 @@
-/*
- * Project: Image Previewer
- * Created on 26.01.2020 20:19
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package storages implements storage interface.
 package storages
 
 import (
-	"errors"
-
-	"gitlab.com/tirava/image-previewer/internal/storages/disk"
-
-	"gitlab.com/tirava/image-previewer/internal/storages/inmemory"
+	"fmt"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/storage"
+	"gitlab.com/tirava/image-previewer/internal/models"
+	"gitlab.com/tirava/image-previewer/internal/storages/disk"
+	"gitlab.com/tirava/image-previewer/internal/storages/inmemory"
 )
 
 // NewStorager returns storage implementer.
 func NewStorager(implementer, storPath string) (storage.Storager, error) {
 	switch implementer {
-	case "disk":
+	case models.Disk:
 		return disk.NewStorage(storPath)
-	case "inmemory":
+	case models.InMemory:
 		return inmemory.NewStorage()
 	}
 
-	return nil, errors.New("incorrect storage implementer name")
+	return nil, fmt.Errorf("incorrect storage implementer name: %s", implementer)
 }

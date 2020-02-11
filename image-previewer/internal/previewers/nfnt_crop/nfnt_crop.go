@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 17.01.2020 11:38
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package nfntcrop implements nfnt image resizer.
 // https://github.com/nfnt/resize
 // crop is implemented by Eugene Klimov

@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 26.01.2020 17:44
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package nolimit implements cache with simple nolimit algorithm.
 package nolimit
 

@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 27.01.2020 12:24
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package helpers implements helpers funcs.
 package helpers
 

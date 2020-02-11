@@ -4,7 +4,7 @@ services:
   image-previewer-http-server:
     build:
       context: .
-      dockerfile: deployments/docker/image_previewer/Dockerfile
+      dockerfile: build/package/docker/image_previewer/Dockerfile
     container_name: image-previewer-http-server
     restart: always
     command: make run
@@ -24,7 +24,7 @@ services:
     container_name: image-previewer-prometheus
     image: prom/prometheus
     volumes:
-      - ./deployments/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./build/package/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
       - image-previewer-http-server
     expose:

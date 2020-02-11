@@ -1,19 +1,11 @@
-/*
- * Project: Image Previewer
- * Created on 28.01.2020 22:33
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package lru
 
 import (
 	"image"
 	"testing"
 
-	"gitlab.com/tirava/image-previewer/internal/domain/errors"
-
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
-
+	"gitlab.com/tirava/image-previewer/internal/domain/errors"
 	"gitlab.com/tirava/image-previewer/internal/domain/preview"
 	"gitlab.com/tirava/image-previewer/internal/encoders"
 	"gitlab.com/tirava/image-previewer/internal/previewers"
@@ -36,10 +28,10 @@ type expResult struct {
 	err error
 }
 
-// nolint
+// nolint:gochecknoglobals
 var testImage = image.NewRGBA(image.Rect(0, 0, 100, 100))
 
-// nolint
+// nolint:gochecknoglobals
 var testCases = []struct {
 	description string
 	actions     []cacheActions
@@ -155,10 +147,14 @@ func addItemIntoStorage(item entities.CacheItem) cacheActions {
 	}
 }
 
-// nolint
 func isItemInCache(url string, expected expResult) cacheActions {
 	return func(t *testing.T, p *preview.Preview) {
-		_, ok, err := p.IsItemInCache(url)
+		hash, err := p.CalcHash(url)
+		if err != nil {
+			t.Errorf("CalcHash() returned error: %s", err)
+		}
+
+		_, ok, err := p.IsItemInCache(hash)
 		if ok != expected.ok {
 			t.Errorf("IsItemInCache() returned wrong, expected ok=%t, got ok=%t",
 				expected.ok, ok)
@@ -175,7 +171,7 @@ func isItemInCache(url string, expected expResult) cacheActions {
 	}
 }
 
-// nolint
+// nolint:unused, deadcode
 func deleteItemInCache(item entities.CacheItem, expected expResult) cacheActions {
 	return func(t *testing.T, p *preview.Preview) {
 		err := p.Storager.Delete(item)
@@ -186,7 +182,6 @@ func deleteItemInCache(item entities.CacheItem, expected expResult) cacheActions
 	}
 }
 
-// nolint
 func TestCache(t *testing.T) {
 	for _, test := range testCases {
 		prev, err := initPreview(

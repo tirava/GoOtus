@@ -1,22 +1,14 @@
-/*
- * Project: Image Previewer
- * Created on 17.01.2020 11:57
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package preview implements business logic.
 package preview
 
 import (
 	"image"
 
-	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/cache"
-	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/storage"
-
-	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/encode"
-
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
+	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/cache"
+	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/encode"
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/preview"
+	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/storage"
 )
 
 const anchorBaseDivImage = 2 // 2 - center
@@ -30,11 +22,7 @@ type Preview struct {
 }
 
 // NewPreview inits main Preview fields.
-func NewPreview(
-	prevImpl preview.Previewer,
-	encImpl encode.Hasher,
-	cacheImpl cache.Cacher,
-	storImpl storage.Storager,
+func NewPreview(prevImpl preview.Previewer, encImpl encode.Hasher, cacheImpl cache.Cacher, storImpl storage.Storager,
 ) (*Preview, error) {
 	return &Preview{
 		Previewer:       prevImpl,
@@ -50,8 +38,7 @@ func (p Preview) Preview(width, height int, img image.Image, opts entities.Resiz
 		return img
 	}
 
-	wr, hr := 0, 0
-	x, y := 0, 0
+	var wr, hr, x, y int
 
 	wb := float64(width) / float64(img.Bounds().Max.X)
 	hb := float64(height) / float64(img.Bounds().Max.Y)
@@ -75,18 +62,21 @@ func (p Preview) Preview(width, height int, img image.Image, opts entities.Resiz
 	return pr
 }
 
-// IsItemInCache returns image if it in the cache.
-func (p Preview) IsItemInCache(url string) (entities.CacheItem, bool, error) {
+// CalcHash calculates hash for url.
+func (p Preview) CalcHash(url string) (string, error) {
 	hash, err := p.ImageURLEncoder.Encode(url)
 	if err != nil {
-		return entities.CacheItem{}, false, err
+		return "", err
 	}
 
+	return hash, nil
+}
+
+// IsItemInCache returns image if it in the cache.
+func (p Preview) IsItemInCache(hash string) (entities.CacheItem, bool, error) {
 	item, ok, err := p.Cacher.Get(hash)
 	if !ok {
-		return entities.CacheItem{
-			Hash: hash,
-		}, false, err
+		return entities.CacheItem{}, false, err
 	}
 
 	return item, true, nil

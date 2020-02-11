@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 20.01.2020 23:01
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package logstd implements std log logger.
 package logstd
 

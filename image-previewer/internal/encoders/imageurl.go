@@ -1,34 +1,28 @@
-/*
- * Project: Image Previewer
- * Created on 26.01.2020 15:33
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package encoders implements encoders interface.
 package encoders
 
+// nolint:gosec
 import (
-	"errors"
-
-	"gitlab.com/tirava/image-previewer/internal/encoders/sha256hash"
-
-	"gitlab.com/tirava/image-previewer/internal/encoders/sha1hash"
-
-	"gitlab.com/tirava/image-previewer/internal/encoders/md5hash"
+	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
+	"fmt"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/encode"
+	"gitlab.com/tirava/image-previewer/internal/encoders/hash"
+	"gitlab.com/tirava/image-previewer/internal/models"
 )
 
 // NewImageURLEncoder returns previewer implementer.
 func NewImageURLEncoder(implementer string) (encode.Hasher, error) {
 	switch implementer {
-	case "md5":
-		return md5hash.NewHash()
-	case "sha1":
-		return sha1hash.NewHash()
-	case "sha256":
-		return sha256hash.NewHash()
+	case models.MD5:
+		return hash.NewHash(md5.New()) // nolint:gosec
+	case models.SHA1:
+		return hash.NewHash(sha1.New()) // nolint:gosec
+	case models.SHA256:
+		return hash.NewHash(sha256.New())
 	}
 
-	return nil, errors.New("incorrect url encoder implementer name")
+	return nil, fmt.Errorf("incorrect url encoder implementer name: %s", implementer)
 }

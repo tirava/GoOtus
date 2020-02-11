@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 26.01.2020 20:27
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package inmemory implements storage in memory map.
 package inmemory
 
@@ -11,9 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"gitlab.com/tirava/image-previewer/internal/domain/errors"
-
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
+	"gitlab.com/tirava/image-previewer/internal/domain/errors"
 )
 
 // InMemory is the base inmemory type.

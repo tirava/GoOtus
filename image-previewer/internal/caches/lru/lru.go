@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 28.01.2020 14:41
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package lru implements LRU cache algorithm .
 package lru
 

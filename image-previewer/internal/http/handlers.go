@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 22.01.2020 21:12
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package http
 
 import (
@@ -22,9 +16,7 @@ import (
 	"strings"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
-
 	"gitlab.com/tirava/image-previewer/internal/domain/preview"
-
 	"gitlab.com/tirava/image-previewer/internal/models"
 )
 
@@ -44,31 +36,33 @@ const (
 )
 
 type handler struct {
-	handlers      map[string]http.HandlerFunc
-	cacheHandlers map[string]*regexp.Regexp
-	preview       preview.Preview
-	opts          entities.ResizeOptions
-	logger        models.Loggerer
-	noHeaders     []string
-	prometPort    string
-	pprofPort     string
-	storPath      string
-	error         Error
+	handlers       map[string]http.HandlerFunc
+	cacheHandlers  map[string]*regexp.Regexp
+	preview        preview.Preview
+	opts           entities.ResizeOptions
+	logger         models.Loggerer
+	noHeaders      []string
+	prometPort     string
+	pprofPort      string
+	storPath       string
+	error          Error
+	shutdownOthers chan struct{}
 }
 
 func newHandlers(logger models.Loggerer, conf models.Config,
 	preview preview.Preview, opts entities.ResizeOptions) *handler {
 	return &handler{
-		handlers:      make(map[string]http.HandlerFunc),
-		cacheHandlers: make(map[string]*regexp.Regexp),
-		preview:       preview,
-		opts:          opts,
-		logger:        logger,
-		noHeaders:     conf.NoProxyHeaders,
-		prometPort:    conf.ListenPrometheus,
-		pprofPort:     conf.ListenPprof,
-		storPath:      conf.StoragePath,
-		error:         newError(logger),
+		handlers:       make(map[string]http.HandlerFunc),
+		cacheHandlers:  make(map[string]*regexp.Regexp),
+		preview:        preview,
+		opts:           opts,
+		logger:         logger,
+		noHeaders:      conf.NoProxyHeaders,
+		prometPort:     conf.ListenPrometheus,
+		pprofPort:      conf.ListenPprof,
+		storPath:       conf.StoragePath,
+		error:          newError(logger),
+		shutdownOthers: make(chan struct{}),
 	}
 }
 
@@ -147,6 +141,7 @@ func (h handler) previewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.WithFields(models.LoggerFields{
+		URLField:   r.URL.Path,
 		CodeField:  status,
 		ReqIDField: getRequestID(r.Context()),
 	}).Infof("previewed successfully")
@@ -207,7 +202,7 @@ func (h handler) getSourceImage(w http.ResponseWriter, r *http.Request, url stri
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", prefix, url), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", prefix, url), nil)
 
 	if err != nil {
 		return img, "", http.StatusNotFound, fmt.Errorf("unable create new request: %w", err)
@@ -239,8 +234,7 @@ func (h handler) getSourceImage(w http.ResponseWriter, r *http.Request, url stri
 	return h.decodeAndCacheImage(r, raw, url, cached.Hash)
 }
 
-func (h handler) decodeAndCacheImage(
-	r *http.Request, raw []byte, url, hash string) (image.Image, string, int, error) {
+func (h handler) decodeAndCacheImage(r *http.Request, raw []byte, url, hash string) (image.Image, string, int, error) {
 	br := bytes.NewReader(raw)
 
 	img, ext, err := image.Decode(br)
@@ -275,7 +269,13 @@ func (h handler) decodeAndCacheImage(
 }
 
 func (h handler) isItemInCache(r *http.Request, url string) (entities.CacheItem, bool) {
-	cached, ok, err := h.preview.IsItemInCache(url)
+	hash, err := h.preview.CalcHash(url)
+	if err != nil {
+		h.logger.Errorf("error while encode url into hash string: %s", err)
+		return entities.CacheItem{}, false
+	}
+
+	cached, ok, err := h.preview.IsItemInCache(hash)
 	if err != nil {
 		h.logger.Errorf("error while check image in cache: %s", err)
 		return cached, false
@@ -286,6 +286,8 @@ func (h handler) isItemInCache(r *http.Request, url string) (entities.CacheItem,
 			URLField:   url,
 			ReqIDField: getRequestID(r.Context()),
 		}).Debugf("image not found in cache")
+
+		cached.Hash = hash
 
 		return cached, false
 	}

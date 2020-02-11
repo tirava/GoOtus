@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 30.01.2020 16:22
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package main
 
 import (
@@ -32,7 +26,7 @@ func (t *previewTest) iSendRequestTo(httpMethod, addr string) error {
 
 	switch httpMethod {
 	case http.MethodGet:
-		// nolint
+		// nolint:gosec, bodyclose
 		r, err = http.Get(addr)
 	default:
 		err = fmt.Errorf("unknown method: %s", httpMethod)
@@ -41,6 +35,7 @@ func (t *previewTest) iSendRequestTo(httpMethod, addr string) error {
 	if err != nil {
 		return err
 	}
+	defer r.Body.Close()
 
 	t.responseStatusCode = r.StatusCode
 	t.responseBody, err = ioutil.ReadAll(r.Body)
@@ -48,7 +43,6 @@ func (t *previewTest) iSendRequestTo(httpMethod, addr string) error {
 	if err != nil {
 		return err
 	}
-	defer r.Body.Close()
 
 	t.cacheHeaderVal = r.Header.Get("From-Cache")
 

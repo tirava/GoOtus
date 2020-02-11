@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 20.01.2020 11:06
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 // Package models implements models.
 package models
 
@@ -14,7 +8,21 @@ import (
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 )
 
-const maxCacheItems = 128
+// implementer's constants.
+const (
+	LogStd        = "logstd"
+	LogRus        = "logrus"
+	XDraw         = "xdraw"
+	NfntCrop      = "nfnt_crop"
+	MD5           = "md5"
+	SHA1          = "sha1"
+	SHA256        = "sha256"
+	LRU           = "lru"
+	NoLimit       = "nolimit"
+	Disk          = "disk"
+	InMemory      = "inmemory"
+	maxCacheItems = 128
+)
 
 // Configer is the main interface for configs.
 type Configer interface {
@@ -48,17 +56,17 @@ type ConfigDefaults map[string]interface{}
 func (c Config) GetDefaults() ConfigDefaults {
 	config := make(ConfigDefaults)
 	config["Source"] = ""
-	config["Logger"] = "logstd"
+	config["Logger"] = LogStd
 	config["LogFile"] = "previewer.log"
 	config["LogLevel"] = "info"
 	config["ListenHTTP"] = ":8080"
 	config["ListenPrometheus"] = ":9180"
 	config["ListenPprof"] = ":8181"
-	config["Previewer"] = "xdraw"
-	config["ImageURLEncoder"] = "md5"
-	config["Cacher"] = "lru"
+	config["Previewer"] = XDraw
+	config["ImageURLEncoder"] = MD5
+	config["Cacher"] = LRU
 	config["MaxCacheItems"] = int64(maxCacheItems)
-	config["Storager"] = "disk"
+	config["Storager"] = Disk
 	config["StoragePath"] = "cache"
 
 	return config

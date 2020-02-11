@@ -1,9 +1,3 @@
-/*
- * Project: Image Previewer
- * Created on 23.01.2020 13:20
- * Copyright (c) 2020 - Eugene Klimov
- */
-
 package http
 
 import (
@@ -17,15 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.com/tirava/image-previewer/internal/helpers"
-
-	"gitlab.com/tirava/image-previewer/internal/models"
-
-	"gitlab.com/tirava/image-previewer/internal/domain/entities"
-
 	"gitlab.com/tirava/image-previewer/internal/configs"
+	"gitlab.com/tirava/image-previewer/internal/domain/entities"
 	"gitlab.com/tirava/image-previewer/internal/domain/preview"
+	"gitlab.com/tirava/image-previewer/internal/helpers"
 	"gitlab.com/tirava/image-previewer/internal/loggers"
+	"gitlab.com/tirava/image-previewer/internal/models"
 )
 
 const (
@@ -34,7 +25,7 @@ const (
 	imageHeight    = 400
 )
 
-// nolint
+// nolint:gochecknoglobals
 var testCases = []struct {
 	description string
 	urlPath     string
@@ -106,7 +97,7 @@ func TestGetHello(t *testing.T) {
 
 	handlers = newHandlers(lg, models.Config{}, *prev, entities.ResizeOptions{})
 
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
 	query := req.URL.Query()
 	query.Add("name", "Klim")
@@ -162,7 +153,7 @@ func TestPreviewHandler(t *testing.T) {
 	handler := http.HandlerFunc(handlers.previewHandler)
 
 	for _, test := range testCases {
-		req := httptest.NewRequest("GET", test.urlPath+ts.URL+test.imageName, nil)
+		req := httptest.NewRequest(http.MethodGet, test.urlPath+ts.URL+test.imageName, nil)
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
 
