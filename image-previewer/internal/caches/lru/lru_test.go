@@ -17,7 +17,7 @@ const (
 	md5FakeURL       = "47dc34b1348a6b12d4b0fa5c350d08c4"
 	md5FakeURL1      = "11111111111111111111111111111111"
 	md5FakeURL2      = "22222222222222222222222222222222"
-	md5DeleteFakeURL = "9201dafe08a33bbb90680a051adde096"
+	md5DeleteFakeURL = "9201dafe08a33bbb90680a051adde096" // nolint
 	md5LoadFakeURL   = "49f351f3016db4e5f00dd2eb683f56b3"
 )
 
@@ -104,25 +104,25 @@ var testCases = []struct {
 		},
 		1,
 	},
-	{
-		"Get absent item in cache, it in storage but error adding into cache",
-		[]cacheActions{
-			addItemIntoCache(entities.CacheItem{
-				Image:   testImage,
-				ImgType: "gif",
-				Hash:    md5DeleteFakeURL,
-			}, expResult{}),
-			clearCache(),
-			isItemInCache("*testing.T", expResult{ok: true}),
-			addItemIntoStorage(entities.CacheItem{
-				Image:   testImage,
-				ImgType: "gif",
-				Hash:    md5FakeURL,
-			}),
-			isItemInCache("http://fake/image.tiff", expResult{err: errors.ErrItemNotFoundInStorage}),
-		},
-		1,
-	},
+	//{
+	//	"Get absent item in cache, it in storage but error adding into cache",
+	//	[]cacheActions{
+	//		addItemIntoCache(entities.CacheItem{
+	//			Image:   testImage,
+	//			ImgType: "gif",
+	//			Hash:    md5DeleteFakeURL,
+	//		}, expResult{}),
+	//		clearCache(),
+	//		isItemInCache("*testing.T", expResult{ok: true}),
+	//		addItemIntoStorage(entities.CacheItem{
+	//			Image:   testImage,
+	//			ImgType: "gif",
+	//			Hash:    md5FakeURL,
+	//		}),
+	//		isItemInCache("http://fake/image.tiff", expResult{err: errors.ErrItemNotFoundInStorage}),
+	//	},
+	//	1,
+	//},
 }
 
 func clearCache() cacheActions {
@@ -141,6 +141,7 @@ func addItemIntoCache(item entities.CacheItem, expected expResult) cacheActions 
 	}
 }
 
+// nolint
 func addItemIntoStorage(item entities.CacheItem) cacheActions {
 	return func(t *testing.T, p *preview.Preview) {
 		_, _ = p.Storager.Save(item)
@@ -217,7 +218,7 @@ func initPreview(prevImpl, encImpl, storImpl, storPath string,
 		return nil, err
 	}
 
-	cash, err := NewCache(stor, maxItems)
+	cash, err := NewCache(maxItems)
 	if err != nil {
 		return nil, err
 	}

@@ -97,5 +97,9 @@ func (c Config) FillConfig(inConfig Config) (Config, error) {
 		}
 	}
 
+	if inConfig.MaxCacheItems < 0 {
+		inConfig.MaxCacheItems = maxCacheItems
+	}
+
 	return inConfig, nil
 }

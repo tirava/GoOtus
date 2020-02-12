@@ -186,7 +186,7 @@ func initPreview(conf models.Config) (*Preview, error) {
 		return nil, err
 	}
 
-	cash, err := caches.NewCacher(conf.Cacher, stor, conf.MaxCacheItems)
+	cash, err := caches.NewCacher(conf.Cacher, conf.MaxCacheItems)
 	if err != nil {
 		return nil, err
 	}

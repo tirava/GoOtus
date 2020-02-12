@@ -5,11 +5,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hash"
+	"sync"
 )
 
 // Hash is the base hash type.
 type Hash struct {
 	hasher hash.Hash
+	sync.RWMutex
 }
 
 // NewHash returns new hash struct.
@@ -18,7 +20,9 @@ func NewHash(hasher hash.Hash) (*Hash, error) {
 }
 
 // Encode hashes url to hash.
-func (h Hash) Encode(imageURL string) (string, error) {
+func (h *Hash) Encode(imageURL string) (string, error) {
+	h.Lock()
+	defer h.Unlock()
 	h.hasher.Reset()
 
 	_, err := h.hasher.Write([]byte(imageURL))

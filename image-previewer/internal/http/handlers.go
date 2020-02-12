@@ -276,6 +276,8 @@ func (h handler) isItemInCache(r *http.Request, url string) (entities.CacheItem,
 	}
 
 	cached, ok, err := h.preview.IsItemInCache(hash)
+	cached.Hash = hash // cached never will be nil
+
 	if err != nil {
 		h.logger.Errorf("error while check image in cache: %s", err)
 		return cached, false
@@ -286,8 +288,6 @@ func (h handler) isItemInCache(r *http.Request, url string) (entities.CacheItem,
 			URLField:   url,
 			ReqIDField: getRequestID(r.Context()),
 		}).Debugf("image not found in cache")
-
-		cached.Hash = hash
 
 		return cached, false
 	}

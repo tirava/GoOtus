@@ -2,6 +2,7 @@
 package preview
 
 import (
+	"fmt"
 	"image"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
@@ -74,9 +75,32 @@ func (p Preview) CalcHash(url string) (string, error) {
 
 // IsItemInCache returns image if it in the cache.
 func (p Preview) IsItemInCache(hash string) (entities.CacheItem, bool, error) {
-	item, ok, err := p.Cacher.Get(hash)
+	item, ok := p.Cacher.Get(hash)
+
 	if !ok {
-		return entities.CacheItem{}, false, err
+		if ok, _ := p.Storager.IsItemExist(hash); ok {
+			item, err := p.Storager.Load(hash)
+			if err != nil {
+				return entities.CacheItem{}, false, err
+			}
+
+			if _, err := p.Cacher.Add(item); err != nil {
+				return entities.CacheItem{}, false, err
+			}
+
+			return item, true, nil
+		}
+
+		return entities.CacheItem{}, false, nil
+	}
+
+	if item.Image == nil {
+		var err error
+		item, err = p.Storager.Load(hash)
+
+		if err != nil {
+			return entities.CacheItem{}, false, err
+		}
 	}
 
 	return item, true, nil
@@ -84,7 +108,26 @@ func (p Preview) IsItemInCache(hash string) (entities.CacheItem, bool, error) {
 
 // AddItemIntoCache adds image into cache.
 func (p Preview) AddItemIntoCache(item entities.CacheItem) (bool, error) {
-	return p.Cacher.Add(item)
+	delItem, err := p.Cacher.Add(item)
+	if err != nil {
+		return false, err
+	}
+
+	var errDel error
+	if delItem.Hash != "" {
+		errDel = p.Storager.Delete(delItem)
+	}
+
+	ok, errSave := p.Storager.Save(item)
+
+	if errDel != nil || errSave != nil {
+		err = fmt.Errorf("%s%s", errDel, errSave)
+	}
+
+	// no need raw bytes anymore
+	item.RawBytes = nil
+
+	return ok, err
 }
 
 // Close closes any open handlers.

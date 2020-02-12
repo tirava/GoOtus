@@ -5,21 +5,18 @@ import (
 	"sync"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
-	"gitlab.com/tirava/image-previewer/internal/domain/interfaces/storage"
 )
 
 // NoLimit is the base nolimit type.
 type NoLimit struct {
 	sync.RWMutex
-	cache   map[string]struct{}
-	storage storage.Storager
+	cache map[string]struct{}
 }
 
 // NewCache returns new cache struct.
-func NewCache(storage storage.Storager) (*NoLimit, error) {
+func NewCache() (*NoLimit, error) {
 	return &NoLimit{
-		cache:   make(map[string]struct{}),
-		storage: storage,
+		cache: make(map[string]struct{}),
 	}, nil
 }
 
@@ -28,36 +25,20 @@ func (nl *NoLimit) Clear() {
 	nl.cache = make(map[string]struct{})
 }
 
-// Add adds item into cache.
-func (nl *NoLimit) Add(item entities.CacheItem) (bool, error) {
+// Add adds item into cache and returns deleted item.
+func (nl *NoLimit) Add(item entities.CacheItem) (entities.CacheItem, error) {
 	nl.RWMutex.Lock()
 	defer nl.RWMutex.Unlock()
 	nl.cache[item.Hash] = struct{}{}
 
-	return nl.storage.Save(item)
+	return entities.CacheItem{}, nil
 }
 
 // Get got item from cache.
-func (nl *NoLimit) Get(hash string) (entities.CacheItem, bool, error) {
-	nl.RWMutex.Lock()
-	_, ok := nl.cache[hash]
-	nl.RWMutex.Unlock()
-
-	if !ok {
-		if ok, _ := nl.storage.IsItemExist(hash); ok {
-			item := entities.CacheItem{Hash: hash}
-			if _, err := nl.Add(item); err != nil {
-				return entities.CacheItem{}, false, err
-			}
-		} else {
-			return entities.CacheItem{}, false, nil
-		}
+func (nl *NoLimit) Get(hash string) (entities.CacheItem, bool) {
+	if _, ok := nl.cache[hash]; !ok {
+		return entities.CacheItem{}, false
 	}
 
-	item, err := nl.storage.Load(hash)
-	if err != nil {
-		return entities.CacheItem{}, false, err
-	}
-
-	return item, true, nil
+	return entities.CacheItem{}, true
 }
