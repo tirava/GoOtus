@@ -5,7 +5,7 @@ build:
 	go build -o app/image-previewer-cli cmd/image-previewer-cli/*.go
 	go build -o app/load-test-client cmd/load-test-client/*.go
 
-run: build
+run:
 	./app/image-previewer
 
 docker-build:

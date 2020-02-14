@@ -76,6 +76,14 @@ func (h handler) errorHelper(w http.ResponseWriter, r *http.Request, code int,
 	h.error.send(w, code, errSend, description)
 }
 
+func (h handler) headHandler(w http.ResponseWriter, r *http.Request) {
+	h.logger.WithFields(models.LoggerFields{
+		URLField:   r.URL.Path,
+		CodeField:  http.StatusOK,
+		ReqIDField: getRequestID(r.Context()),
+	}).Infof("RESPONSE HEAD")
+}
+
 func (h handler) helloHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	name := query.Get("name")

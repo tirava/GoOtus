@@ -28,6 +28,7 @@ func (h handler) prepareRoutes() http.Handler {
 
 	h.addPath("GET /hello/*", h.helloHandler)
 	h.addPath("GET /preview(/.*)", h.previewHandler)
+	h.addPath("HEAD /", h.headHandler)
 
 	siteHandler := h.pathMiddleware(siteMux)
 	siteHandler = h.loggerMiddleware(siteHandler)

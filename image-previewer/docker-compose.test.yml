@@ -7,9 +7,7 @@ services:
       dockerfile: integration_tests/Dockerfile
     container_name: image-previewer-integration-tests
     image: image-previewer-integration-tests
-    environment:
-      - CGO_ENABLED=0
-    command: go test ./integration_tests/... -v
+    command: ./integration_tests
     depends_on:
       - image-previewer-http-server
       - image-previewer-image-server

@@ -1,6 +1,6 @@
 .idea/
 app/
-cache*/
+cache/
 *_resized_*
 cover.*
 *.out

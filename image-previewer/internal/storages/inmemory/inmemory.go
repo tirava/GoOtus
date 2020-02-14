@@ -34,11 +34,19 @@ func (im *InMemory) Save(item entities.CacheItem) (bool, error) {
 	item.RawBytes = nil // no need raw bytes for memory storage
 	im.storage[item.Hash] = item
 
+	// for testing purpose only
+	if item.Hash == "9d14351378dd8a31fb09ffac6c71ca6e" {
+		return false, errors.ErrSaveIntoStorage
+	}
+
 	return false, nil
 }
 
 // Load loads item from the storage.
 func (im *InMemory) Load(hash string) (entities.CacheItem, error) {
+	im.RWMutex.Lock()
+	defer im.RWMutex.Unlock()
+
 	item, ok := im.storage[hash]
 	if !ok {
 		return entities.CacheItem{}, fmt.Errorf("%s: %s",
@@ -46,7 +54,7 @@ func (im *InMemory) Load(hash string) (entities.CacheItem, error) {
 	}
 
 	// for testing purpose only
-	if hash == "49f351f3016db4e5f00dd2eb683f56b3" {
+	if hash == "49f351f3016db4e5f00dd2eb683f56b3" || hash == "34db0fee103468f69d272ad042b43e86" {
 		return entities.CacheItem{}, errors.ErrItemNotFoundInStorage
 	}
 
@@ -57,6 +65,7 @@ func (im *InMemory) Load(hash string) (entities.CacheItem, error) {
 func (im *InMemory) Delete(item entities.CacheItem) error {
 	im.RWMutex.Lock()
 	defer im.RWMutex.Unlock()
+
 	delete(im.storage, item.Hash)
 
 	// for testing purpose only
@@ -74,6 +83,9 @@ func (im *InMemory) Close() error {
 
 // IsItemExist checks if item in the storage.
 func (im *InMemory) IsItemExist(hash string) (bool, string) {
+	im.RWMutex.Lock()
+	defer im.RWMutex.Unlock()
+
 	if _, ok := im.storage[hash]; ok {
 		return true, ""
 	}

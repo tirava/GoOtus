@@ -5,37 +5,35 @@ import (
 	"testing"
 
 	"gitlab.com/tirava/image-previewer/internal/domain/entities"
-	"gitlab.com/tirava/image-previewer/internal/domain/errors"
-	"gitlab.com/tirava/image-previewer/internal/domain/preview"
-	"gitlab.com/tirava/image-previewer/internal/encoders"
-	"gitlab.com/tirava/image-previewer/internal/previewers"
-	"gitlab.com/tirava/image-previewer/internal/storages"
 )
 
-const (
-	fakeURL          = "http://fake/image.tiff"
-	md5FakeURL       = "47dc34b1348a6b12d4b0fa5c350d08c4"
-	md5FakeURL1      = "11111111111111111111111111111111"
-	md5FakeURL2      = "22222222222222222222222222222222"
-	md5DeleteFakeURL = "9201dafe08a33bbb90680a051adde096" // nolint
-	md5LoadFakeURL   = "49f351f3016db4e5f00dd2eb683f56b3"
-)
-
-type cacheActions func(*testing.T, *preview.Preview)
+type cacheActions func(*testing.T, *LRU)
 
 type expResult struct {
-	ok  bool
-	err error
+	ok    bool
+	err   error
+	order uint // from 1
 }
+
+const (
+	maxItems = 2
+	md5Fake  = "47dc34b1348a6b12d4b0fa5c350d08c4"
+	md5Fake1 = "11111111111111111111111111111111"
+	md5Fake2 = "22222222222222222222222222222222"
+	md5Fake3 = "33333333333333333333333333333333"
+	md5Fake4 = "44444444444444444444444444444444"
+	md5Fake5 = "55555555555555555555555555555555"
+	md5Fake6 = "66666666666666666666666666666666"
+	md5Fake7 = "77777777777777777777777777777777"
+)
 
 // nolint:gochecknoglobals
 var testImage = image.NewRGBA(image.Rect(0, 0, 100, 100))
 
-// nolint:gochecknoglobals
-var testCases = []struct {
+// nolint:gochecknoglobals, gomnd
+var testCasesLRU = []struct {
 	description string
 	actions     []cacheActions
-	maxItems    int
 }{
 	{
 		"Add item into cache, get it again",
@@ -43,11 +41,22 @@ var testCases = []struct {
 			addItemIntoCache(entities.CacheItem{
 				Image:   testImage,
 				ImgType: "gif",
-				Hash:    md5FakeURL,
+				Hash:    md5Fake,
 			}, expResult{}),
-			isItemInCache(fakeURL, expResult{ok: true}),
+			isItemInCache(md5Fake, expResult{ok: true}),
 		},
-		1,
+	},
+	{
+		"Add item and clear all cache",
+		[]cacheActions{
+			addItemIntoCache(entities.CacheItem{
+				Image:   testImage,
+				ImgType: "gif",
+				Hash:    md5Fake1,
+			}, expResult{}),
+			clearCache(),
+			isItemInCache(md5Fake1, expResult{}),
+		},
 	},
 	{
 		"Add item into cache, old item deleted",
@@ -55,173 +64,105 @@ var testCases = []struct {
 			addItemIntoCache(entities.CacheItem{
 				Image:   testImage,
 				ImgType: "gif",
-				Hash:    md5FakeURL,
+				Hash:    md5Fake2,
 			}, expResult{}),
 			addItemIntoCache(entities.CacheItem{
 				Image:   testImage,
 				ImgType: "gif",
-				Hash:    md5FakeURL1,
+				Hash:    md5Fake3,
 			}, expResult{}),
 			addItemIntoCache(entities.CacheItem{
 				Image:   testImage,
 				ImgType: "gif",
-				Hash:    md5FakeURL2,
+				Hash:    md5Fake4,
 			}, expResult{}),
-			isItemInCache(fakeURL, expResult{ok: false}),
+			isItemInCache(md5Fake2, expResult{ok: false}),
 		},
-		2,
 	},
 	{
-		"Item absent in cache, it in storage but error loading",
+		"Get Last Recent Used item",
 		[]cacheActions{
 			addItemIntoCache(entities.CacheItem{
 				Image:   testImage,
 				ImgType: "gif",
-				Hash:    md5LoadFakeURL,
+				Hash:    md5Fake5,
 			}, expResult{}),
-			clearCache(),
-			isItemInCache("*testing.T.Load", expResult{err: errors.ErrItemNotFoundInStorage}),
-		},
-		1,
-	},
-	{
-		"Get absent item from cache",
-		[]cacheActions{
-			isItemInCache("http://fake/image.tiff", expResult{}),
-		},
-		2,
-	},
-	{
-		"Get absent item in cache but it presented in storage",
-		[]cacheActions{
 			addItemIntoCache(entities.CacheItem{
 				Image:   testImage,
 				ImgType: "gif",
-				Hash:    md5FakeURL,
+				Hash:    md5Fake6,
 			}, expResult{}),
-			clearCache(),
-			isItemInCache("http://fake/image.tiff", expResult{ok: true}),
+			addItemIntoCache(entities.CacheItem{
+				Image:   testImage,
+				ImgType: "gif",
+				Hash:    md5Fake7,
+			}, expResult{}),
+			//checkItemOrder(md5Fake6, expResult{order: 2}),
+			isItemInCache(md5Fake6, expResult{ok: true}),
+			checkItemOrder(md5Fake6, expResult{order: 1}),
 		},
-		1,
 	},
-	//{
-	//	"Get absent item in cache, it in storage but error adding into cache",
-	//	[]cacheActions{
-	//		addItemIntoCache(entities.CacheItem{
-	//			Image:   testImage,
-	//			ImgType: "gif",
-	//			Hash:    md5DeleteFakeURL,
-	//		}, expResult{}),
-	//		clearCache(),
-	//		isItemInCache("*testing.T", expResult{ok: true}),
-	//		addItemIntoStorage(entities.CacheItem{
-	//			Image:   testImage,
-	//			ImgType: "gif",
-	//			Hash:    md5FakeURL,
-	//		}),
-	//		isItemInCache("http://fake/image.tiff", expResult{err: errors.ErrItemNotFoundInStorage}),
-	//	},
-	//	1,
-	//},
-}
-
-func clearCache() cacheActions {
-	return func(t *testing.T, p *preview.Preview) {
-		p.Cacher.Clear()
-	}
 }
 
 func addItemIntoCache(item entities.CacheItem, expected expResult) cacheActions {
-	return func(t *testing.T, p *preview.Preview) {
-		_, err := p.AddItemIntoCache(item)
-		if err != expected.err {
-			t.Errorf("AddItemIntoCache() returned wrong, expected err=%s, got err=%s",
+	return func(t *testing.T, l *LRU) {
+		_, err := l.Add(item)
+		if err != nil && err.Error() != expected.err.Error() {
+			t.Errorf("AddI() returned wrong, expected err=%s, got err=%s",
 				expected.err, err)
 		}
 	}
 }
 
-// nolint
-func addItemIntoStorage(item entities.CacheItem) cacheActions {
-	return func(t *testing.T, p *preview.Preview) {
-		_, _ = p.Storager.Save(item)
-	}
-}
-
-func isItemInCache(url string, expected expResult) cacheActions {
-	return func(t *testing.T, p *preview.Preview) {
-		hash, err := p.CalcHash(url)
-		if err != nil {
-			t.Errorf("CalcHash() returned error: %s", err)
-		}
-
-		_, ok, err := p.IsItemInCache(hash)
+func isItemInCache(hash string, expected expResult) cacheActions {
+	return func(t *testing.T, l *LRU) {
+		item, ok := l.Get(hash)
 		if ok != expected.ok {
-			t.Errorf("IsItemInCache() returned wrong, expected ok=%t, got ok=%t",
+			t.Errorf("Get() returned wrong, expected ok=%t, got ok=%t",
 				expected.ok, ok)
 		}
 
-		if err != nil && err.Error() == expected.err.Error() {
-			err = expected.err
-		}
-
-		if err != expected.err {
-			t.Errorf("IsItemInCache() returned wrong, expected err=%s, got err=%s",
-				expected.err, err)
+		if ok && item.Hash != hash {
+			t.Errorf("Get() returned wrong, expected hash=%s, got hash=%s",
+				hash, item.Hash)
 		}
 	}
 }
 
-// nolint:unused, deadcode
-func deleteItemInCache(item entities.CacheItem, expected expResult) cacheActions {
-	return func(t *testing.T, p *preview.Preview) {
-		err := p.Storager.Delete(item)
-		if err != expected.err {
-			t.Errorf("Storager.Delete() returned wrong, expected err=%s, got err=%s",
-				expected.err, err)
+func clearCache() cacheActions {
+	return func(t *testing.T, l *LRU) {
+		l.Clear()
+	}
+}
+
+func checkItemOrder(hash string, expected expResult) cacheActions {
+	return func(t *testing.T, l *LRU) {
+		var order uint
+		for elem := l.list.Front(); elem != nil; elem = elem.Next() {
+			order++
+
+			if elem.Value().(*entities.CacheItem).Hash == hash {
+				break
+			}
+		}
+
+		if order != expected.order {
+			t.Errorf("Item order wrong, expected order=%d, got order=%d",
+				expected.order, order)
 		}
 	}
 }
 
-func TestCache(t *testing.T) {
-	for _, test := range testCases {
-		prev, err := initPreview(
-			"xdraw", "md5", "inmemory", "", test.maxItems)
-		if err != nil {
-			t.Fatal(err)
-		}
+func TestCacheLRU(t *testing.T) {
+	cache, _ := NewCache(maxItems)
 
+	for _, test := range testCasesLRU {
 		test := test
 		t.Run(test.description, func(t *testing.T) {
 			t.Parallel()
 			for _, act := range test.actions {
-				act(t, prev)
+				act(t, cache)
 			}
 		})
 	}
-}
-
-func initPreview(prevImpl, encImpl, storImpl, storPath string,
-	maxItems int) (*preview.Preview, error) {
-	prev, err := previewers.NewPreviewer(prevImpl)
-	if err != nil {
-		return nil, err
-	}
-
-	enc, err := encoders.NewImageURLEncoder(encImpl)
-	if err != nil {
-		return nil, err
-	}
-
-	stor, err := storages.NewStorager(storImpl, storPath)
-	if err != nil {
-		return nil, err
-	}
-
-	cash, err := NewCache(maxItems)
-	if err != nil {
-		return nil, err
-	}
-
-	return preview.NewPreview(prev, enc, cash, stor)
 }

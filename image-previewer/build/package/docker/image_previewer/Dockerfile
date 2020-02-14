@@ -6,7 +6,16 @@ EXPOSE 9180
 
 RUN apk add --no-cache make
 RUN apk add --no-cache coreutils
-RUN mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
+
+ENV GO111MODULE=on
 
 WORKDIR /app
-ADD . /app/
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+COPY . .
+
+RUN go build -o app/image-previewer cmd/image-previewer/*.go

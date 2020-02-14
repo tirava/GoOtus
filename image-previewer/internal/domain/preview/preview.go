@@ -84,11 +84,18 @@ func (p Preview) IsItemInCache(hash string) (entities.CacheItem, bool, error) {
 				return entities.CacheItem{}, false, err
 			}
 
-			if _, err := p.Cacher.Add(item); err != nil {
+			delItem, err := p.Cacher.Add(item)
+			if err != nil {
 				return entities.CacheItem{}, false, err
 			}
 
-			return item, true, nil
+			if delItem.Hash != "" {
+				if err := p.Storager.Delete(delItem); err != nil {
+					return entities.CacheItem{}, false, err
+				}
+			}
+
+			return item, true, err
 		}
 
 		return entities.CacheItem{}, false, nil
@@ -121,7 +128,7 @@ func (p Preview) AddItemIntoCache(item entities.CacheItem) (bool, error) {
 	ok, errSave := p.Storager.Save(item)
 
 	if errDel != nil || errSave != nil {
-		err = fmt.Errorf("%s%s", errDel, errSave)
+		err = fmt.Errorf("%s %s", errDel, errSave)
 	}
 
 	// no need raw bytes anymore

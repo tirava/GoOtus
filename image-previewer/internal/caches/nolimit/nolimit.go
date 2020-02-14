@@ -22,6 +22,9 @@ func NewCache() (*NoLimit, error) {
 
 // Clear clears all cache.
 func (nl *NoLimit) Clear() {
+	nl.RWMutex.Lock()
+	defer nl.RWMutex.Unlock()
+
 	nl.cache = make(map[string]struct{})
 }
 
@@ -29,6 +32,7 @@ func (nl *NoLimit) Clear() {
 func (nl *NoLimit) Add(item entities.CacheItem) (entities.CacheItem, error) {
 	nl.RWMutex.Lock()
 	defer nl.RWMutex.Unlock()
+
 	nl.cache[item.Hash] = struct{}{}
 
 	return entities.CacheItem{}, nil
@@ -36,6 +40,9 @@ func (nl *NoLimit) Add(item entities.CacheItem) (entities.CacheItem, error) {
 
 // Get got item from cache.
 func (nl *NoLimit) Get(hash string) (entities.CacheItem, bool) {
+	nl.RWMutex.Lock()
+	defer nl.RWMutex.Unlock()
+
 	if _, ok := nl.cache[hash]; !ok {
 		return entities.CacheItem{}, false
 	}

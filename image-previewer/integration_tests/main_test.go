@@ -9,12 +9,10 @@ import (
 	"github.com/DATA-DOG/godog"
 )
 
-const ready = 25 * time.Second
+const ready = 5 * time.Second
 
 func TestMain(m *testing.M) {
 	fmt.Printf("\nWait %s for services availability...\n", ready)
-	fmt.Println("Sleep is needed for readiness network interfaces " +
-		"(for Linux it must be 5+s but MacOS X requires 15+s)")
 	time.Sleep(ready)
 
 	status := godog.RunWithOptions("integration", func(s *godog.Suite) {

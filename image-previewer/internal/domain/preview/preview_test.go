@@ -49,6 +49,7 @@ var testCases = []struct {
 			{175, 850},
 			{500, 500},
 			{50, 50},
+			{0, 0},
 		},
 		"xdraw",
 	},
@@ -101,6 +102,9 @@ func TestPreview(t *testing.T) {
 
 				w := r.Bounds().Max.X - r.Bounds().Min.X
 				h := r.Bounds().Max.Y - r.Bounds().Min.Y
+				if pr[0] == 0 || pr[1] == 0 {
+					pr[0], pr[1] = w, h
+				}
 
 				if w != pr[0] || h != pr[1] {
 					t.Errorf("'%s' preview bounds expected - %dx%d\nbut resized to - %dx%d\n",

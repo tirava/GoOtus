@@ -13,4 +13,5 @@ func (e PreviewError) Error() string {
 var (
 	ErrEmptyList             = PreviewError("cache list is empty")
 	ErrItemNotFoundInStorage = PreviewError("item not found in storage")
+	ErrSaveIntoStorage       = PreviewError("error save item into storage")
 )

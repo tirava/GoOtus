@@ -59,7 +59,6 @@ func (t *previewTest) theResponseCodeShouldBe(code int) error {
 
 func (t *previewTest) theResponseShouldMatchText(text string) error {
 	if string(t.responseBody) != text {
-		fmt.Println([]byte(text), t.responseBody)
 		return fmt.Errorf("unexpected text: %s != %s", t.responseBody, text)
 	}
 
@@ -68,7 +67,6 @@ func (t *previewTest) theResponseShouldMatchText(text string) error {
 
 func (t *previewTest) iReceiveErrorWithText(text string) error {
 	if !strings.Contains(string(t.responseBody), text) {
-		fmt.Println([]byte(text), t.responseBody)
 		return fmt.Errorf("unexpected text: %s != %s", t.responseBody, text)
 	}
 

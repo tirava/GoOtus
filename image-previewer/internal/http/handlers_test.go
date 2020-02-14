@@ -31,36 +31,49 @@ var testCases = []struct {
 	urlPath     string
 	imageName   string
 	expectCode  int
+	fromCache   string
 }{
 	{
 		"correct request",
 		"/preview/300/200/",
 		"/image.jpg",
 		http.StatusOK,
+		"false",
 	},
 	{
 		"incomplete parameters",
 		"/preview",
 		"",
 		http.StatusBadRequest,
+		"",
 	},
 	{
 		"bad preview size",
 		"/preview/qqq/www/",
 		"",
 		http.StatusBadRequest,
+		"",
 	},
 	{
 		"image name without ext not found",
 		"/preview/300/200/",
 		"/imagejpg",
 		http.StatusNotFound,
+		"false",
 	},
 	{
 		"bad image type",
 		"/preview/300/200/",
 		"/image.tiff",
 		http.StatusInternalServerError,
+		"false",
+	},
+	{
+		"correct request from cache",
+		"/preview/300/200/",
+		"/image.jpg",
+		http.StatusOK,
+		"true",
 	},
 }
 
@@ -100,7 +113,7 @@ func TestGetHello(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
 	query := req.URL.Query()
-	query.Add("name", "Klim")
+	//query.Add("name", "Klim")
 	query.Add("qqq", "www") // fake
 	req.URL.RawQuery = query.Encode()
 
@@ -114,7 +127,7 @@ func TestGetHello(t *testing.T) {
 		return
 	}
 
-	expected := "Hello, my name is Klim"
+	expected := "Hello, my name is Previewer!"
 	if !strings.Contains(rr.Body.String(), expected) {
 		t.Errorf("Hello handler returned unexpected body:\ngot - %v\nwant - %v",
 			rr.Body.String(), expected)
@@ -162,6 +175,12 @@ func TestPreviewHandler(t *testing.T) {
 				"Preview handler returned wrong status code: got - %v, want - %v\n"+
 				"response: %s",
 				test.description, status, test.expectCode, rr.Body)
+		}
+
+		if cached := rr.Header().Get("From-Cache"); cached != test.fromCache {
+			t.Errorf("Test: %s\n"+
+				"Preview handler returned wrong cache status: got - %v, want - %v\n",
+				test.description, cached, test.fromCache)
 		}
 	}
 }
