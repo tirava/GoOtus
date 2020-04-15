@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+    name: hello-rs-shop
+spec:
+    replicas: 3
+    selector:
+       matchLabels:
+          app: hello-shop
+    template:
+       metadata:
+          labels:
+             app: hello-shop
+       spec:
+          containers:
+          - name: hello-shop
+            image: evaklim/shop:0.1
+            ports:
+              - containerPort: 8000

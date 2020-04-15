@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-shop
+  labels:
+    app: hello-shop
+spec:
+  containers:
+  - name: hello-shop
+    image: evaklim/shop:0.1
+    ports:
+      - containerPort: 8000
