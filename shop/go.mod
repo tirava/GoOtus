@@ -5,8 +5,8 @@ go 1.13
 require (
 	github.com/go-chi/chi v4.1.0+incompatible
 	github.com/go-chi/render v1.0.1
-	github.com/google/uuid v1.1.1
-	github.com/sirupsen/logrus v1.5.0
-	github.com/swaggo/http-swagger v0.0.0-20200308142732-58ac5e232fba
-	gitlab.com/tirava/tzss v0.0.2
+	github.com/goware/httplog v0.1.5
+	github.com/rs/zerolog v1.18.0
+	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0 // indirect
+	golang.org/x/text v0.3.2 // indirect
 )

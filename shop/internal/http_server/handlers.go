@@ -2,13 +2,19 @@ package http
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/go-chi/render"
 )
 
-func (s Server) root(w http.ResponseWriter, r *http.Request) {
-	if _, err := w.Write([]byte("Welcome to our shop!")); err != nil {
-		//log.
+func (s Server) root(w http.ResponseWriter, _ *http.Request) {
+	host, err := os.Hostname()
+	if err != nil {
+		s.logger.Error().Msg(err.Error())
+	}
+
+	if _, err := w.Write([]byte("Welcome to our shop!\nMy pod hostname: " + host + "\n")); err != nil {
+		s.logger.Error().Msg(err.Error())
 	}
 }
 

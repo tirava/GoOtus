@@ -11,9 +11,10 @@ func (s *Server) PrepareRouter() {
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
+	// for production only instead Logger upper
+	// r.Use(httplog.RequestLogger(s.logger))
 	r.Use(middleware.Recoverer)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
-	r.Use(middleware.Heartbeat("/ping"))
 
 	r.With(stub).Route("/", func(r chi.Router) {
 		r.Get("/", s.root)
