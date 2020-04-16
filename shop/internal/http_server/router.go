@@ -19,6 +19,7 @@ func (s *Server) PrepareRouter() {
 	r.With(stub).Route("/", func(r chi.Router) {
 		r.Get("/", s.root)
 		r.Get("/health", s.health)
+		r.Get("/version", s.version)
 	})
 
 	s.router = r

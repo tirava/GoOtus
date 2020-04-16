@@ -21,3 +21,7 @@ func (s Server) root(w http.ResponseWriter, _ *http.Request) {
 func (s Server) health(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, render.M{"status": "OK"})
 }
+
+func (s Server) version(w http.ResponseWriter, r *http.Request) {
+	render.Respond(w, r, render.M{"version": "0.3"})
+}

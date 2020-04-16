@@ -7,10 +7,10 @@ run:
 	./app/http_server
 
 docker-build:
-	docker build -t http_server -f ./build/package/http_server/Dockerfile .
+	docker build -t evaklim/shop -f ./build/package/http_server/Dockerfile .
 
 docker-run:
-	docker run --rm -d -p 8000:8000 --name http_server http_server
+	docker run --rm -d -p 8000:8000 --name evaklim_shop evaklim/shop
 
 docker-stop:
-	docker stop http_server
+	docker stop evaklim_shop

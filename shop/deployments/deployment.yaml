@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-shop-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-shop-app
+  template:
+    metadata:
+      labels:
+        app: hello-shop-app
+    spec:
+      containers:
+        - name: hello-shop
+          image: evaklim/shop
+          ports:
+            - name: web
+              containerPort: 8000
+          livenessProbe:
+            httpGet:
+              port: web
+              path: /
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 2
+          readinessProbe:
+            httpGet:
+              port: web
+              path: /health
+            initialDelaySeconds: 15
+            periodSeconds: 5
