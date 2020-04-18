@@ -10,7 +10,13 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/goware/httplog"
+	"github.com/jinzhu/gorm"
 	"github.com/rs/zerolog"
+)
+
+const (
+	serviceName = "shop-http"
+	logLevel    = "debug"
 )
 
 // Server base struct.
@@ -18,16 +24,22 @@ type Server struct {
 	listen string
 	router chi.Router
 	logger zerolog.Logger
+	db     *gorm.DB
+	error  Error
 }
 
 // NewServer returns new server instance.
-func NewServer(listen string) *Server {
+func NewServer(listen string, db *gorm.DB) *Server {
+	logger := httplog.NewLogger(serviceName, httplog.Options{
+		JSON:     false,
+		LogLevel: logLevel,
+	})
+
 	return &Server{
 		listen: listen,
-		logger: httplog.NewLogger("shop-http", httplog.Options{
-			JSON:     false,
-			LogLevel: "debug",
-		}),
+		logger: logger,
+		db:     db,
+		error:  newError(&logger),
 	}
 }
 

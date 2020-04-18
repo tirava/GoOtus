@@ -20,6 +20,12 @@ func (s *Server) PrepareRouter() {
 		r.Get("/", s.root)
 		r.Get("/health", s.health)
 		r.Get("/version", s.version)
+		r.Route("/user", func(r chi.Router) {
+			r.Post("/", s.newUser)
+			r.Get("/{userID}", s.getUser)
+			r.Put("/{userID}", s.updateUser)
+			r.Delete("/{userID}", s.deleteUser)
+		})
 	})
 
 	s.router = r

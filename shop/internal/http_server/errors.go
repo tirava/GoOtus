@@ -1,48 +1,37 @@
 package http
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/render"
+	"github.com/rs/zerolog"
 )
 
-// ErrResponse common struct.
-type ErrResponse struct {
-	Err            error `json:"-"` // low-level runtime error
-	HTTPStatusCode int   `json:"-"` // http response status code
-
-	StatusText string `json:"status"`          // user-level status message
-	AppCode    int64  `json:"code,omitempty"`  // application-specific error code
-	ErrorText  string `json:"error,omitempty"` // application-level error message, for debugging
+// Error model.
+type Error struct {
+	Code    int    `json:"code"`
+	Message string `json:"message,omitempty"`
+	logger  *zerolog.Logger
 }
 
-func (e *ErrResponse) Render(_ http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.HTTPStatusCode)
-	return nil
-}
-
-// ErrInvalidRequest error.
-func ErrInvalidRequest(err error) render.Renderer {
-	return &ErrResponse{
-		Err:            err,
-		HTTPStatusCode: http.StatusBadRequest,
-		StatusText:     "Invalid request.",
-		ErrorText:      err.Error(),
+func newError(logger *zerolog.Logger) Error {
+	return Error{
+		logger: logger,
 	}
 }
 
-// ErrRender error.
-func ErrRender(err error) render.Renderer {
-	return &ErrResponse{
-		Err:            err,
-		HTTPStatusCode: http.StatusUnprocessableEntity,
-		StatusText:     "Error rendering response.",
-		ErrorText:      err.Error(),
+func (e Error) send(w http.ResponseWriter, code int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+
+	errMsg := Error{
+		Code:    code,
+		Message: message,
+	}
+
+	if err := json.NewEncoder(w).Encode(errMsg); err != nil {
+		e.logger.Error().Msg(err.Error())
+
+		return
 	}
 }
-
-// example
-//if err := render.Render(w, r, anyResponse); err != nil {
-//	render.Render(w, r, ErrRender(err))
-//  return
-//}
