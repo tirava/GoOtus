@@ -109,7 +109,7 @@ func (s Server) getUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.ID == 0 {
-		s.error.send(w, http.StatusOK, userNotFound)
+		s.error.send(w, http.StatusNotFound, userNotFound)
 
 		return
 	}
@@ -137,7 +137,7 @@ func (s Server) deleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if db.RowsAffected == 0 {
-		s.error.send(w, http.StatusOK, userNotFound)
+		s.error.send(w, http.StatusNotFound, userNotFound)
 
 		return
 	}
@@ -174,7 +174,7 @@ func (s Server) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if db.Error == gorm.ErrRecordNotFound {
-		s.error.send(w, http.StatusOK, userNotFound)
+		s.error.send(w, http.StatusNotFound, userNotFound)
 
 		return
 	}

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-shop-config
+data:
+  DB_HOST: postgres
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hello-shop-secret
+type: Opaque
+data:
+  DB_NAME: c2hvcAo=
+  DB_USER: dGVzdHVzZXIK
+  DB_PASS: dGVzdHBhc3MK

@@ -4,9 +4,9 @@ metadata:
   name: skaffold
 build:
   artifacts:
-  - image: evaklim/shop
+    - image: evaklim/shop
 deploy:
   kubectl:
     manifests:
-    - deployments/*
+      - deployments/*
 

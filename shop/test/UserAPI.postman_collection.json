@@ -1,0 +1,158 @@
+{
+	"info": {
+		"_postman_id": "553f9ddf-0fd7-48f8-a897-8729d8e8c9ac",
+		"name": "User API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9bd7ae6d-1e3c-4c11-92ef-c298c530e947",
+						"exec": [
+							"const jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"UserID\", jsonData.ID);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\":\"kirka\",\n\t\"firstname\":\"Kirk\",\n\t\"lastname\":\"Kirkorov\",\n\t\"email\":\"kirk@ship.cap\",\n\t\"phone\":\"+7 999 888 7766\"\n}"
+				},
+				"url": {
+					"raw": "http://{{BaseURL}}/otusapp/user",
+					"protocol": "http",
+					"host": [
+						"{{BaseURL}}"
+					],
+					"path": [
+						"otusapp",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{BaseURL}}/otusapp/user/{{UserID}}",
+					"protocol": "http",
+					"host": [
+						"{{BaseURL}}"
+					],
+					"path": [
+						"otusapp",
+						"user",
+						"{{UserID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update user",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"UserName\": \"kirka-2\",\n    \"FirstName\": \"Kirk-2\",\n    \"LastName\": \"Kirkorov-2\",\n    \"Email\": \"kirk-2@ship.cap\",\n    \"Phone\": \"+7 999 888 5522\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{BaseURL}}/otusapp/user/{{UserID}}",
+					"protocol": "http",
+					"host": [
+						"{{BaseURL}}"
+					],
+					"path": [
+						"otusapp",
+						"user",
+						"{{UserID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete user",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://{{BaseURL}}/otusapp/user/{{UserID}}",
+					"protocol": "http",
+					"host": [
+						"{{BaseURL}}"
+					],
+					"path": [
+						"otusapp",
+						"user",
+						"{{UserID}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "338d4bd3-2c39-4d10-87a0-99a45603fb21",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "c74e5535-4e35-4b33-8ff5-7ea4081994bb",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "f461248a-1c5a-4c0e-a097-b605fff67931",
+			"key": "UserID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "4b77591c-99d8-471e-9019-c0933099175c",
+			"key": "BaseURL",
+			"value": "arch.homework",
+			"type": "string"
+		}
+	],
+	"protocolProfileBehavior": {}
+}

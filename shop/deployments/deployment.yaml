@@ -12,9 +12,36 @@ spec:
       labels:
         app: hello-shop-app
     spec:
+      initContainers:
+        - name: check-db-ready
+          image: postgres
+          command: ['sh', '-c',
+                    'until pg_isready -h postgres -p 5432;
+                do echo waiting for database; sleep 2; done;']
       containers:
         - name: hello-shop
           image: evaklim/shop
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: hello-shop-config
+                  key: DB_HOST
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: hello-shop-secret
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: hello-shop-secret
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: hello-shop-secret
+                  key: DB_PASS
           ports:
             - name: web
               containerPort: 8000
