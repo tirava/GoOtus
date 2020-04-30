@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-config
+data:
+  DB_HOST: {{ include "postgresql.fullname" . | quote }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: shop-secret
+type: Opaque
+data:
+  DB_NAME: {{ printf "%s" .Values.postgresql.postgresqlDatabase | b64enc | quote }}
+  DB_USER: {{ printf "%s" .Values.postgresql.postgresqlUsername | b64enc | quote }}
+  DB_PASS: {{ printf "%s" .Values.postgresql.postgresqlPassword | b64enc | quote }}

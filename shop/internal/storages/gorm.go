@@ -19,7 +19,9 @@ func NewGormDB(dia, dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(&models.User{})
+	if err := db.AutoMigrate(&models.User{}).Error; err != nil {
+		return nil, err
+	}
 
 	return db, nil
 }

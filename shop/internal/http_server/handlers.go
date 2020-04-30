@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	appVersion      = "0.4.2"
 	requestID       = "requestID"
 	badJSON         = "Bad JSON"
 	errJSONResponse = "Error JSON response"
@@ -42,7 +43,7 @@ func (s Server) health(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) version(w http.ResponseWriter, r *http.Request) {
-	render.Respond(w, r, render.M{"version": "0.3.1"})
+	render.Respond(w, r, render.M{"version": appVersion})
 }
 
 func (s Server) sendUser(w http.ResponseWriter, user *models.User, rid string) {
@@ -143,7 +144,7 @@ func (s Server) deleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusFound)
+	w.WriteHeader(http.StatusNoContent)
 	s.logger.Info().Str(requestID, rid).Msgf("deleted user with id: %d", uid)
 }
 

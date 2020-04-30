@@ -1,9 +1,11 @@
 package http
 
 import (
+	chiprometheus "github.com/766b/chi-prometheus"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func (s *Server) PrepareRouter() {
@@ -15,6 +17,9 @@ func (s *Server) PrepareRouter() {
 	// r.Use(httplog.RequestLogger(s.logger))
 	r.Use(middleware.Recoverer)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
+	r.Use(chiprometheus.NewMiddleware("shop", 1, 10, 50, 100, 250, 500, 1000, 5000))
+
+	r.Handle("/metrics", promhttp.Handler())
 
 	r.With(stub).Route("/", func(r chi.Router) {
 		r.Get("/", s.root)
