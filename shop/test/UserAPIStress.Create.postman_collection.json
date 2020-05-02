@@ -1,0 +1,118 @@
+{
+	"info": {
+		"_postman_id": "d6eb610f-0269-427b-84a9-69ce6eed505c",
+		"name": "User API Stress - Create",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f22e3d28-8e7c-4545-bc0d-c241abed89c9",
+						"exec": [
+							"const jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"UserID\", jsonData.ID);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\":\"kirka\",\n\t\"firstname\":\"Kirk\",\n\t\"lastname\":\"Kirkorov\",\n\t\"email\":\"kirk@ship.cap\",\n\t\"phone\":\"+7 999 888 7766\"\n}"
+				},
+				"url": {
+					"raw": "http://{{BaseURL}}/otusapp/user",
+					"protocol": "http",
+					"host": [
+						"{{BaseURL}}"
+					],
+					"path": [
+						"otusapp",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update user",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"UserName\": \"kirka-2\",\n    \"FirstName\": \"Kirk-2\",\n    \"LastName\": \"Kirkorov-2\",\n    \"Email\": \"kirk-2@ship.cap\",\n    \"Phone\": \"+7 999 888 5522\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{BaseURL}}/otusapp/user/{{UserID}}",
+					"protocol": "http",
+					"host": [
+						"{{BaseURL}}"
+					],
+					"path": [
+						"otusapp",
+						"user",
+						"{{UserID}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "68f6fa21-b457-443c-be4c-e93b72a4771c",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "6e57b636-f67f-46d8-886a-c17173717c42",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "03ce7512-5d93-42f4-9228-c615eaa80964",
+			"key": "UserID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "4057498e-b937-4bbb-9d56-2863b81e7fc5",
+			"key": "BaseURL",
+			"value": "arch.homework",
+			"type": "string"
+		}
+	],
+	"protocolProfileBehavior": {}
+}

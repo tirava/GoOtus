@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	appVersion      = "0.4.2"
+	appVersion      = "0.4.3"
 	requestID       = "requestID"
 	badJSON         = "Bad JSON"
 	errJSONResponse = "Error JSON response"
@@ -48,6 +48,13 @@ func (s Server) version(w http.ResponseWriter, r *http.Request) {
 
 func (s Server) sendUser(w http.ResponseWriter, user *models.User, rid string) {
 	if err := json.NewEncoder(w).Encode(user); err != nil {
+		s.logger.Error().Str(requestID, rid).Msg(err.Error())
+		s.error.send(w, http.StatusInternalServerError, errJSONResponse)
+	}
+}
+
+func (s Server) sendUsers(w http.ResponseWriter, users []models.User, rid string) {
+	if err := json.NewEncoder(w).Encode(users); err != nil {
 		s.logger.Error().Str(requestID, rid).Msg(err.Error())
 		s.error.send(w, http.StatusInternalServerError, errJSONResponse)
 	}
@@ -89,6 +96,24 @@ func (s Server) newUser(w http.ResponseWriter, r *http.Request) {
 
 	s.logger.Info().Str(requestID, rid).Msgf("created user with id: %d", user.ID)
 	s.sendUser(w, user, rid)
+}
+
+func (s Server) getUsers(w http.ResponseWriter, r *http.Request) {
+	rid := middleware.GetReqID(r.Context())
+	users := make([]models.User, 0)
+
+	db := s.db.Find(&users)
+	if db.Error != nil {
+		s.logger.Error().Str(requestID, rid).Msg(db.Error.Error())
+		s.error.send(w, http.StatusInternalServerError, errorGetUser)
+
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusFound)
+	s.logger.Info().Str(requestID, rid).Msg("got all users")
+	s.sendUsers(w, users, rid)
 }
 
 func (s Server) getUser(w http.ResponseWriter, r *http.Request) {

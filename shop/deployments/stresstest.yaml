@@ -1,0 +1,36 @@
+# Before tests run from root project directory:
+# minikube mount ./test:/host
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: shop-stress
+spec:
+  template:
+    metadata:
+      name: shop-stress
+    spec:
+      volumes:
+        - name: host-mount
+          hostPath:
+            path: /host
+      restartPolicy: Never
+      containers:
+        - name: stress-job
+          image: postman/newman:latest
+          env:
+            - name: HOST
+              value: "arch.homework"
+            - name: URL
+              value: "http://192.168.99.100/otusapp/users"
+          workingDir: /host
+          volumeMounts:
+            - mountPath: /host
+              name: host-mount
+          command:
+            - sh
+            - "-c"
+            - |
+              apk add --no-cache apache2-utils
+              newman run UserAPIStress.Create.postman_collection.json --iteration-count 10
+              while true; do ab -n 100 -c 1 -H"Host: $HOST" $URL; sleep 1; done;
+  backoffLimit: 0
